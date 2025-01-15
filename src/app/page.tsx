@@ -1,11 +1,15 @@
-import ThemeToggleButton from "@/components/core/common/theme-toggle-button";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div>
-      <ThemeToggleButton />
-      <Button>Hello world</Button>
-    </div>
+    <>
+      <Link href={"/Login"}>
+        <Button>Login</Button>
+      </Link>
+      <Link href={"/SignIn"}>
+        <Button>SignIn</Button>
+      </Link>
+    </>
   );
 }
