@@ -9,17 +9,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 import { RegisterSchema } from "@/schema/auth/register";
+
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Label } from "@/components/ui/label";
 
 const RegisterForm = () => {
   const [isPending, setIsPending] = useState<boolean>(false);
@@ -50,8 +51,8 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="login-form w-[600px] h-full flex flex-col gap-y-5 px-[25px] py-[75px] rounded">
-      <h1 className="text-[40px] font-extrabold text-center">Đăng ký</h1>
+    <div className="login-form w-[600px] h-full flex flex-col gap-y-5 px-[25px] py-[75px] rounded-[20px] bg-white">
+      <h1 className="text-xl font-extrabold text-center">Đăng ký</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -63,19 +64,21 @@ const RegisterForm = () => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                      <User className="w-5 h-5" />
-                    </span>
-                    <Input
-                      type="text"
-                      placeholder="Nhập tên tại đây"
-                      disabled={isPending}
-                      {...field}
-                      className="pl-10"
-                    />
+                  <div className="grid w-full max-w-sm items-center gap-1.5 relative">
+                    <Label htmlFor="email">Tên</Label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                        <User className="w-5 h-5" />
+                      </span>
+                      <Input
+                        type="text"
+                        placeholder="Nhập tên tại đây"
+                        disabled={isPending}
+                        {...field}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -89,19 +92,21 @@ const RegisterForm = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                      <Mail className="w-5 h-5" />
-                    </span>
-                    <Input
-                      type="email"
-                      placeholder="Nhập email tại đây"
-                      disabled={isPending}
-                      {...field}
-                      className="pl-10"
-                    />
+                  <div className="grid w-full max-w-sm items-center gap-1.5 relative">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                        <Mail className="w-5 h-5" />
+                      </span>
+                      <Input
+                        type="email"
+                        placeholder="Nhập email tại đây"
+                        disabled={isPending}
+                        {...field}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -115,30 +120,32 @@ const RegisterForm = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mật khẩu</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                      <Lock className="w-5 h-5" />
-                    </span>
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Nhập mật khẩu tại đây"
-                      disabled={isPending}
-                      {...field}
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-3 flex items-center text-gray-400"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
+                  <div className="grid w-full max-w-sm items-center gap-1.5 relative">
+                    <Label htmlFor="email">Mật khẩu</Label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                        <Lock className="w-5 h-5" />
+                      </span>
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Nhập mật khẩu tại đây"
+                        disabled={isPending}
+                        {...field}
+                        className="pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -152,32 +159,34 @@ const RegisterForm = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nhập lại mật khẩu</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                      <Lock className="w-5 h-5" />
-                    </span>
-                    <Input
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Nhập lại mật khẩu"
-                      disabled={isPending}
-                      {...field}
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute inset-y-0 right-3 flex items-center text-gray-400"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
+                  <div className="grid w-full max-w-sm items-center gap-1.5 relative">
+                    <Label htmlFor="email">Nhập lại mật khẩu</Label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                        <Lock className="w-5 h-5" />
+                      </span>
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Nhập lại mật khẩu"
+                        disabled={isPending}
+                        {...field}
+                        className="pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -213,7 +222,7 @@ const RegisterForm = () => {
       <p className="font-medium text-center text-lg">
         Bạn đã có tài khoản ?
         <span className="text-[#57D061]">
-          <Link href={"/Login"}> Đăng nhập</Link>
+          <Link href={"/login"}> Đăng nhập</Link>
         </span>
       </p>
     </div>

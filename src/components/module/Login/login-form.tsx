@@ -35,8 +35,8 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="login-form w-[600px] h-full flex flex-col gap-y-5 px-[25px] py-[75px] rounded">
-      <h1 className="text-[40px] font-extrabold text-center">Đăng nhập</h1>
+    <div className="login-form w-[600px] h-full flex flex-col gap-y-5 px-[25px] py-[75px] rounded-[20px] bg-white">
+      <h1 className="text-xl font-extrabold text-center">Đăng nhập</h1>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full flex flex-col gap-y-5"
@@ -137,7 +137,7 @@ const LoginForm = () => {
       <p className="font-medium text-center text-lg">
         Bạn chưa có tài khoản ?
         <span className="text-[#57D061]">
-          <Link href={"/SignIn"}>Đăng ký</Link>
+          <Link href={"/sign-in"}> Đăng ký</Link>
         </span>
       </p>
     </div>

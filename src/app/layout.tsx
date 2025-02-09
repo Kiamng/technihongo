@@ -1,4 +1,3 @@
-import { ThemeProvider } from "@/components/core/common/providers/theme-provider";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Nunito } from "next/font/google";
@@ -15,15 +14,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={nunito.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        {children}
+        <Toaster />
       </body>
     </html>
   );
