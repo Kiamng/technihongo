@@ -39,7 +39,7 @@ const Navigation = () => {
     <div className="pr-4">
       <div
         className={cn(
-          isSidebarExpanded ? "w-[288px]" : "w-[68px]",
+          isSidebarExpanded ? "w-[288px]" : "w-[80px]",
           "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full"
         )}
       >
@@ -57,32 +57,34 @@ const Navigation = () => {
             </Button>
           </div>
           <div className="relative  pb-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
-            <div className="font-semibold text-base">
+            <div className="font-semibold text-base ">
               {isSidebarExpanded ? "Username " : ""}
             </div>
           </div>
           {/* Navigation Links */}
-          <div className="relative ">
-            <div className="flex flex-col space-y-1">
-              {navItems.map((item, idx) => {
-                if (item.position === "top") {
-                  return (
-                    <Fragment key={idx}>
-                      <div className="space-y-1">
-                        <SideNavItem
-                          label={item.name}
-                          icon={item.icon}
-                          path={item.href}
-                          active={item.active}
-                          isSidebarExpanded={isSidebarExpanded}
-                        />
-                      </div>
-                    </Fragment>
-                  );
-                }
-              })}
+
+          {navItems.map((section, index) => (
+            <div key={index} className="relative ">
+              <div className="flex flex-col space-y-2">
+                <div className="font-semibold text-base duration-100 relative">
+                  {isSidebarExpanded ? section.sectionName : ""}
+                </div>
+                {section.sectionList.map((item, idx) => (
+                  <Fragment key={idx}>
+                    <div className="space-y-1">
+                      <SideNavItem
+                        label={item.name}
+                        icon={item.icon}
+                        path={item.href}
+                        active={item.active}
+                        isSidebarExpanded={isSidebarExpanded}
+                      />
+                    </div>
+                  </Fragment>
+                ))}
+              </div>
             </div>
-          </div>
+          ))}
         </aside>
       </div>
     </div>

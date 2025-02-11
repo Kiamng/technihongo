@@ -1,113 +1,74 @@
-import { Bell, Briefcase, Home, Settings, User } from "lucide-react";
+import {
+  BadgeJapaneseYen,
+  ChartNoAxesColumn,
+  Copy,
+  FileChartPie,
+  GraduationCap,
+  Heart,
+  Home,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export const NavItems = () => {
   const pathname = usePathname();
-
+  const iconSize: number = 24;
+  const iconStroke: number = 1.5;
   function isNavItemActive(pathname: string, nav: string) {
     return pathname.includes(nav);
   }
 
   return [
     {
-      name: "Home",
-      href: "/",
-      icon: <Home size={20} />,
-      active: isNavItemActive(pathname, "/home"),
-      position: "top",
+      sectionName: "Học tập",
+      sectionList: [
+        {
+          name: "Home",
+          href: "/home",
+          icon: <Home strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/home"),
+        },
+        {
+          name: "Thống kê",
+          href: "/learning-statistic",
+          icon: <ChartNoAxesColumn strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/learning-statistic"),
+        },
+        {
+          name: "Khóa học",
+          href: "/course",
+          icon: <GraduationCap strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/course"),
+        },
+        {
+          name: "Nội dung yêu thích",
+          href: "/saved-content",
+          icon: <Heart strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/saved-content"),
+        },
+        {
+          name: "Flashcard",
+          href: "/flashcard",
+          icon: <Copy strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/flashcard"),
+        },
+      ],
     },
     {
-      name: "Profile",
-      href: "/profile",
-      icon: <User size={20} />,
-      active: isNavItemActive(pathname, "/profile"),
-      position: "top",
+      sectionName: "Nâng cấp",
+      sectionList: [
+        {
+          name: "Các gói",
+          href: "/abc",
+          icon: <BadgeJapaneseYen strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/abc"),
+        },
+        {
+          name: "Lịch sử",
+          href: "/abc",
+          icon: <FileChartPie strokeWidth={iconStroke} size={iconSize} />,
+          active: isNavItemActive(pathname, "/abc"),
+        },
+      ],
     },
-    {
-      name: "Notifications",
-      href: "/notifications",
-      icon: <Bell size={20} />,
-      active: isNavItemActive(pathname, "/notifications"),
-      position: "top",
-    },
-    {
-      name: "Projects",
-      href: "/projects",
-      icon: <Briefcase size={20} />,
-      active: isNavItemActive(pathname, "/projects"),
-      position: "top",
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: <Settings size={20} />,
-      active: isNavItemActive(pathname, "/settings"),
-      position: "bottom",
-    },
-    // {
-    //   sectionName: "Học tập",
-    //   sectionList: [
-    //     {
-    //       name: "Khóa học",
-    //       href: "/",
-    //       icon: (
-    //         <GraduationCap
-    //           size={28}
-    //           className="stroke-inherit stroke-[0.75] min-w-8 w-8"
-    //         />
-    //       ),
-    //       active: pathname === "/",
-    //     },
-    //     {
-    //       name: "Bài giảng yêu thích",
-    //       href: "/",
-    //       icon: (
-    //         <Heart
-    //           size={28}
-    //           className="stroke-inherit stroke-[0.75] min-w-8 w-8"
-    //         />
-    //       ),
-    //       active: pathname === "/",
-    //     },
-    //     {
-    //       name: "Flashcard",
-    //       href: "/",
-    //       icon: (
-    //         <Copy
-    //           size={28}
-    //           className="stroke-inherit stroke-[0.75] min-w-8 w-8"
-    //         />
-    //       ),
-    //       active: pathname === "/",
-    //     },
-    //   ],
-    // },
-    // {
-    //   sectionName: "Nâng cấp tài khoản",
-    //   sectionList: [
-    //     {
-    //       name: "Các gói",
-    //       href: "/",
-    //       icon: (
-    //         <BadgeJapaneseYen
-    //           size={28}
-    //           className="stroke-inherit stroke-[0.75] min-w-8 w-8"
-    //         />
-    //       ),
-    //       active: pathname === "/",
-    //     },
-    //     {
-    //       name: "Lịch sử giao dịch",
-    //       href: "/",
-    //       icon: (
-    //         <FileChartPie
-    //           size={28}
-    //           className="stroke-inherit stroke-[0.75] min-w-8 w-8"
-    //         />
-    //       ),
-    //       active: pathname === "/",
-    //     },
-    //   ],
-    // },
   ];
 };

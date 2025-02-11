@@ -18,13 +18,13 @@ export const SideNavItem: React.FC<{
       {isSidebarExpanded ? (
         <Link
           href={path}
-          className={`h-full relative flex items-center whitespace-nowrap rounded-md font-semibold text-base ${
+          className={`h-full relative flex items-center whitespace-nowrap rounded-md  ${
             active
               ? " font-semibold text-base bg-[#56D071] text-white"
               : "hover:text-[#56D071] "
           }`}
         >
-          <div className="relative font-medium text-base py-1.5 px-2 flex flex-row items-center space-x-2 rounded-md duration-100">
+          <div className="relative font-normal text-base py-1.5 px-2 flex flex-row items-center space-x-2 rounded-md duration-100">
             {icon}
             <span>{label}</span>
           </div>
