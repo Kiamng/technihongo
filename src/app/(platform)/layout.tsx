@@ -7,16 +7,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <section>
+    <section className="min-h-screen">
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex flex-row h-screen gap-4">
+        <div className="flex flex-row min-h-screen overflow-hidden">
           <Navigation />
-          <div className="flex-1 overflow-x-auto">
-            <div className="sm:h-[calc(99vh-60px)] overflow-auto">
-              <div className="w-full flex pl-4 overflow-auto h-[calc(100vh - 120px)] overflow-y-auto relative">
-                <div className="w-full p-5 md:max-w-6xl">{children}</div>
-              </div>
-            </div>
+          <div className="flex-1 overflow-y-auto p-10 max-h-screen">
+            {children}
           </div>
         </div>
       </ThemeProvider>
