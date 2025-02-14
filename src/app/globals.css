@@ -30,24 +30,24 @@ body {
     --radius: 0.5rem;
   }
   .dark {
-    --background: 133 10% 5%;
-    --foreground: 133 0% 90%;
-    --card: 133 0% 0%;
-    --card-foreground: 133 0% 90%;
-    --popover: 133 10% 5%;
-    --popover-foreground: 133 0% 90%;
+    --background: 133 50% 5%;
+    --foreground: 133 5% 90%;
+    --card: 133 50% 0%;
+    --card-foreground: 133 5% 90%;
+    --popover: 133 50% 5%;
+    --popover-foreground: 133 5% 90%;
     --primary: 133 56.5% 57.6%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 133 10% 10%;
+    --secondary: 133 30% 10%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 95 10% 15%;
-    --muted-foreground: 133 0% 60%;
-    --accent: 95 10% 15%;
-    --accent-foreground: 133 0% 90%;
-    --destructive: 0 50% 30%;
-    --destructive-foreground: 133 0% 90%;
-    --border: 133 20% 18%;
-    --input: 133 20% 18%;
+    --muted: 95 30% 15%;
+    --muted-foreground: 133 5% 60%;
+    --accent: 95 30% 15%;
+    --accent-foreground: 133 5% 90%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 133 5% 90%;
+    --border: 133 30% 18%;
+    --input: 133 30% 18%;
     --ring: 133 56.5% 57.6%;
     --radius: 0.5rem;
   }
@@ -112,5 +112,12 @@ body {
     transform: rotateY(180deg);
     font-size: 20px;
     text-align: center;
+  }
+
+  .flashcard-content-font {
+    font-size: 4rem;
+    font-weight: 700;
+    max-height: 275px;
+    overflow-y: auto;
   }
 }

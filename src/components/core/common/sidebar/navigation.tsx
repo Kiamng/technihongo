@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SideNavItem } from "./navigation-items";
 import { Button } from "@/components/ui/button";
+import ThemeToggleButton from "../theme-toggle-button";
 
 const Navigation = () => {
   const navItems = NavItems();
@@ -40,11 +41,12 @@ const Navigation = () => {
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
-          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full"
+          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full dark:bg-secondary"
         )}
       >
         <aside className="flex h-full flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5">
           <div className="relative  py-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
+            <ThemeToggleButton />
             <div className="technihongo">
               {isSidebarExpanded ? "Technihongo" : ""}
             </div>
