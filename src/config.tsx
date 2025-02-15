@@ -58,9 +58,9 @@ export const NavItems = () => {
       sectionList: [
         {
           name: "Các gói",
-          href: "/abc",
+          href: "/subscription/plan",
           icon: <BadgeJapaneseYen strokeWidth={iconStroke} size={iconSize} />,
-          active: isNavItemActive(pathname, "/abc"),
+          active: isNavItemActive(pathname, "/subscription/plan"),
         },
         {
           name: "Lịch sử",
