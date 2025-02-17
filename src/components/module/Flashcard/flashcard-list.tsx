@@ -29,7 +29,7 @@ const FlashcardList = () => {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="flashcard-app flex flex-col space-y-6 bg-secondary p-10 w-fit rounded-2xl border-[1px]">
+      <div className="flashcard-app flex flex-col space-y-6 bg-secondary p-10 w-fit rounded-2xl border-[1px] bg-white dark:bg-secondary">
         <div className="w-[800px] h-[350px] overflow-hidden">
           <div
             className="flashcards-container"

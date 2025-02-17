@@ -9,7 +9,7 @@ export default function RootLayout({
   return (
     <section className="min-h-screen">
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex flex-row min-h-screen overflow-hidden ">
+        <div className="flex flex-row min-h-screen overflow-hidden dark:bg-inherit bg-secondary">
           <Navigation />
           <div className="flex-1 overflow-y-auto p-10 max-h-screen ">
             {children}

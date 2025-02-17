@@ -41,7 +41,7 @@ const Navigation = () => {
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
-          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full dark:bg-secondary"
+          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black"
         )}
       >
         <aside className="flex h-full flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5">
@@ -50,11 +50,21 @@ const Navigation = () => {
             <div className="technihongo">
               {isSidebarExpanded ? "Technihongo" : ""}
             </div>
-            <Button onClick={toggleSidebar} size={"sm"} className="">
+            <Button
+              onClick={toggleSidebar}
+              size={"icon"}
+              className="rounded-full "
+            >
               {isSidebarExpanded ? (
-                <ChevronLeft size={16} className="stroke-foreground" />
+                <ChevronLeft
+                  size={16}
+                  className="stroke-foreground text-white"
+                />
               ) : (
-                <ChevronRight size={16} className="stroke-foreground" />
+                <ChevronRight
+                  size={16}
+                  className="stroke-foreground text-white"
+                />
               )}
             </Button>
           </div>
