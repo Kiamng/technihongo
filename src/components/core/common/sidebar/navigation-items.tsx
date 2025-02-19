@@ -1,10 +1,11 @@
+import Link from "next/link";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Link from "next/link";
 
 export const SideNavItem: React.FC<{
   label: string;
@@ -17,12 +18,12 @@ export const SideNavItem: React.FC<{
     <>
       {isSidebarExpanded ? (
         <Link
-          href={path}
           className={`h-full relative flex items-center whitespace-nowrap rounded-md  ${
             active
               ? " font-semibold text-base bg-primary text-white"
               : "hover:text-primary "
           }`}
+          href={path}
         >
           <div className="relative font-normal text-base py-1.5 px-2 flex flex-row items-center space-x-2 rounded-md duration-100">
             {icon}
@@ -34,12 +35,12 @@ export const SideNavItem: React.FC<{
           <Tooltip>
             <TooltipTrigger>
               <Link
-                href={path}
                 className={`h-full relative flex items-center whitespace-nowrap rounded-md ${
                   active
                     ? " font-semibold text-base bg-primary text-white"
                     : "hover:text-primary "
                 }`}
+                href={path}
               >
                 <div className="relative font-medium text-base p-2 flex flex-row items-center space-x-2 rounded-md duration-100">
                   {icon}
@@ -47,8 +48,8 @@ export const SideNavItem: React.FC<{
               </Link>
             </TooltipTrigger>
             <TooltipContent
-              side="left"
               className="px-3 py-1.5 text-xs"
+              side="left"
               sideOffset={10}
             >
               <span>{label}</span>

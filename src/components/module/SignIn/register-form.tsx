@@ -1,15 +1,13 @@
 "use client";
 import { User, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
-
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useState } from "react";
+import Link from "next/link";
 
 import { RegisterSchema } from "@/schema/auth/register";
-
 import {
   Form,
   FormControl,
@@ -17,9 +15,8 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const RegisterForm = () => {
@@ -55,8 +52,8 @@ const RegisterForm = () => {
       <h1 className="text-xl font-extrabold text-center">Đăng ký</h1>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
           className="w-full flex flex-col gap-y-4"
+          onSubmit={form.handleSubmit(onSubmit)}
         >
           {/* Username */}
           <FormField
@@ -72,9 +69,9 @@ const RegisterForm = () => {
                         <User className="w-5 h-5" />
                       </span>
                       <Input
-                        type="text"
-                        placeholder="Nhập tên tại đây"
                         disabled={isPending}
+                        placeholder="Nhập tên tại đây"
+                        type="text"
                         {...field}
                         className="pl-10"
                       />
@@ -100,9 +97,9 @@ const RegisterForm = () => {
                         <Mail className="w-5 h-5" />
                       </span>
                       <Input
-                        type="email"
-                        placeholder="Nhập email tại đây"
                         disabled={isPending}
+                        placeholder="Nhập email tại đây"
+                        type="email"
                         {...field}
                         className="pl-10"
                       />
@@ -128,16 +125,16 @@ const RegisterForm = () => {
                         <Lock className="w-5 h-5" />
                       </span>
                       <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Nhập mật khẩu tại đây"
                         disabled={isPending}
+                        placeholder="Nhập mật khẩu tại đây"
+                        type={showPassword ? "text" : "password"}
                         {...field}
                         className="pl-10 pr-10"
                       />
                       <button
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
                       >
                         {showPassword ? (
                           <EyeOff className="w-5 h-5" />
@@ -167,18 +164,18 @@ const RegisterForm = () => {
                         <Lock className="w-5 h-5" />
                       </span>
                       <Input
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Nhập lại mật khẩu"
                         disabled={isPending}
+                        placeholder="Nhập lại mật khẩu"
+                        type={showConfirmPassword ? "text" : "password"}
                         {...field}
                         className="pl-10 pr-10"
                       />
                       <button
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
                         type="button"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute inset-y-0 right-3 flex items-center text-gray-400"
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="w-5 h-5" />
@@ -198,8 +195,8 @@ const RegisterForm = () => {
           {isPending ? (
             <Button
               className="ml-auto w-full mt-4 text-lg"
-              type="submit"
               disabled={isPending}
+              type="submit"
             >
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Đang xử lí
@@ -216,7 +213,7 @@ const RegisterForm = () => {
         </form>
       </Form>
       <p className="font-medium text-center text-lg">Hoặc đăng nhập với</p>
-      <Button variant="outline" className="ml-auto w-full text-lg">
+      <Button className="ml-auto w-full text-lg" variant="outline">
         Google
       </Button>
       <p className="font-medium text-center text-lg">

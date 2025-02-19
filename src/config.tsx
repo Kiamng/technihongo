@@ -13,6 +13,7 @@ export const NavItems = () => {
   const pathname = usePathname();
   const iconSize: number = 24;
   const iconStroke: number = 1.5;
+
   function isNavItemActive(pathname: string, nav: string) {
     return pathname.includes(nav);
   }
@@ -24,31 +25,31 @@ export const NavItems = () => {
         {
           name: "Home",
           href: "/home",
-          icon: <Home strokeWidth={iconStroke} size={iconSize} />,
+          icon: <Home size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/home"),
         },
         {
           name: "Thống kê",
           href: "/learning-statistic",
-          icon: <ChartNoAxesColumn strokeWidth={iconStroke} size={iconSize} />,
+          icon: <ChartNoAxesColumn size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/learning-statistic"),
         },
         {
           name: "Khóa học",
           href: "/course",
-          icon: <GraduationCap strokeWidth={iconStroke} size={iconSize} />,
+          icon: <GraduationCap size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/course"),
         },
         {
           name: "Nội dung yêu thích",
           href: "/saved-content",
-          icon: <Heart strokeWidth={iconStroke} size={iconSize} />,
+          icon: <Heart size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/saved-content"),
         },
         {
           name: "Flashcard",
           href: "/flashcard",
-          icon: <Copy strokeWidth={iconStroke} size={iconSize} />,
+          icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/flashcard"),
         },
       ],
@@ -59,13 +60,13 @@ export const NavItems = () => {
         {
           name: "Các gói",
           href: "/subscription/plan",
-          icon: <BadgeJapaneseYen strokeWidth={iconStroke} size={iconSize} />,
+          icon: <BadgeJapaneseYen size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/subscription/plan"),
         },
         {
           name: "Lịch sử",
           href: "/abc",
-          icon: <FileChartPie strokeWidth={iconStroke} size={iconSize} />,
+          icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/abc"),
         },
       ],

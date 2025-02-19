@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import React from "react";
+
+import { Button } from "@/components/ui/button";
 
 const HomeHeader = () => {
   return (
@@ -8,7 +9,7 @@ const HomeHeader = () => {
       <div>
         <p className="technihongo">TechNihongo</p>
       </div>
-      <div></div>
+      <div />
       <div className="flex gap-x-2">
         <Link href={"/sign-in"}>
           <Button variant={"outline"}>Đăng ký</Button>

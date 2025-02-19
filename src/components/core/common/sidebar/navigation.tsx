@@ -1,11 +1,14 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
-import { NavItems } from "@/config";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { SideNavItem } from "./navigation-items";
-import { Button } from "@/components/ui/button";
+
 import ThemeToggleButton from "../theme-toggle-button";
+
+import { SideNavItem } from "./navigation-items";
+
+import { NavItems } from "@/config";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const navItems = NavItems();
@@ -16,6 +19,7 @@ const Navigation = () => {
   useEffect(() => {
     setIsMounted(true);
     const saved = window.localStorage.getItem("sidebarExpanded");
+
     if (saved !== null) {
       setIsSidebarExpanded(JSON.parse(saved));
     }
@@ -25,7 +29,7 @@ const Navigation = () => {
     if (isMounted) {
       window.localStorage.setItem(
         "sidebarExpanded",
-        JSON.stringify(isSidebarExpanded)
+        JSON.stringify(isSidebarExpanded),
       );
     }
   }, [isSidebarExpanded, isMounted]);
@@ -41,7 +45,7 @@ const Navigation = () => {
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
-          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black"
+          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black",
         )}
       >
         <aside className="flex h-full flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5">
@@ -51,19 +55,19 @@ const Navigation = () => {
               {isSidebarExpanded ? "Technihongo" : ""}
             </div>
             <Button
-              onClick={toggleSidebar}
-              size={"icon"}
               className="rounded-full "
+              size={"icon"}
+              onClick={toggleSidebar}
             >
               {isSidebarExpanded ? (
                 <ChevronLeft
-                  size={16}
                   className="stroke-foreground text-white"
+                  size={16}
                 />
               ) : (
                 <ChevronRight
-                  size={16}
                   className="stroke-foreground text-white"
+                  size={16}
                 />
               )}
             </Button>
@@ -85,11 +89,11 @@ const Navigation = () => {
                   <Fragment key={idx}>
                     <div className="space-y-1">
                       <SideNavItem
-                        label={item.name}
-                        icon={item.icon}
-                        path={item.href}
                         active={item.active}
+                        icon={item.icon}
                         isSidebarExpanded={isSidebarExpanded}
+                        label={item.name}
+                        path={item.href}
                       />
                     </div>
                   </Fragment>

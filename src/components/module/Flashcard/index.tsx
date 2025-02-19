@@ -2,7 +2,7 @@ import Flaschard from "./flashcard-items";
 
 export default function FlashcardModule() {
   return (
-    <div className="max-w-[1200px] mx-auto flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-black">
+    <div className="max-w-[1200px] mx-auto flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-secondary">
       <div className="text-2xl font-semibold text-primary">
         TechNihongo gợi ý
       </div>
