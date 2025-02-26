@@ -2,15 +2,18 @@ import { z } from "zod";
 
 export const RegisterSchema = z
   .object({
-    username: z
+    userName: z
       .string()
       .min(4, "Tên hiển thị phải có độ dài tối thiểu 4 kí tự"),
     email: z
       .string({ required_error: "Bạn phải nhập email" })
       .email("Bạn phải nhập 1 email hợp lệ"),
+    dob: z.string().refine((val) => val !== "", {
+      message: "Ngày sinh không được để trống",
+    }),
     password: z
       .string({ required_error: "Bạn phải nhật mật khẩu" })
-      .min(6, "Mật khẩu phải có độ dài tối thiểu 6 kí tự")
+      .min(8, "Mật khẩu phải có độ dài tối thiểu 8 kí tự")
       .regex(/[a-z]/, "Mật khẩu phải chứa ít nhất 1 kí tự thường")
       .regex(/[A-Z]/, "Mật khẩu phải chứa ít nhất 1 kí tự in hoa")
       .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 số")

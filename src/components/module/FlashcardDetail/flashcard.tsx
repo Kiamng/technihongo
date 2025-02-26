@@ -21,13 +21,22 @@ const Flashcard: React.FC<FlashcardProps> = ({ question, answer }) => {
     speechSynthesis.speak(utterance);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Space") {
+      setFlipped(!flipped);
+    }
+  };
+
   return (
     <div className="flashcard-container">
-      <button
+      <div
         className={`flashcard ${
           flipped ? "flipped" : ""
         } w-[800px] h-[340px] perspective-[1000px]`}
+        role="button"
+        tabIndex={0}
         onClick={() => setFlipped(!flipped)}
+        onKeyDown={handleKeyDown}
       >
         {/* Mặt trước của flashcard */}
         <div className="front bg-white dark:bg-secondary absolute w-full h-full backface-hidden flex justify-center items-center  rounded-[20px] border-[4px] border-primary   text-center">
@@ -45,7 +54,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ question, answer }) => {
         <div className="back bg-white dark:bg-secondary absolute w-full h-full backface-hidden flex justify-center items-center  rounded-[20px] border-[4px] border-primary transform rotateY-[180deg] text-center">
           <div className="flashcard-content-font">{answer}</div>
         </div>
-      </button>
+      </div>
     </div>
   );
 };
