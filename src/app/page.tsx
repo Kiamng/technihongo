@@ -1,8 +1,5 @@
-export default function Home() {
-  return (
-    <div className="w-full">
-      {/* <HomeHeader />
-      <Separator /> */}
-    </div>
-  );
+import LandingPage from "@/components/module/landing";
+
+export default function page() {
+  return <LandingPage />;
 }

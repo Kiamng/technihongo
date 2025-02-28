@@ -15,7 +15,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <body className={nunito.className}>
         <AuthProvider>
           <ReactQueryProvider>

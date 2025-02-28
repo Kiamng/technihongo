@@ -1,10 +1,15 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
-import { login } from "@/app/api/auth/auth.api";
+import { googleLogin, login } from "@/app/api/auth/auth.api";
 
 const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -32,8 +37,21 @@ const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (account && account.provider === "google") {
+        try {
+          const response = await googleLogin(account.access_token as string);
+
+          if (response) {
+            token.userId = response.userId;
+            token.userName = response.userName;
+            token.role = response.role;
+            token.token = response.token; // Access Token từ BE của bạn
+          }
+        } catch (error) {
+          console.error("Google Login failed", error);
+        }
+      } else if (user) {
         token.userId = user.userId;
         token.userName = user.userName;
         token.role = user.role;

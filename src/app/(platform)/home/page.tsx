@@ -7,7 +7,7 @@ export default function Home() {
 
   return (
     <div className="flex items-center gap-4">
-      <p>Welcome, {session?.user?.name}</p>
+      <p>Welcome, {session?.user?.userName}</p>
       <button
         className="px-4 py-2 bg-red-500 text-white rounded"
         onClick={() => signOut({ callbackUrl: "/login" })}

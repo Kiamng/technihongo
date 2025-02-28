@@ -143,7 +143,11 @@ const LoginForm = () => {
           )}
         </form>
         <p className="font-medium text-center text-lg">Hoặc đăng nhập với</p>
-        <Button className="ml-auto w-full text-lg" variant="outline">
+        <Button
+          className="ml-auto w-full text-lg"
+          variant="outline"
+          onClick={() => signIn("google")}
+        >
           Google
         </Button>
         <p className="font-medium text-center text-lg">
