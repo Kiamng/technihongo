@@ -18,9 +18,8 @@ export default function UserProfilePage() {
 
   const fetchUserData = useCallback(async () => {
     const userId = Number(session?.user?.id);
-    const token = session?.user?.token || (session as any)?.accessToken;
 
-    if (!userId || !token) {
+    if (!userId || !session?.user.token) {
       console.error("Không tìm thấy userId hoặc token trong session");
       setLoading(false);
 
@@ -28,7 +27,7 @@ export default function UserProfilePage() {
     }
 
     try {
-      const response = await getUserById(token, userId);
+      const response = await getUserById(session?.user.token, userId);
 
       setUser(response.data);
       setEditableUserName(response.data.userName);
@@ -46,9 +45,11 @@ export default function UserProfilePage() {
   const handleSave = async () => {
     if (user && editableUserName !== user.userName) {
       try {
-        const token = session?.user?.token || (session as any)?.accessToken;
-
-        await updateUsername(token, user.userId, editableUserName);
+        await updateUsername(
+          session?.user.token as string,
+          user.userId,
+          editableUserName,
+        );
         window.location.reload();
       } catch (error) {
         console.error("Error updating username:", error);
@@ -94,7 +95,11 @@ export default function UserProfilePage() {
           </div>
           <div>
             <Label>Ngày sinh</Label>
-            <Input disabled value={user.dob || "Không có"} />
+            <Input
+              disabled
+              type="date"
+              value={user.dob ? user.dob.toISOString().split("T")[0] : ""}
+            />
           </div>
           <div>
             <Label>Tiểu sử</Label>

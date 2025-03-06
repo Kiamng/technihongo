@@ -2,7 +2,7 @@ export interface UserProfile {
   userId: number;
   userName: string;
   email: string;
-  dob: string;
+  dob: Date;
   profileImg: string | null;
   bio: string;
   occupation: string;
