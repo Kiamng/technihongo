@@ -45,8 +45,9 @@ const authOptions: NextAuthOptions = {
           if (response) {
             token.userId = response.userId;
             token.userName = response.userName;
+            token.email = response.email;
             token.role = response.role;
-            token.token = response.token; // Access Token từ BE của bạn
+            token.token = response.token;
           }
         } catch (error) {
           console.error("Google Login failed", error);
@@ -54,6 +55,7 @@ const authOptions: NextAuthOptions = {
       } else if (user) {
         token.userId = user.userId;
         token.userName = user.userName;
+        token.email = user.email;
         token.role = user.role;
         token.token = user.token;
       }
