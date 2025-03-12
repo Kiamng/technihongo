@@ -6,6 +6,8 @@ const ENDPOINT = {
   UPDATE_STUFOLDER: (folderId: number) =>
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/update/${folderId}`,
   ADD_STUFOLDER: `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/create`,
+  DELETE_STUFOLDER: (folderId: number) =>
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/deleteFolder/${folderId}`,
 };
 
 const axiosClient = axios.create({

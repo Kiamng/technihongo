@@ -25,7 +25,7 @@ import {
 import { updateStuFolder } from "@/app/api/studentfolder/stufolder.api";
 
 interface FolderType {
-  id: number;
+  folderId: number;
   name: string;
   description: string;
 }
@@ -78,17 +78,17 @@ const UpdateStuFolderPopup: React.FC<UpdateStuFolderPopupProps> = ({
         return;
       }
 
-      if (!folder?.id) {
+      if (!folder?.folderId) {
         toast.error("Không tìm thấy ID thư mục cần cập nhật!");
         console.error("❌ Missing folderId:", folder);
 
         return;
       }
 
-      console.log("🚀 Gửi request update với folderId:", folder.id);
+      console.log("🚀 Gửi request update với folderId:", folder.folderId);
       console.log("🚀 Dữ liệu gửi đi:", values);
 
-      const response = await updateStuFolder(token, folder.id, values);
+      const response = await updateStuFolder(token, folder.folderId, values);
 
       if (!response || response.success === false) {
         toast.error(response?.message || "Cập nhật thư mục thất bại!");
