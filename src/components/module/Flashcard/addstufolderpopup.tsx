@@ -72,7 +72,7 @@ const AddStuFolderPopup = ({
         toast.success("Folder added successfully!");
         setIsOpen(false);
         form.reset();
-        onFolderAdded(); // ✅ Gọi callback sau khi tạo thành công
+        onFolderAdded(); //Gọi callback sau khi tạo thành công
       }
     } catch (error) {
       console.error("Error adding folder:", error);
