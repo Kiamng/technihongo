@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Calendar } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Course } from "@/types/course";
@@ -11,6 +12,8 @@ interface CourseCardsProps {
 }
 
 const CourseCards: React.FC<CourseCardsProps> = ({ courses }) => {
+  const router = useRouter();
+
   // Function to generate a color based on course title
   const generateBackgroundColor = (title: string) => {
     let hash = 0;
@@ -31,6 +34,10 @@ const CourseCards: React.FC<CourseCardsProps> = ({ courses }) => {
       .slice(0, 2)
       .join("")
       .toUpperCase();
+  };
+
+  const handleCourseDetail = (courseId: number) => {
+    router.push(`/course/${courseId}`);
   };
 
   return (
@@ -99,7 +106,12 @@ const CourseCards: React.FC<CourseCardsProps> = ({ courses }) => {
                 </div>
 
                 <div className="mt-auto w-full">
-                  <Button className="w-full">Xem chi tiết</Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleCourseDetail(course.courseId)}
+                  >
+                    Xem chi tiết
+                  </Button>
                 </div>
               </div>
             </div>
