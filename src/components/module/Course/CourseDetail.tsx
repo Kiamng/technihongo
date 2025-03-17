@@ -57,15 +57,21 @@ export default function CourseDetail({
 
             <div className="mb-6">
               {courseDetail.chapters.map((chapter, chapterIndex) => (
-                <button
+                <div
                   key={chapterIndex}
-                  className={`w-full text-left p-4 mb-2 rounded-lg ${
+                  className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
                     selectedChapter === chapterIndex
                       ? "bg-green-100"
                       : "bg-gray-100"
                   }`}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedChapter(chapterIndex)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setSelectedChapter(chapterIndex);
+                    }
+                  }}
                 >
                   <div className="flex justify-between items-center">
                     <span>{chapter.name}</span>
@@ -77,17 +83,24 @@ export default function CourseDetail({
                   {selectedChapter === chapterIndex && chapter.sections && (
                     <div className="mt-4">
                       {chapter.sections.map((section, sectionIndex) => (
-                        <button
+                        <div
                           key={`${chapterIndex}-${sectionIndex}`}
-                          className={`w-full text-left p-3 mb-2 rounded-lg ${
+                          className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
                             selectedSection === sectionIndex
                               ? "bg-green-200"
                               : "bg-gray-50"
                           }`}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedSection(sectionIndex);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.stopPropagation();
+                              setSelectedSection(sectionIndex);
+                            }
                           }}
                         >
                           <div className="flex justify-between items-center">
@@ -122,11 +135,11 @@ export default function CourseDetail({
                               ))}
                             </div>
                           )}
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}
-                </button>
+                </div>
               ))}
             </div>
           </div>

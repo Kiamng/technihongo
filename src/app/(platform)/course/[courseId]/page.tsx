@@ -1,20 +1,33 @@
-import { Suspense } from "react";
+import { use } from "react";
 
 import { fetchCourseDetail } from "@/app/api/course/courseDetail.api";
 import CourseDetail from "@/components/module/Course/CourseDetail";
 
 // Async Server Component
+interface CourseDetailPageProps {
+  params: Promise<{ courseId: string }>;
+}
+
 export default async function CourseDetailPage({
   params,
-}: {
-  params: { courseId: string };
-}) {
-  // Fetch dữ liệu từ API
-  const courseDetail = await fetchCourseDetail(params.courseId);
+}: CourseDetailPageProps) {
+  const resolvedParams = use(params);
+  const courseDetail = await fetchCourseDetail(resolvedParams.courseId);
 
-  return (
-    <Suspense fallback={<div>Đang tải...</div>}>
-      <CourseDetail initialCourseDetail={courseDetail} />
-    </Suspense>
-  );
+  return <CourseDetail initialCourseDetail={courseDetail} />;
 }
+// import { use } from "react";
+
+// import FlashcardDetailModule from "@/components/module/FlashcardDetail";
+
+// interface FlashcardDetailPageProps {
+//   params: Promise<{ flashcardId: string }>;
+// }
+
+// export default function FlashcardDetailPage({
+//   params,
+// }: FlashcardDetailPageProps) {
+//   const resolvedParams = use(params);
+
+//   return <FlashcardDetailModule flashcardId={resolvedParams.flashcardId} />;
+// }
