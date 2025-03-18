@@ -6,6 +6,7 @@ import {
   GraduationCap,
   Heart,
   Home,
+  PackageOpenIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -33,6 +34,12 @@ export const NavItems = () => {
           href: "/learning-statistic",
           icon: <ChartNoAxesColumn size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/learning-statistic"),
+        },
+        {
+          name: "Lộ trình học tập gợi ý",
+          href: "/learning-path",
+          icon: <PackageOpenIcon size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/learning-path"),
         },
         {
           name: "Khóa học",
