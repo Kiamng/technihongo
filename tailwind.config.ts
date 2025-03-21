@@ -56,6 +56,62 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      animation: {
+        "bounce-in": "bounceIn 0.8s ease-out",
+        "fly-in": "flyIn 1s ease-out",
+        "swim-in": "swimIn 1s ease-out",
+        "jump-in": "jumpIn 0.8s ease-out",
+        "dive-in": "diveIn 1s ease-out",
+        "slide-up": "slideUp 0.5s ease-out",
+        "fade-in": "fadeIn 0.5s ease-out",
+        "pulse-in": "pulseIn 0.6s ease-out",
+        "spin-in": "spinIn 0.8s ease-out",
+      },
+      keyframes: {
+        bounceIn: {
+          "0%": { opacity: "0", transform: "scale(0.8)" },
+          "60%": { opacity: "1", transform: "scale(1.1)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        flyIn: {
+          "0%": {
+            opacity: "0",
+            transform: "translateX(-100px) rotate(-10deg)",
+          },
+          "100%": { opacity: "1", transform: "translateX(0) rotate(0deg)" },
+        },
+        swimIn: {
+          "0%": { opacity: "0", transform: "translateY(50px)" },
+          "50%": { transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        jumpIn: {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "50%": { transform: "translateY(-20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        diveIn: {
+          "0%": { opacity: "0", transform: "translateY(-50px) rotate(5deg)" },
+          "100%": { opacity: "1", transform: "translateY(0) rotate(0deg)" },
+        },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        pulseIn: {
+          "0%": { opacity: "0", transform: "scale(0.9)" },
+          "50%": { transform: "scale(1.05)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        spinIn: {
+          "0%": { opacity: "0", transform: "rotate(-180deg)" },
+          "100%": { opacity: "1", transform: "rotate(0deg)" },
+        },
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

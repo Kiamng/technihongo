@@ -14,8 +14,11 @@ interface LoginFormValues {
   email: string;
   password: string;
 }
+interface LoginFormProps {
+  onLoginStart: () => void; // Thêm prop mới
+}
 
-const LoginForm = () => {
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginStart }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -27,6 +30,7 @@ const LoginForm = () => {
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsPending(true);
+    onLoginStart(); // Gọi để hiển thị trang Loading
 
     const result = await signIn("credentials", {
       email: data.email,
@@ -44,7 +48,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-[50%] ">
+    <div className="w-[50%]">
       <div className="login-form w-[500px] h-full flex flex-col gap-y-5 justify-center items-center mx-auto">
         <h1 className="text-xl font-extrabold text-center">Đăng nhập</h1>
         <form
@@ -119,29 +123,28 @@ const LoginForm = () => {
               </p>
             )}
           </div>
+
           <Link className="font-medium text-end text-lg text-primary" href={""}>
             Quên mật khẩu ?
           </Link>
+
           {/* Submit Button */}
-          {isPending ? (
-            <Button
-              className="ml-auto w-full text-lg"
-              disabled={isPending}
-              type="submit"
-            >
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang xử lí
-            </Button>
-          ) : (
-            <Button
-              className="ml-auto w-full text-lg text-white"
-              type="submit"
-              onClick={() => toast}
-            >
-              Đăng nhập
-            </Button>
-          )}
+          <Button
+            className="ml-auto w-full text-lg text-white"
+            disabled={isPending}
+            type="submit"
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang xử lí
+              </>
+            ) : (
+              "Đăng nhập"
+            )}
+          </Button>
         </form>
+
         <p className="font-medium text-center text-lg">Hoặc đăng nhập với</p>
         <Button
           className="ml-auto w-full text-lg"
@@ -150,6 +153,7 @@ const LoginForm = () => {
         >
           Google
         </Button>
+
         <p className="font-medium text-center text-lg">
           Bạn chưa có tài khoản ?
           <span className="text-primary">
