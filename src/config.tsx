@@ -1,3 +1,6 @@
+// src/config.tsx
+"use client";
+
 import {
   BadgeJapaneseYen,
   ChartNoAxesColumn,
@@ -11,7 +14,7 @@ import {
 import { usePathname } from "next/navigation";
 
 export const NavItems = () => {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const iconSize: number = 24;
   const iconStroke: number = 1.5;
 
@@ -58,6 +61,12 @@ export const NavItems = () => {
           href: "/flashcard",
           icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/flashcard"),
+        },
+        {
+          name: "Quiz",
+          href: "/quiz",
+          icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/quiz"),
         },
       ],
     },
