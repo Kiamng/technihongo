@@ -1,33 +1,18 @@
-import { use } from "react";
-
 import { fetchCourseDetail } from "@/app/api/course/courseDetail.api";
 import CourseDetail from "@/components/module/Course/CourseDetail";
 
-// Async Server Component
+// Define the props interface with params as a Promise
 interface CourseDetailPageProps {
-  params: Promise<{ courseId: string }>;
+  params: Promise<{ courseId: string }>; // params is a Promise in async pages
 }
 
+// Async page component
 export default async function CourseDetailPage({
   params,
 }: CourseDetailPageProps) {
-  const resolvedParams = use(params);
+  // Await the params to resolve the courseId
+  const resolvedParams = await params;
   const courseDetail = await fetchCourseDetail(resolvedParams.courseId);
 
   return <CourseDetail initialCourseDetail={courseDetail} />;
 }
-// import { use } from "react";
-
-// import FlashcardDetailModule from "@/components/module/FlashcardDetail";
-
-// interface FlashcardDetailPageProps {
-//   params: Promise<{ flashcardId: string }>;
-// }
-
-// export default function FlashcardDetailPage({
-//   params,
-// }: FlashcardDetailPageProps) {
-//   const resolvedParams = use(params);
-
-//   return <FlashcardDetailModule flashcardId={resolvedParams.flashcardId} />;
-// }
