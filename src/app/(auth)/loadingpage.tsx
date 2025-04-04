@@ -21,7 +21,7 @@ export default function LoadingPage() {
 
         return Math.min(oldProgress + 10, 100);
       });
-    }, 200);
+    }, 100); // Giảm từ 200ms xuống 100ms (tổng 10 lần => 1 giây)
 
     return () => clearInterval(interval);
   }, []);
