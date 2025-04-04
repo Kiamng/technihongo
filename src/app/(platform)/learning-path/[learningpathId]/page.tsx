@@ -1,14 +1,12 @@
 import LearningPathId from "@/components/module/learning-path/[learningpathId]";
 
 interface LearningPathDetailPageProps {
-  params: { id: string };
+  params: Promise<{ learningpathId: string }>;
 }
-export default function LearningPathDetailPage({
+export default async function LearningPathDetailPage({
   params,
-}: {
-  params: { learningpathId: string };
-}) {
-  console.log("Resolved params:", params); // Kiểm tra dữ liệu params
+}: LearningPathDetailPageProps) {
+  const resolvedParams = await params;
 
-  return <LearningPathId pathId={params.learningpathId} />;
+  return <LearningPathId pathId={resolvedParams.learningpathId} />;
 }
