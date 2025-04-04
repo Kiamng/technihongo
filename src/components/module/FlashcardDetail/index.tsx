@@ -1,51 +1,123 @@
-import FlashcardList from "@/components/module/FlashcardDetail/flashcard-list";
+"use client";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+import ReviewGame from "./reviewPage";
+
 import TermList from "@/components/module/FlashcardDetail/term-list";
+import {
+  FlashcardSet,
+  getFlashcardSetById,
+} from "@/app/api/studentflashcardset/stuflashcard.api";
+import FlashcardList from "@/components/module/FlashcardDetail/flashcard-list";
 
 interface FlashcardDetailModuleProps {
-  flashcardId: string;
+  studentSetId: number;
 }
 
 export default function FlashcardDetailModule({
-  flashcardId,
+  studentSetId,
 }: FlashcardDetailModuleProps) {
-  const flashcards = [
-    { question: "会見", answer: "かいけん: hội họp" },
-    { question: "国会", answer: "こっかい: quốc hội" },
-    {
-      question: "会社",
-      answer: "かいしゃ: công ty",
-    },
-  ];
+  const { data: session, status } = useSession();
+  const token = session?.user?.token || "";
+  const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isReview, setIsReview] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (status === "loading" || !studentSetId) {
+      setLoading(false);
+
+      return;
+    }
+
+    if (status === "unauthenticated" || !token) {
+      console.log("User not authenticated or no token available");
+      setLoading(false);
+
+      return;
+    }
+
+    const fetchFlashcardSet = async () => {
+      try {
+        setLoading(true);
+        const data = await getFlashcardSetById(studentSetId, token);
+
+        setFlashcardSet(data);
+      } catch (error) {
+        console.error("Error fetching flashcard set:", error);
+        setFlashcardSet(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFlashcardSet();
+  }, [studentSetId, status, token]);
+
+  if (status === "loading")
+    return <p className="text-center">Đang tải thông tin phiên...</p>;
+  if (loading)
+    return <p className="text-center">Đang tải dữ liệu flashcard...</p>;
+  if (!flashcardSet)
+    return <p className="text-center">Không tìm thấy bộ flashcard.</p>;
+
+  const creatorName =
+    session?.user?.userName || `Student ${flashcardSet.studentSetId}`;
 
   return (
-    <div className="w-full space-y-20">
+    <div className="w-full space-y-20 min-h-screen">
       <div>
-        <div className="px-8 py-4 text-white dark:text-inherit bg-primary text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]">
-          Flashcard set name
+        <div
+          className="px-8 py-4 text-white dark:text-inherit text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]"
+          style={{ backgroundColor: "#56D071" }}
+        >
+          {flashcardSet.title || "No title"}
         </div>
         <div className="w-full flex justify-center">
-          <div className="flashcard-app flex flex-col space-y-6 bg-secondary p-10 w-fit rounded-2xl shadow-md dark:shadow-none bg-white dark:bg-secondary">
-            {/*creator and created time*/}
-            <div>
-              <div className="flex gap-x-2 items-center">
-                <div className=" avatar w-10 h-10 bg-primary rounded-full" />
-                <div>
-                  <div className="text-primary text-xl font-bold">
-                    Creator name
-                  </div>
-                  <div className="italic text-base text-slate-400 ">
-                    dd/mm/yyyy
-                  </div>
+          <div className="flashcard-app flex flex-col space-y-6 bg-gray-100 dark:bg-gray-800 p-10 w-fit rounded-2xl shadow-md dark:shadow-none min-w-[800px]">
+            <div className="flex gap-x-2 items-center">
+              <div
+                className="avatar w-10 h-10 rounded-full"
+                style={{ backgroundColor: "#56D071" }}
+              />
+              <div>
+                <div className="text-xl font-bold" style={{ color: "#56D071" }}>
+                  {creatorName}
                 </div>
+                <div className="italic text-base text-gray-400">dd/mm/yyyy</div>
               </div>
             </div>
-            {/*flashcard list and slide button*/}
-            <FlashcardList FlashcardList={flashcards} />
+
+            {isReview ? (
+              <ReviewGame
+                flashcardSet={flashcardSet}
+                onExit={() => setIsReview(false)}
+              />
+            ) : (
+              <>
+                {flashcardSet.flashcards.length > 0 ? (
+                  <FlashcardList FlashcardList={flashcardSet.flashcards} />
+                ) : (
+                  <p>No flashcards available</p>
+                )}
+                {flashcardSet.flashcards.length > 0 && (
+                  <button
+                    className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                    onClick={() => setIsReview(true)}
+                  >
+                    Học
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <TermList FlashcardList={flashcards} />
+      {!isReview && flashcardSet.flashcards.length > 0 ? (
+        <TermList FlashcardList={flashcardSet.flashcards} />
+      ) : null}
     </div>
   );
 }

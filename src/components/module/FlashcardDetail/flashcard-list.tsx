@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import Flashcard from "./flashcard";
@@ -8,7 +8,7 @@ import Flashcard from "./flashcard";
 import { Progress } from "@/components/ui/progress";
 
 interface FlashcardListProps {
-  FlashcardList: { question: string; answer: string }[];
+  FlashcardList: { japaneseDefinition: string; vietEngTranslation: string }[];
 }
 
 const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
@@ -26,6 +26,23 @@ const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
         (prevIndex - 1 + FlashcardList.length) % FlashcardList.length,
     );
   };
+
+  // Lắng nghe sự kiện bàn phím để điều hướng flashcard
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") {
+        nextCard();
+      } else if (event.key === "ArrowLeft") {
+        previousCard();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentIndex]); // Thêm `currentIndex` để cập nhật state khi di chuyển
 
   return (
     <>
@@ -52,7 +69,10 @@ const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
                 alignItems: "center",
               }}
             >
-              <Flashcard answer={card.answer} question={card.question} />
+              <Flashcard
+                japaneseDefinition={card.japaneseDefinition}
+                vietEngTranslation={card.vietEngTranslation}
+              />
             </div>
           ))}
         </div>
@@ -63,7 +83,7 @@ const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
           className="rounded-full p-3 bg-primary hover:scale-105 transition duration-200"
           onClick={previousCard}
         >
-          <ChevronLeft className="text-white " size={36} strokeWidth={2.5} />
+          <ChevronLeft className="text-white" size={36} strokeWidth={2.5} />
         </button>
         <div className="text-xl">
           {currentIndex + 1} / {FlashcardList.length}
@@ -72,7 +92,7 @@ const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
           className="rounded-full p-3 bg-primary hover:scale-105 transition duration-200"
           onClick={nextCard}
         >
-          <ChevronRight className="text-white " size={36} strokeWidth={2.5} />
+          <ChevronRight className="text-white" size={36} strokeWidth={2.5} />
         </button>
       </div>
     </>

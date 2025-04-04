@@ -1,4 +1,4 @@
-import { LearningPathModule } from "@/components/module/LearningPath";
+import { LearningPathModule } from "@/components/module/learning-path";
 
 export default function LearningPath() {
   return <LearningPathModule />;

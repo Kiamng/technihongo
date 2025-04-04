@@ -4,7 +4,7 @@ import { Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TermListProps {
-  FlashcardList: { question: string; answer: string }[];
+  FlashcardList: { japaneseDefinition: string; vietEngTranslation: string }[];
 }
 
 const TermList = ({ FlashcardList }: TermListProps) => {
@@ -24,12 +24,12 @@ const TermList = ({ FlashcardList }: TermListProps) => {
             key={index}
             className="min-h-28 rounded-xl border-[1px] flex justify-between items-center p-4 shadow-md dark:shadow-none dark:border-primary"
           >
-            <div className="font-bold text-xl">{term.question}</div>
-            <div>{term.answer}</div>
+            <div className="font-bold text-xl">{term.japaneseDefinition}</div>
+            <div>{term.vietEngTranslation}</div>
             <Button
               className="rounded-full"
               size={"icon"}
-              onClick={() => SpeechQuestion(term.question)}
+              onClick={() => SpeechQuestion(term.japaneseDefinition)}
             >
               <Volume2 />
             </Button>

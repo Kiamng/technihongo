@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import { CalendarIcon, User2Icon, Camera } from "lucide-react";
 import { useSession } from "next-auth/react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { UserProfile } from "@/types/profile";
 import { getUserById, updateUsername } from "@/app/api/profile/profile.api";
 
@@ -29,6 +29,7 @@ export default function UserProfilePage() {
     try {
       const response = await getUserById(session?.user.token, userId);
 
+      console.log("User data from API:", response.data);
       setUser(response.data);
       setEditableUserName(response.data.userName);
     } catch (error) {
@@ -57,71 +58,180 @@ export default function UserProfilePage() {
     }
   };
 
-  if (loading) return <p>Đang tải dữ liệu...</p>;
-  if (!user) return <p>Không tìm thấy dữ liệu người dùng.</p>;
+  if (loading) return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
+  if (!user)
+    return (
+      <p className="text-center mt-10">Không tìm thấy dữ liệu người dùng.</p>
+    );
 
   return (
-    <Card className="max-w-2xl mx-auto p-6">
-      <CardContent>
-        <div className="flex items-center space-x-4">
-          <div className="relative w-20 h-20">
-            {user.profileImg ? (
-              <Image
-                alt="User Avatar"
-                className="rounded-full border"
-                layout="fill"
-                src={user.profileImg}
-              />
-            ) : (
-              <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
-                No Image
-              </div>
-            )}
+    <div className="min-h-screen w-full bg-white rounded-lg shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="relative w-full bg-[#56D071] p-6 text-white">
+        <div className="flex justify-between">
+          <div className="space-y-1">
+            <h1 className="text-xl font-medium">Thông tin tài khoản</h1>
+            <p className="text-sm opacity-90">
+              Bạn có thể chỉnh sửa thông tin tài khoản tại đây
+            </p>
           </div>
-          <h2 className="text-xl font-bold">Thông tin tài khoản</h2>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <div>
-            <Label>Tên học viên</Label>
-            <Input
-              value={editableUserName}
-              onChange={(e) => setEditableUserName(e.target.value)}
-            />
+        {/* Profile avatar */}
+        <div className="relative mt-4 inline-block">
+          <div className="w-16 h-16 rounded-full bg-white p-1">
+            <div className="w-full h-full rounded-full bg-[#56D071]/20 flex items-center justify-center overflow-hidden">
+              {user.profileImg ? (
+                <Image
+                  alt="Profile avatar"
+                  height={60}
+                  src={user.profileImg}
+                  width={60}
+                />
+              ) : (
+                <Image
+                  alt="Profile avatar"
+                  height={60}
+                  src="/placeholder.svg?height=60&width=60"
+                  width={60}
+                />
+              )}
+            </div>
           </div>
-          <div>
-            <Label>Email</Label>
-            <Input disabled value={user.email} />
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-[#56D071]">
+            <Camera className="w-4 h-4" />
           </div>
-          <div>
-            <Label>Ngày sinh</Label>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b">
+        <div className="flex">
+          <div className="px-6 py-3 border-b-2 border-[#56D071] text-[#56D071] font-medium">
+            Thông tin cá nhân
+          </div>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Full name */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="userName"
+            >
+              Tên người dùng
+            </label>
+            <div className="relative">
+              <Input
+                className="pl-10"
+                id="userName"
+                placeholder="Nhập tên học viên"
+                value={editableUserName}
+                onChange={(e) => setEditableUserName(e.target.value)}
+              />
+              <User2Icon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="email"
+            >
+              Email
+            </label>
             <Input
               disabled
-              type="date"
-              value={user.dob ? user.dob.toISOString().split("T")[0] : ""}
+              className="bg-gray-100"
+              id="email"
+              type="email"
+              value={user.email}
             />
           </div>
-          <div>
-            <Label>Tiểu sử</Label>
-            <Input disabled value={user.bio || "Chưa có thông tin"} />
+
+          {/* Date of birth */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="dob"
+            >
+              Ngày sinh
+            </label>
+            <div className="relative">
+              <Input
+                disabled
+                className="pl-10"
+                id="dob"
+                type="date"
+                value={user.dob || ""}
+              />
+              <CalendarIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
           </div>
-          <div>
-            <Label>Nghề nghiệp</Label>
-            <Input disabled value={user.occupation || "Không rõ"} />
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="bio"
+            >
+              Tiểu sử
+            </label>
+            <Input
+              disabled
+              className="bg-gray-100"
+              id="bio"
+              value={user.bio || "Chưa có thông tin"}
+            />
           </div>
-          <div>
-            <Label>Nhắc nhở bật/tắt</Label>
-            <Input disabled value={user.reminderEnabled ? "Bật" : "Tắt"} />
+
+          {/* Occupation */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="occupation"
+            >
+              Nghề nghiệp
+            </label>
+            <Input
+              disabled
+              className="bg-gray-100"
+              id="occupation"
+              value={user.occupation || "Không rõ"}
+            />
+          </div>
+
+          {/* Reminder Enabled */}
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="reminderEnabled"
+            >
+              Nhắc nhở bật/tắt
+            </label>
+            <Input
+              disabled
+              className="bg-gray-100"
+              id="reminderEnabled"
+              value={user.reminderEnabled ? "Bật" : "Tắt"}
+            />
           </div>
         </div>
 
-        <button
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          onClick={handleSave}
-        >
-          Lưu thông tin
-        </button>
-      </CardContent>
-    </Card>
+        {/* Action buttons */}
+        <div className="mt-8 flex gap-4">
+          <Button
+            className="bg-[#56D071] hover:bg-[#56D071]/90"
+            onClick={handleSave}
+          >
+            Lưu thông tin
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
