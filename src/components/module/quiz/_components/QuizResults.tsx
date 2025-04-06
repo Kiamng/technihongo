@@ -52,11 +52,11 @@ export function QuizResults({
   >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState<{
-    score: number; // Điểm thô từ API (score) theo thang 10
-    total: number; // Tổng số câu hỏi
-    isPassed: boolean; // Trạng thái đạt/không đạt
-    correctAnswers: number; // Số câu đúng
-    incorrectAnswers: number; // Số câu sai
+    score: number;
+    total: number;
+    isPassed: boolean;
+    correctAnswers: number;
+    incorrectAnswers: number;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -93,13 +93,12 @@ export function QuizResults({
         );
 
         if (current && reviewResponse.data) {
-          // Lấy dữ liệu từ reviewResponse.data
           setCurrentAttempt({
-            score: reviewResponse.data.score, // Điểm thô theo thang 10
-            total: reviewResponse.data.totalQuestions, // Tổng số câu hỏi
-            isPassed: reviewResponse.data.isPassed, // Trạng thái
-            correctAnswers: reviewResponse.data.correctAnswers, // Số câu đúng
-            incorrectAnswers: reviewResponse.data.incorrectAnswers, // Số câu sai
+            score: reviewResponse.data.score,
+            total: reviewResponse.data.totalQuestions,
+            isPassed: reviewResponse.data.isPassed,
+            correctAnswers: reviewResponse.data.correctAnswers,
+            incorrectAnswers: reviewResponse.data.incorrectAnswers,
           });
           setShowConfetti(reviewResponse.data.isPassed);
         } else {
@@ -121,7 +120,7 @@ export function QuizResults({
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
   const percentage = currentAttempt
-    ? (currentAttempt.correctAnswers / currentAttempt.total) * 100 // Dùng correctAnswers cho biểu đồ
+    ? (currentAttempt.correctAnswers / currentAttempt.total) * 100
     : 0;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
@@ -238,7 +237,6 @@ export function QuizResults({
         </CardContent>
       </Card>
 
-      {/* Phần review quiz với accordion */}
       {reviewData && questions && (
         <div className="max-w-4xl mx-auto">
           <Accordion collapsible type="single">
@@ -247,7 +245,6 @@ export function QuizResults({
                 <h2 className="text-xl font-semibold">Chi tiết câu trả lời</h2>
               </AccordionTrigger>
               <AccordionContent className="bg-white p-4 rounded-b-md">
-                {/* Bỏ hiển thị điểm */}
                 <div className="grid grid-cols-5 gap-2 mb-4">
                   {reviewData.answers.map((answer, index) => (
                     <Button
@@ -288,13 +285,25 @@ export function QuizResults({
                         question:
                           reviewData.answers[selectedQuestionIndex]
                             .questionText,
-                        options: reviewData.answers[
-                          selectedQuestionIndex
-                        ].selectedOptions.map((opt) => ({
-                          id: opt.optionId,
-                          text: opt.optionText,
-                        })),
-                        correctAnswer: [],
+                        options:
+                          questions
+                            .find(
+                              (q) =>
+                                q.id ===
+                                reviewData.answers[selectedQuestionIndex]
+                                  .questionId,
+                            )
+                            ?.options.map((opt) => ({
+                              id: opt.id,
+                              text: opt.text,
+                            })) || [],
+                        correctAnswer:
+                          questions.find(
+                            (q) =>
+                              q.id ===
+                              reviewData.answers[selectedQuestionIndex]
+                                .questionId,
+                          )?.correctAnswer || [],
                       }
                     }
                     reviewData={{
@@ -303,42 +312,7 @@ export function QuizResults({
                       selectedOptions:
                         reviewData.answers[selectedQuestionIndex]
                           .selectedOptions,
-                      correctOptions:
-                        questions
-                          .find(
-                            (q) =>
-                              q.id ===
-                              reviewData.answers[selectedQuestionIndex]
-                                .questionId,
-                          )
-                          ?.options.filter((opt) =>
-                            Array.isArray(
-                              questions.find(
-                                (q) =>
-                                  q.id ===
-                                  reviewData.answers[selectedQuestionIndex]
-                                    .questionId,
-                              )?.correctAnswer,
-                            )
-                              ? (
-                                  questions.find(
-                                    (q) =>
-                                      q.id ===
-                                      reviewData.answers[selectedQuestionIndex]
-                                        .questionId,
-                                  )?.correctAnswer as number[]
-                                ).includes(opt.id)
-                              : questions.find(
-                                  (q) =>
-                                    q.id ===
-                                    reviewData.answers[selectedQuestionIndex]
-                                      .questionId,
-                                )?.correctAnswer === opt.id,
-                          )
-                          .map((opt) => ({
-                            optionId: opt.id,
-                            optionText: opt.text,
-                          })) || [],
+                      correctOptions: [], // Không hiển thị đáp án đúng của hệ thống
                     }}
                     onAnswerChange={() => {}}
                     onNext={() => {}}
@@ -350,7 +324,6 @@ export function QuizResults({
         </div>
       )}
 
-      {/* Các lần thử gần đây với accordion */}
       {recentAttempts.length > 0 && (
         <div className="mt-6 max-w-4xl mx-auto">
           <Accordion collapsible type="single">
