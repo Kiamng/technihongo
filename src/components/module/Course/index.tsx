@@ -1,12 +1,80 @@
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import { useSession } from "next-auth/react";
+
+// import CourseCards from "./course-card";
+
+// import { CourseList } from "@/types/course";
+// import { getAllCourse } from "@/app/api/course/course.api";
+
+// export default function CourseModule() {
+//   const { data: session } = useSession();
+//   const [currentPage, setCurrentPage] = useState<number>(0);
+//   const [isLoading, setIsloading] = useState<boolean>(false);
+//   const [coursesList, setCoursesList] = useState<CourseList>();
+
+//   const fetchCourses = async () => {
+//     try {
+//       setIsloading(true);
+//       const response = await getAllCourse({
+//         token: session?.user.token as string,
+//         pageNo: currentPage,
+//         pageSize: 5,
+//         sortBy: "createdAt",
+//         sortDir: "desc",
+//       });
+
+//       setCoursesList(response);
+//     } catch (err) {
+//       console.error(err);
+//     } finally {
+//       setIsloading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (!session?.user?.token) {
+//       return;
+//     }
+//     fetchCourses();
+//   }, [session?.user?.token, currentPage]);
+
+//   return (
+//     <div className="w-full">
+//       {isLoading ? (
+//         <div className="flex justify-center items-center h-64">
+//           <p>Đang tải khóa học...</p>
+//         </div>
+//       ) : (
+//         <CourseCards courses={coursesList?.content} />
+//       )}
+//     </div>
+//   );
+// }
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react"; // Import DotLottieReact
 
 import CourseCards from "./course-card";
 
 import { CourseList } from "@/types/course";
 import { getAllCourse } from "@/app/api/course/course.api";
+
+// Component Loading Animation
+const LoadingAnimation = () => {
+  return (
+    <DotLottieReact
+      autoplay
+      loop
+      className="w-64 h-64" // Điều chỉnh kích thước (có thể thay đổi)
+      src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
+    />
+  );
+};
 
 export default function CourseModule() {
   const { data: session } = useSession();
@@ -44,7 +112,7 @@ export default function CourseModule() {
     <div className="w-full">
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <p>Đang tải khóa học...</p>
+          <LoadingAnimation /> {/* Sử dụng component LoadingAnimation */}
         </div>
       ) : (
         <CourseCards courses={coursesList?.content} />
