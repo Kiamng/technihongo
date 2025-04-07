@@ -130,9 +130,9 @@ const LandingHeader = () => {
             whileHover="hover"
             whileTap="tap"
           >
-            <Link href="/login">
+            <Link href="/Login">
               <Button className="bg-gradient-to-r from-[#56D071] to-[#48BA63] hover:from-[#48BA63] hover:to-[#3DA554] text-white px-6 py-2 rounded-full">
-                ĐĂNG KÝ NGAY
+                ĐĂNG NHẬP
               </Button>
             </Link>
           </motion.div>

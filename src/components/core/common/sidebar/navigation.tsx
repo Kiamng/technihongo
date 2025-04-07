@@ -2,8 +2,6 @@
 import { useState, useEffect, Fragment } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import ThemeToggleButton from "../theme-toggle-button";
-
 import { SideNavItem } from "./navigation-items";
 
 import { NavItems } from "@/config";
@@ -45,14 +43,13 @@ const Navigation = () => {
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
-          "border-r transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black",
+          "transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black",
         )}
       >
         <aside className="flex h-full flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5">
           <div className="relative  py-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
-            <ThemeToggleButton />
-            <div className="technihongo">
-              {isSidebarExpanded ? "Technihongo" : ""}
+            <div className="font-semibold text-base ">
+              {isSidebarExpanded ? "Username " : ""}
             </div>
             <Button
               className="rounded-full "
@@ -71,11 +68,6 @@ const Navigation = () => {
                 />
               )}
             </Button>
-          </div>
-          <div className="relative  pb-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
-            <div className="font-semibold text-base ">
-              {isSidebarExpanded ? "Username " : ""}
-            </div>
           </div>
           {/* Navigation Links */}
 

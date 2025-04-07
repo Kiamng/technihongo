@@ -59,7 +59,7 @@ const AddStuFolderPopup = ({
       return;
     }
 
-    const studentId = Number(session.user.id);
+    const studentId = Number(session.user.studentId);
     const token = session.user.token;
 
     try {
@@ -84,7 +84,10 @@ const AddStuFolderPopup = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-[700px]">
+      <DialogContent
+        aria-describedby="dialog-description"
+        className="max-w-[700px]"
+      >
         <DialogHeader>
           <DialogTitle>Add New Folder</DialogTitle>
         </DialogHeader>

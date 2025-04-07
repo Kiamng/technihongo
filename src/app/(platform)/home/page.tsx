@@ -10,7 +10,7 @@ export default function Home() {
       <p>Welcome, {session?.user?.userName}</p>
       <button
         className="px-4 py-2 bg-red-500 text-white rounded"
-        onClick={() => signOut({ callbackUrl: "/login" })}
+        onClick={() => signOut({ callbackUrl: "/Login" })}
       >
         Sign Out
       </button>

@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { RegisterSchema } from "@/schema/auth/register";
 import {
@@ -19,13 +18,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { register } from "@/app/api/auth/auth.api";
+import { register, resendEmail } from "@/app/api/auth/auth.api";
 
 const RegisterForm = () => {
-  const router = useRouter();
   const [isPending, setIsPending] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
     mode: "onChange",
@@ -47,7 +46,8 @@ const RegisterForm = () => {
         toast.error("Đã có lỗi khi đăng ký tài khoản, thử lại sau");
       } else {
         toast.success("Đăng ký thành công!");
-        router.push("/login");
+        form.setValue("email", values.email);
+        setIsRegistered(true);
       }
     } catch (error) {
       return error;
@@ -55,6 +55,50 @@ const RegisterForm = () => {
       setIsPending(false);
     }
   };
+
+  const resendVerificationEmail = async () => {
+    try {
+      await resendEmail(form.getValues("email"));
+
+      toast.success(
+        "Đã gửi lại email xác thực. Vui lòng kiểm tra hộp thư của bạn.",
+      );
+    } catch (error) {
+      toast.error(
+        "Có lỗi xảy ra khi gửi lại email xác thực. Vui lòng thử lại.",
+      );
+    }
+  };
+
+  if (isRegistered) {
+    return (
+      <div className="w-[50%] mx-auto text-center space-y-4">
+        <h1 className="text-xl font-extrabold text-center text-primary">
+          🎉 Chúc mừng bạn đã đăng ký thành công!
+        </h1>
+        <p className=" text-lg">
+          Vui lòng kiểm tra email của bạn để xác thực tài khoản.
+        </p>
+        <Button
+          className="text-lg mx-auto"
+          disabled={isPending}
+          onClick={resendVerificationEmail}
+        >
+          Gửi lại xác thực email
+        </Button>
+        <p className=" text-slate-500">
+          Bạn đã kiểm tra nhưng không thấy email? <br /> Hãy kiểm tra trong thư
+          mục Spam hoặc Thư mục Quảng cáo.
+        </p>
+        <p className="font-medium text-center text-lg">
+          Quay lại trang
+          <span className="text-primary">
+            <Link href={"/Login"}> Đăng nhập</Link>
+          </span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[50%]">
@@ -256,7 +300,7 @@ const RegisterForm = () => {
         <p className="font-medium text-center text-lg">
           Bạn đã có tài khoản ?
           <span className="text-primary">
-            <Link href={"/login"}> Đăng nhập</Link>
+            <Link href={"/Login"}> Đăng nhập</Link>
           </span>
         </p>
       </div>

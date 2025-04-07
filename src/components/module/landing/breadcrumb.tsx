@@ -2,6 +2,8 @@
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCoverflow } from "swiper/modules";
+import { usePathname } from "next/navigation";
+import Link from "next/link"; // Thêm import Link
 
 import LandingHeader from "./header";
 
@@ -13,24 +15,26 @@ import "swiper/css/effect-coverflow";
 // Danh sách ảnh nền
 const backgroundImages = [
   "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/490000/490105-kofu.jpg",
-  "https://i.imgur.com/ONtiZtK.jpeg", //
+  "https://i.imgur.com/ONtiZtK.jpeg",
   "https://i.imgur.com/UFnfX1s.jpeg",
 ];
 
 const Breadcrumb = () => {
+  const pathname = usePathname(); // Lấy đường dẫn hiện tại
+
   return (
-    <div className="relative w-full h-[600px] md:h-[700px]">
+    <div className="relative w-full">
       {/* Swiper Image Slider */}
       <Swiper
         loop
         autoplay={{ delay: 3000, disableOnInteraction: false }}
-        className="w-full h-full"
+        className="w-full h-[600px] md:h-[700px]"
         coverflowEffect={{
-          rotate: 30, // Góc xoay của ảnh khi trượt
-          stretch: 0, // Khoảng cách giữa các ảnh
-          depth: 100, // Độ sâu của hiệu ứng 3D
-          modifier: 1, // Điều chỉnh cường độ hiệu ứng
-          slideShadows: false, // Bật/tắt bóng
+          rotate: 30,
+          stretch: 0,
+          depth: 100,
+          modifier: 1,
+          slideShadows: false,
         }}
         effect="coverflow"
         modules={[Autoplay, EffectCoverflow]}
@@ -48,7 +52,7 @@ const Breadcrumb = () => {
         ))}
       </Swiper>
 
-      {/* Header */}
+      {/* Header - Chỉ hiển thị trên trang gốc (/) */}
       <LandingHeader />
 
       {/* Nội dung tiêu đề trên ảnh */}
@@ -61,15 +65,19 @@ const Breadcrumb = () => {
           Học mọi lúc, mọi nơi.
         </div>
         <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
-          <Button className="bg-[#56D071] hover:bg-[#48BA63] text-white text-lg px-8 py-6 h-auto">
-            Khám phá khóa học
-          </Button>
-          <Button
-            className="border-[#56D071] text-[#56D071] hover:bg-[#56D071] hover:text-white text-lg px-8 py-6 h-auto"
-            variant="outline"
-          >
-            Tìm hiểu thêm
-          </Button>
+          <Link href="/login">
+            <Button className="bg-[#56D071] hover:bg-[#48BA63] text-white text-lg px-8 py-6 h-auto">
+              Khám phá khóa học
+            </Button>
+          </Link>
+          <Link href="/login">
+            <Button
+              className="border-[#56D071] text-[#56D071] hover:bg-[#56D071] hover:text-white text-lg px-8 py-6 h-auto"
+              variant="outline"
+            >
+              Tìm hiểu thêm
+            </Button>
+          </Link>
         </div>
       </div>
 

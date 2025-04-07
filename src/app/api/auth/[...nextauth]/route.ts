@@ -44,6 +44,7 @@ const authOptions: NextAuthOptions = {
 
           if (response) {
             token.userId = response.userId;
+            token.studentId = response.studentId;
             token.userName = response.userName;
             token.email = response.email;
             token.role = response.role;
@@ -54,6 +55,7 @@ const authOptions: NextAuthOptions = {
         }
       } else if (user) {
         token.userId = user.userId;
+        token.studentId = user.studentId;
         token.userName = user.userName;
         token.email = user.email;
         token.role = user.role;
@@ -65,6 +67,7 @@ const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       session.user = {
         id: token.userId,
+        studentId: token.studentId,
         userName: token.userName,
         email: token.email,
         role: token.role,
