@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -11,11 +11,14 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import AddStuFolderPopup from "./addstufolderpopup";
 import UpdateStuFolderPopup from "./updatestufolder";
+import PublicFlashcardSetList from "./public-flashcard-set";
+import SearchFlashcardSets from "./search_flashcard_set";
 
 import {
   DropdownMenu,
@@ -24,8 +27,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import axiosClient from "@/lib/axiosClient";
 import { getAllFlashcardSets } from "@/app/api/studentflashcardset/stuflashcard.api";
+import {
+  getStuFolder,
+  deleteStuFolder,
+} from "@/app/api/studentfolder/stufolder.api"; // Import getStuFolder
 
 interface FlashcardProps {
   flashcardId: string;
@@ -106,6 +112,9 @@ export default function FlashcardModule() {
   const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [searchResults, setSearchResults] = useState<any>([]);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   const fetchUserFolders = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.token) {
@@ -116,16 +125,12 @@ export default function FlashcardModule() {
     }
 
     try {
-      const response = await axiosClient.get(
-        `/student-folder/getStudentFolder/${session.user.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${session.user.token}`,
-          },
-        },
+      const data = await getStuFolder(
+        session.user.token,
+        Number(session.user.id),
       );
 
-      setFolders(response.data?.data || []);
+      setFolders(data?.data || []);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách thư mục:", error);
       setFolders([]);
@@ -145,7 +150,7 @@ export default function FlashcardModule() {
     try {
       const data = await getAllFlashcardSets(session.user.token);
 
-      console.log("Flashcard sets data:", data); // Thêm console.log để log dữ liệu
+      console.log("Flashcard sets data:", data);
       setFlashcardSets(data.data || []);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách flashcard sets:", error);
@@ -187,28 +192,54 @@ export default function FlashcardModule() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!folderToDelete) return;
-
+  const handleDelete = async (folderId: number) => {
     try {
-      await axiosClient.delete(
-        `/student-folder/deleteFolder/${folderToDelete}`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.user?.token}`,
-          },
-        },
-      );
-      toast.success("Xóa thư mục thành công!");
-      fetchUserFolders();
+      if (!session?.user?.token) {
+        toast.error("Không tìm thấy token trong session");
+
+        return;
+      }
+      await deleteStuFolder(session.user.token, folderId);
+      toast.success("Xoá thư mục thành công!");
+      fetchUserFolders(); // Cập nhật lại danh sách sau khi xóa
     } catch (error) {
-      console.error("Lỗi khi xóa thư mục:", error);
-      toast.error("Xóa thư mục thất bại!");
-    } finally {
-      setIsDeleteDialogOpen(false);
-      setFolderToDelete(null);
+      toast.error("Xoá thư mục thất bại.");
     }
   };
+  // Memoize handleSearchResults và handleLoading
+  const handleSearchResults = useCallback((results: any[]) => {
+    setSearchResults(results);
+  }, []);
+
+  const handleLoading = useCallback((isLoading: boolean) => {
+    setLoading(isLoading);
+  }, []);
+
+  const handleSearchStart = useCallback((isSearching: boolean) => {
+    setIsSearchActive(isSearching);
+    if (!isSearching) {
+      setSearchResults([]); // Xóa kết quả khi không còn tìm kiếm
+    }
+  }, []);
+
+  // Đóng overlay khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchActive(false);
+        setSearchResults([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-transparent">
@@ -217,7 +248,6 @@ export default function FlashcardModule() {
         className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url("https://i.imgur.com/Q9omoFa.jpeg")' }}
       />
-      {/* Kiểm tra tải ảnh */}
       <img
         alt="preload"
         src="https://i.imgur.com/Q9omoFa.jpeg"
@@ -226,7 +256,67 @@ export default function FlashcardModule() {
         onLoad={() => console.log("Background image loaded successfully")}
       />
 
-      {/* Nội dung chính */}
+      {/* Thanh tìm kiếm và overlay */}
+      <div className="max-w-[1200px] mx-auto pt-5 px-5 relative z-10">
+        <div ref={searchContainerRef}>
+          {session?.user?.token && (
+            <SearchFlashcardSets
+              token={session.user.token}
+              userName={session.user.userName}
+              onLoading={handleLoading}
+              onSearchResults={handleSearchResults}
+              onSearchStart={handleSearchStart}
+            />
+          )}
+        </div>
+
+        {/* Overlay kết quả tìm kiếm - Đặt bên dưới SearchFlashcardSets */}
+        {isSearchActive && (
+          <div className="relative mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
+            {loading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500 mr-2" />
+                Đang tải...
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="p-4">
+                {searchResults.map((set: any) => (
+                  <Link
+                    key={set.studentSetId}
+                    className="block p-3 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    href={`/flashcard/${set.studentSetId}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-semibold text-primary">
+                          {set.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {set.flashcards?.length || 0} thuật ngữ
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center text-yellow-500">
+                          <Star fill="currentColor" size={16} />
+                          <span className="ml-1 text-sm">4.7</span>
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Người tạo: {set.creator || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="p-4 text-gray-500 text-center">
+                Không tìm thấy kết quả
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="max-w-[1200px] mx-auto flex flex-col gap-10 p-5 relative z-1">
         {/* TechNihongo gợi ý */}
         <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50">
@@ -260,7 +350,7 @@ export default function FlashcardModule() {
            bg-green-500 text-white rounded-t-2xl 
            shadow-lg border border-green-700"
             >
-              <span className="text-2xl font-semibold">MY FOLDER</span>
+              <span className="text-2xl font-semibold">My Folder</span>
             </div>
             <Button
               className="absolute top-[-20px] right-0 px-4 py-3 
@@ -284,7 +374,7 @@ export default function FlashcardModule() {
                 <>
                   <div className="relative overflow-hidden">
                     <div
-                      className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
+                      className="flex space-x-4 overflow-x-auto scroll-smooth py-2 px-1"
                       id="folder-carousel"
                     >
                       {folders.map((folder) => (
@@ -466,11 +556,14 @@ export default function FlashcardModule() {
             </div>
           )}
         </div>
+        <PublicFlashcardSetList />
 
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={handleDelete}
+          onConfirm={() =>
+            folderToDelete !== null && handleDelete(folderToDelete)
+          }
         />
 
         <AddStuFolderPopup
