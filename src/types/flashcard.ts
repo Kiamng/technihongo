@@ -1,6 +1,8 @@
 import { JSX } from "react";
 
 export type Flashcard = {
+  options: any;
+  flashcardId: any;
   id: string;
   flashcardName: string;
   flashcardDescription: string;

@@ -366,12 +366,42 @@ export default function LandingPage({}: LandingPageProps) {
                   viewport={{ once: true }}
                   whileInView={{ opacity: 1, x: 0 }}
                 >
-                  <Image
-                    fill
-                    alt="Happy Students"
-                    className="rounded-lg object-cover"
-                    src="/assets/images/happystudent.jpg"
-                  />
+                  <motion.div
+                    className="relative w-full h-full"
+                    initial={{ rotateY: 0 }}
+                    style={{ transformStyle: "preserve-3d" }}
+                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                    whileHover={{ rotateY: 180 }}
+                  >
+                    {/* Mặt trước của ảnh */}
+                    <motion.div
+                      className="absolute w-full h-full"
+                      style={{ backfaceVisibility: "hidden" }}
+                    >
+                      <Image
+                        fill
+                        alt="Happy Students - Front"
+                        className="rounded-lg object-cover"
+                        src="/assets/images/happystudent.jpg"
+                      />
+                    </motion.div>
+
+                    {/* Mặt sau của ảnh */}
+                    <motion.div
+                      className="absolute w-full h-full"
+                      style={{
+                        backfaceVisibility: "hidden",
+                        rotateY: "180deg",
+                      }}
+                    >
+                      <Image
+                        fill
+                        alt="Happy Students - Back"
+                        className="rounded-lg object-cover"
+                        src="/assets/images/hpstu1.jpg"
+                      />
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
                 <motion.div
                   className="space-y-6"
@@ -411,7 +441,7 @@ export default function LandingPage({}: LandingPageProps) {
                       whileHover={{
                         scale: 1.02,
                         boxShadow:
-                          "0 10px 15Unnamed File-3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
                       }}
                     >
                       <p className="text-gray-600 mb-4 pl-6">
@@ -451,15 +481,19 @@ export default function LandingPage({}: LandingPageProps) {
                 hàng ngàn khóa học chất lượng
               </p>
               <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <AnimatedButton className="bg-white text-[#56D071] hover:bg-gray-100 text-lg px-8 py-6 h-auto">
-                  Đăng ký ngay
-                </AnimatedButton>
-                <AnimatedButton
-                  className="text-[#56D071] hover:bg-white text-lg px-8 py-6 h-auto"
-                  variant="outline"
-                >
-                  Tìm hiểu thêm
-                </AnimatedButton>
+                <Link href="/sign-in">
+                  <AnimatedButton className="bg-white text-[#56D071] hover:bg-gray-100 text-lg px-8 py-6 h-auto">
+                    Đăng ký ngay
+                  </AnimatedButton>
+                </Link>
+                <Link href="/login">
+                  <AnimatedButton
+                    className="text-[#56D071] hover:bg-white text-lg px-8 py-6 h-auto"
+                    variant="outline"
+                  >
+                    Tìm hiểu thêm
+                  </AnimatedButton>
+                </Link>
               </div>
             </motion.div>
           </div>
