@@ -14,6 +14,7 @@ export interface Flashcard {
 }
 
 export interface FlashcardSet {
+  studentId: number;
   studentSetId: number;
   title: string;
   description: string;

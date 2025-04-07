@@ -127,7 +127,7 @@ export default function FlashcardModule() {
     try {
       const data = await getStuFolder(
         session.user.token,
-        Number(session.user.id),
+        Number(session.user.studentId),
       );
 
       setFolders(data?.data || []);

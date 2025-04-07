@@ -59,7 +59,7 @@ const AddStuFolderPopup = ({
       return;
     }
 
-    const studentId = Number(session.user.id);
+    const studentId = Number(session.user.studentId);
     const token = session.user.token;
 
     try {
