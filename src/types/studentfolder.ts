@@ -4,3 +4,8 @@ export type StudentFolder = {
   name: string;
   description: string;
 };
+export type FolderItem = {
+  folderItemId: number;
+  folderId: number;
+  studentSetId: number;
+};

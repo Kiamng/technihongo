@@ -1,27 +1,63 @@
-import axios from "axios";
+import { FlashcardSet } from "../studentflashcardset/stuflashcard.api";
+
+import axiosClient from "@/lib/axiosClient";
 
 const ENDPOINT = {
   GET_STUFOLDER_BY_ID: (studentId: number) =>
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/getStudentFolder/${studentId}`,
-  UPDATE_STUFOLDER: (folderId: number) =>
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/update/${folderId}`,
-  ADD_STUFOLDER: `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/create`,
+    `/student-folder/getStudentFolder/${studentId}`,
+  UPDATE_STUFOLDER: (folderId: number) => `/student-folder/update/${folderId}`,
+  ADD_STUFOLDER: `/student-folder/create`,
   DELETE_STUFOLDER: (folderId: number) =>
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/student-folder/deleteFolder/${folderId}`,
+    `/student-folder/deleteFolder/${folderId}`,
+  GET_PUBLIC_FLASHCARD_SETS: "/student-flashcard-set/publicFlashcardSet",
+  SEARCH_TITLE_FLASHCARD_SET: `/student-flashcard-set/searchTitle`,
 };
 
-const axiosClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+interface FolderData {
+  name: string;
+  description: string;
+}
+export const getStuFolder = async (token: string, studentId: number) => {
+  try {
+    const response = await axiosClient.get(
+      ENDPOINT.GET_STUFOLDER_BY_ID(studentId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
-// ✅ Hàm thêm Student Folder
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching student folders:", error);
+    throw error;
+  }
+};
+export const getPublicFlashcardSets = async (
+  token: string,
+): Promise<FlashcardSet[]> => {
+  try {
+    const response = await axiosClient.get(ENDPOINT.GET_PUBLIC_FLASHCARD_SETS, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching public flashcard sets:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
 export const addStuFolder = async (
   token: string,
   studentId: number,
-  values: { name: string; description: string },
+  values: FolderData,
 ) => {
   try {
     const response = await axiosClient.post(
@@ -40,22 +76,17 @@ export const addStuFolder = async (
 
     return response.data;
   } catch (error) {
-    console.error(" Error adding student folder:", error);
+    console.error("Error adding student folder:", error);
     throw error;
   }
 };
 
-// ✅ Hàm cập nhật Student Folder (sửa PUT thành PATCH)
 export const updateStuFolder = async (
   token: string,
   folderId: number,
-  values: { name: string; description: string },
+  values: FolderData,
 ) => {
   try {
-    console.log(" API URL:", ENDPOINT.UPDATE_STUFOLDER(folderId));
-    console.log(" Token:", token);
-    console.log(" Dữ liệu gửi đi:", values);
-
     const response = await axiosClient.patch(
       ENDPOINT.UPDATE_STUFOLDER(folderId),
       {
@@ -69,13 +100,58 @@ export const updateStuFolder = async (
       },
     );
 
-    console.log("✅ Kết quả API:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating student folder:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+export const deleteStuFolder = async (token: string, folderId: number) => {
+  try {
+    const response = await axiosClient.delete(
+      ENDPOINT.DELETE_STUFOLDER(folderId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
     return response.data;
   } catch (error: any) {
     console.error(
-      "❌ Error updating student folder:",
-      error.response?.data || error,
+      "Error deleting student folder:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+export const searchFlashcardSets = async (
+  token: string,
+  keyword: string,
+): Promise<FlashcardSet[]> => {
+  try {
+    const response = await axiosClient.get(
+      `${ENDPOINT.SEARCH_TITLE_FLASHCARD_SET}?keyword=${keyword}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (response.data && response.data.data) {
+      return response.data.data; // đảm bảo response có chứa data
+    } else {
+      throw new Error("No data found");
+    }
+  } catch (error: any) {
+    console.error(
+      "Error searching flashcard sets by title:",
+      error.response?.data || error.message,
     );
     throw error;
   }
