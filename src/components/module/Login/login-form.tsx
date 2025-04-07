@@ -100,7 +100,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginStart }) => {
                 {...register("password", {
                   required: "Bạn cần phải nhập mật khẩu",
                   minLength: {
-                    value: 6,
+                    value: 1,
                     message: "Mật khẩu phải có ít nhất 6 ký tự",
                   },
                 })}
