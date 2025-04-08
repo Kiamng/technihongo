@@ -44,7 +44,7 @@ export function TransactionHistory() {
   const [pageNo, setPageNo] = useState<number>(0);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc"); // Thêm trạng thái sortDir
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc"); // Sắp xếp local
 
   const fetchTransactions = async (page: number) => {
     try {
@@ -57,7 +57,7 @@ export function TransactionHistory() {
         pageNo: page,
         pageSize: 100,
         sortBy: "paymentDate",
-        sortDir: sortDir, // Sử dụng sortDir từ state
+        sortDir: "desc", // Giữ sortDir mặc định từ API
       });
 
       setTransactions((prev) =>
@@ -87,8 +87,8 @@ export function TransactionHistory() {
     }
 
     setError(null);
-    fetchTransactions(0); // Tải lại dữ liệu khi thay đổi sortDir
-  }, [status, session?.user?.token, sortDir]); // Thêm sortDir vào dependency array
+    fetchTransactions(0); // Chỉ fetch khi khởi tạo
+  }, [status, session?.user?.token]); // Không phụ thuộc sortDir
 
   const handleLoadMore = () => {
     const nextPage = pageNo + 1;
@@ -102,8 +102,7 @@ export function TransactionHistory() {
   };
 
   const toggleSortDir = () => {
-    setSortDir((prev) => (prev === "desc" ? "asc" : "desc")); // Chuyển đổi giữa asc và desc
-    setPageNo(0); // Reset về trang đầu tiên khi thay đổi hướng sắp xếp
+    setSortDir((prev) => (prev === "desc" ? "asc" : "desc")); // Chỉ thay đổi sortDir
   };
 
   const formatAmount = (amount: number) => {
@@ -168,13 +167,26 @@ export function TransactionHistory() {
     }
   };
 
+  // Hàm sắp xếp transactions local
+  const sortTransactions = (txs: Transaction[]) => {
+    return [...txs].sort((a, b) => {
+      const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
+      const dateB = b.paymentDate ? new Date(b.paymentDate).getTime() : 0;
+
+      return sortDir === "desc" ? dateB - dateA : dateA - dateB;
+    });
+  };
+
   const filterTransactions = (transactions: Transaction[]) => {
     if (!filterStatus) return transactions;
 
     return transactions.filter((tx) => tx.transactionStatus === filterStatus);
   };
 
-  const filteredTransactions = filterTransactions(transactions);
+  // Lọc và sắp xếp local
+  const filteredAndSortedTransactions = sortTransactions(
+    filterTransactions(transactions),
+  );
 
   if (status === "loading" || (isLoading && pageNo === 0)) {
     return (
@@ -265,9 +277,9 @@ export function TransactionHistory() {
         </div>
 
         <CardContent className="p-0">
-          {filteredTransactions.length > 0 ? (
+          {filteredAndSortedTransactions.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {filteredTransactions.map((transaction, index) => (
+              {filteredAndSortedTransactions.map((transaction, index) => (
                 <div
                   key={index}
                   className="p-4 hover:bg-gray-50 transition-colors flex items-center"
@@ -360,7 +372,7 @@ export function TransactionHistory() {
           )}
 
           {/* Hiển thị nút "Tải thêm" */}
-          {!isLastPage && filteredTransactions.length > 0 && (
+          {!isLastPage && filteredAndSortedTransactions.length > 0 && (
             <div className="flex justify-center p-6">
               <Button
                 className="border-teal-500 text-teal-600 hover:bg-teal-50 flex items-center gap-2"

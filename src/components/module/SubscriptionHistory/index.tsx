@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable unused-imports/no-unused-imports */
 "use client";
 
@@ -5,9 +6,11 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { getSubscriptionHistory } from "@/app/api/subscription/subscription.api";
 import { Subscription } from "@/types/supbscription";
+import { Button } from "@/components/ui/button";
 
 // Animations
 const LoadingAnimation = () => {
@@ -32,6 +35,8 @@ export function SubscriptionHistoryPage() {
   const [pageNo, setPageNo] = useState<number>(0);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [totalElements, setTotalElements] = useState<number>(0);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [inactiveLimit, setInactiveLimit] = useState<number>(3); // Giới hạn ban đầu cho "Không hoạt động/Hết hạn"
 
   const fetchSubscriptionHistory = async (page: number) => {
     try {
@@ -41,25 +46,16 @@ export function SubscriptionHistoryPage() {
       }
 
       console.log("Session Token:", session.user.token);
-      // Decode token thủ công
-      const tokenParts = session.user.token.split("."); // Tách token thành 3 phần
+      const studentId = session.user.studentId;
 
-      if (tokenParts.length !== 3) {
-        throw new Error("Token không hợp lệ");
+      console.log("Student ID from Session:", studentId);
+      if (!studentId || typeof studentId !== "number") {
+        throw new Error("Không tìm thấy studentId hợp lệ trong session");
       }
-      const payload = JSON.parse(atob(tokenParts[1])); // Decode phần Payload (base64)
-      const studentId = parseInt(
-        payload.sub || payload.userId || payload.id || "",
-      );
-
-      if (isNaN(studentId)) {
-        throw new Error("Không tìm thấy studentId hợp lệ trong token");
-      }
-      console.log("Student ID from Token:", studentId);
 
       const response = await getSubscriptionHistory({
         token: session.user.token as string,
-        studentId, // Dùng studentId từ token
+        studentId,
         pageNo: page,
         pageSize: 10,
       });
@@ -87,7 +83,7 @@ export function SubscriptionHistoryPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    console.log("Full Session:", session); // Log toàn bộ session để kiểm tra
+    console.log("Full Session:", session);
     if (!session?.user?.token) {
       setError("Vui lòng đăng nhập để xem lịch sử gói đăng ký");
 
@@ -103,6 +99,14 @@ export function SubscriptionHistoryPage() {
 
     setPageNo(nextPage);
     fetchSubscriptionHistory(nextPage);
+  };
+
+  const toggleSortDir = () => {
+    setSortDir((prev) => (prev === "desc" ? "asc" : "desc"));
+  };
+
+  const handleShowMoreInactive = () => {
+    setInactiveLimit((prev) => prev + 3); // Tăng giới hạn thêm 3 mỗi lần bấm
   };
 
   // Định dạng ngày tháng với kiểm tra lỗi
@@ -125,6 +129,16 @@ export function SubscriptionHistoryPage() {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  };
+
+  // Hàm sắp xếp subscriptions local
+  const sortSubscriptions = (subs: Subscription[]) => {
+    return [...subs].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+
+      return sortDir === "desc" ? dateB - dateA : dateA - dateB;
+    });
   };
 
   // Xác định trạng thái hiển thị và màu dựa trên groupStatus
@@ -323,15 +337,23 @@ export function SubscriptionHistoryPage() {
     );
   }
 
-  // Nhóm các gói đăng ký theo groupStatus
-  const activeSubscriptions = subscriptions.filter(
-    (sub) => sub.groupStatus === "Đang hoạt động",
+  // Nhóm các gói đăng ký theo groupStatus và sắp xếp local
+  const sortedActiveSubscriptions = sortSubscriptions(
+    subscriptions.filter((sub) => sub.groupStatus === "Đang hoạt động"),
   );
-  const inactiveSubscriptions = subscriptions.filter(
-    (sub) => sub.groupStatus === "Không hoạt động/Hết hạn",
+  const sortedInactiveSubscriptions = sortSubscriptions(
+    subscriptions.filter(
+      (sub) => sub.groupStatus === "Không hoạt động/Hết hạn",
+    ),
   );
-  const upcomingSubscriptions = subscriptions.filter(
-    (sub) => sub.groupStatus === "Sắp mở",
+  const sortedUpcomingSubscriptions = sortSubscriptions(
+    subscriptions.filter((sub) => sub.groupStatus === "Sắp mở"),
+  );
+
+  // Giới hạn hiển thị cho "Không hoạt động/Hết hạn"
+  const displayedInactiveSubscriptions = sortedInactiveSubscriptions.slice(
+    0,
+    inactiveLimit,
   );
 
   return (
@@ -362,8 +384,19 @@ export function SubscriptionHistoryPage() {
       </div>
 
       <div className="bg-white rounded-b-xl shadow-lg p-4 md:p-6">
+        {/* Nút toggle sắp xếp */}
+        <div className="flex justify-end mb-4">
+          <button
+            className="px-4 py-2 bg-teal-100 hover:bg-teal-200 text-teal-700 rounded-lg flex items-center gap-2 transition-all duration-200"
+            onClick={toggleSortDir}
+          >
+            <ArrowUpDown className="w-4 h-4" />
+            Sắp xếp: {sortDir === "desc" ? "Mới nhất" : "Cũ nhất"}
+          </button>
+        </div>
+
         {/* Gói đang hoạt động */}
-        {activeSubscriptions.length > 0 && (
+        {sortedActiveSubscriptions.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-green-500 pb-2 flex items-center">
               <svg
@@ -379,10 +412,10 @@ export function SubscriptionHistoryPage() {
                   strokeWidth="2"
                 />
               </svg>
-              Đang hoạt động ({activeSubscriptions.length})
+              Đang hoạt động ({sortedActiveSubscriptions.length})
             </h2>
             <div className="space-y-4">
-              {activeSubscriptions.map((subscription) => {
+              {sortedActiveSubscriptions.map((subscription) => {
                 const statusDetails = getStatusDetails(
                   subscription.groupStatus,
                 );
@@ -459,7 +492,7 @@ export function SubscriptionHistoryPage() {
         )}
 
         {/* Gói không hoạt động/hết hạn */}
-        {inactiveSubscriptions.length > 0 && (
+        {sortedInactiveSubscriptions.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-red-500 pb-2 flex items-center">
               <svg
@@ -475,10 +508,10 @@ export function SubscriptionHistoryPage() {
                   strokeWidth="2"
                 />
               </svg>
-              Không hoạt động/Hết hạn ({inactiveSubscriptions.length})
+              Không hoạt động/Hết hạn ({sortedInactiveSubscriptions.length})
             </h2>
             <div className="space-y-4">
-              {inactiveSubscriptions.map((subscription) => {
+              {displayedInactiveSubscriptions.map((subscription) => {
                 const statusDetails = getStatusDetails(
                   subscription.groupStatus,
                 );
@@ -551,11 +584,22 @@ export function SubscriptionHistoryPage() {
                 );
               })}
             </div>
+            {/* Nút "Xem thêm" cho "Không hoạt động/Hết hạn" */}
+            {sortedInactiveSubscriptions.length > inactiveLimit && (
+              <div className="mt-4 text-center">
+                <Button
+                  className="hover:scale-105 duration-100"
+                  onClick={handleShowMoreInactive}
+                >
+                  Xem thêm
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Gói sắp mở (dự phòng) */}
-        {upcomingSubscriptions.length > 0 && (
+        {sortedUpcomingSubscriptions.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-yellow-500 pb-2 flex items-center">
               <svg
@@ -571,10 +615,10 @@ export function SubscriptionHistoryPage() {
                   strokeWidth="2"
                 />
               </svg>
-              Sắp mở ({upcomingSubscriptions.length})
+              Sắp mở ({sortedUpcomingSubscriptions.length})
             </h2>
             <div className="space-y-4">
-              {upcomingSubscriptions.map((subscription) => {
+              {sortedUpcomingSubscriptions.map((subscription) => {
                 const statusDetails = getStatusDetails(
                   subscription.groupStatus,
                 );
@@ -674,51 +718,6 @@ export function SubscriptionHistoryPage() {
               onClick={() => fetchSubscriptionHistory(0)}
             >
               Làm mới
-            </button>
-          </div>
-        )}
-
-        {/* Nút tải thêm */}
-        {!isLastPage && subscriptions.length > 0 && (
-          <div className="mt-8 text-center">
-            <button
-              className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors shadow-md hover:shadow-lg flex items-center justify-center mx-auto gap-2"
-              disabled={isLoading}
-              onClick={handleLoadMore}
-            >
-              {isLoading ? (
-                <>
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Đang tải...
-                </>
-              ) : (
-                "Tải thêm"
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Nút làm mới */}
-        {subscriptions.length > 0 && (
-          <div className="mt-8 text-center">
-            <button
-              className="px-4 py-2 bg-teal-100 hover:bg-teal-200 text-teal-700 rounded-lg flex items-center justify-center mx-auto transition-all duration-200 shadow-sm hover:shadow group"
-              onClick={() => fetchSubscriptionHistory(0)}
-            >
-              <svg
-                className="w-4 h-4 mr-2 group-hover:animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                />
-              </svg>
-              Làm mới dữ liệu
             </button>
           </div>
         )}
