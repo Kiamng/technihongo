@@ -12,14 +12,15 @@ import {
 interface ImportType {
     isCreating: boolean;
     type: "quiz" | "flashcard";
+    isEditingOrder?: boolean;
 }
-const ImportCSVPopup = ({ type, isCreating }: ImportType) => {
+const ImportCSVPopup = ({ type, isCreating, isEditingOrder }: ImportType) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <Button
                     className="hover:scale-105 transition-all duration-100 font-medium text-lg"
-                    disabled={isCreating}
+                    disabled={isCreating || isEditingOrder}
                     type="button"
                 >
                     Thêm từ CSV <FileSpreadsheet />

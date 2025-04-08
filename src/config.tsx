@@ -75,15 +75,27 @@ export const NavItems = () => {
       sectionList: [
         {
           name: "Các gói",
-          href: "/subscription/plan",
+          href: "/subscription-plan",
           icon: <BadgeJapaneseYen size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/subscription/plan"),
+          active: isNavItemActive(pathname, "/subscription-plan"),
+        },
+        // {
+        //   name: "Lịch sử",
+        //   href: "/abc",
+        //   icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/abc"),
+        // },
+        {
+          name: "Lịch sử giao dịch",
+          href: "/transactions",
+          icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/transactions"),
         },
         {
-          name: "Lịch sử",
-          href: "/abc",
+          name: "Các gói đang hoạt động",
+          href: "/subscription-history",
           icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/abc"),
+          active: isNavItemActive(pathname, "/subscription-history"),
         },
       ],
     },

@@ -17,7 +17,7 @@ export const SubcriptionPlanModule = () => {
   };
 
   return (
-    <div className="bg-[#0b0b23] text-white py-16 px-4 text-center mt-12 rounded-lg">
+    <div className="bg-[#0b0b23] text-white py-16 px-4 text-center rounded-lg min-h-screen">
       {/* Pricing Subscription */}
       <h2 className="text-3xl font-bold">TECHNIHONGO</h2>
       <p className="text-lg mt-2">

@@ -34,7 +34,7 @@ import {
 import {
     createFlashcards,
     createStudentSet,
-} from "@/app/api/CreateFlashcard/create-flashcard.api";
+} from "@/app/api/studentflashcardset/stuflashcard.api";
 
 export default function FlashcardCreateModule() {
     const { data: session } = useSession();

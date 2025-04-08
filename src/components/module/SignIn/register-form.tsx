@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 import { RegisterSchema } from "@/schema/auth/register";
 import {
@@ -58,6 +59,7 @@ const RegisterForm = () => {
 
   const resendVerificationEmail = async () => {
     try {
+      setIsPending(true);
       await resendEmail(form.getValues("email"));
 
       toast.success(
@@ -67,6 +69,8 @@ const RegisterForm = () => {
       toast.error(
         "Có lỗi xảy ra khi gửi lại email xác thực. Vui lòng thử lại.",
       );
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -84,7 +88,7 @@ const RegisterForm = () => {
           disabled={isPending}
           onClick={resendVerificationEmail}
         >
-          Gửi lại xác thực email
+          {isPending ? "Đang gửi ..." : "Gửi lại xác thực email"}
         </Button>
         <p className=" text-slate-500">
           Bạn đã kiểm tra nhưng không thấy email? <br /> Hãy kiểm tra trong thư
@@ -294,7 +298,12 @@ const RegisterForm = () => {
           </form>
         </Form>
         <p className="font-medium text-center text-lg">Hoặc đăng nhập với</p>
-        <Button className="ml-auto w-full text-lg" variant="outline">
+        <Button
+          className="ml-auto w-full text-lg"
+          disabled={isPending}
+          variant="outline"
+          onClick={() => signIn("google")}
+        >
           Google
         </Button>
         <p className="font-medium text-center text-lg">
