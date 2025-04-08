@@ -75,9 +75,9 @@ export const NavItems = () => {
       sectionList: [
         {
           name: "Các gói",
-          href: "/subscription/plan",
+          href: "/subscription-plan",
           icon: <BadgeJapaneseYen size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/subscription/plan"),
+          active: isNavItemActive(pathname, "/subscription-plan"),
         },
         // {
         //   name: "Lịch sử",

@@ -4,7 +4,18 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const publicRoutes = ["/sign-in", "/Login", "/", "/verify"];
-const authRoutes = ["/home", "/flashcard", "/course", "/flashcard/create"];
+const authRoutes = [
+  "/home",
+  "/flashcard",
+  "/course",
+  "/subscription-plan",
+  "/learning-path",
+  "/learning-statistic",
+  "/profile",
+  "/saved-content",
+  "/transactions",
+  "/subscription-history",
+];
 
 export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
