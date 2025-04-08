@@ -43,16 +43,16 @@ const Navigation = () => {
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
-          "transition-all duration-300 ease-in-out transform hidden sm:flex h-full bg-white dark:bg-black",
+          "transition-all duration-300 ease-in-out transform hidden sm:flex bg-white dark:bg-black sticky top-0",
         )}
       >
-        <aside className="flex h-full flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5">
-          <div className="relative  py-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
+        <aside className="flex flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5 min-h-screen">
+          <div className="relative py-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
             <div className="font-semibold text-base ">
               {isSidebarExpanded ? "Username " : ""}
             </div>
             <Button
-              className="rounded-full "
+              className="rounded-full"
               size={"icon"}
               onClick={toggleSidebar}
             >
@@ -70,9 +70,8 @@ const Navigation = () => {
             </Button>
           </div>
           {/* Navigation Links */}
-
           {navItems.map((section, index) => (
-            <div key={index} className="relative ">
+            <div key={index} className="relative">
               <div className="flex flex-col space-y-2">
                 <div className="font-semibold text-base duration-100 relative">
                   {isSidebarExpanded ? section.sectionName : ""}

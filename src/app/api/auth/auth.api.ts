@@ -8,6 +8,7 @@ const ENDPOINT = {
   REGISTER: "/user/register",
   LOGIN_GOOGLE: "/user/google-auth",
   RESEND_EMAIL: "/user/resend-verification-email?email",
+  VERIFY_EMAIL: "/user/verify-email?token",
 };
 
 export const login = async (email: string, password: string) => {
@@ -42,6 +43,12 @@ export const googleLogin = async (accessToken: string) => {
 
 export const resendEmail = async (email: string) => {
   const response = await axiosClient.post(`${ENDPOINT.RESEND_EMAIL}=${email}`);
+
+  return response.data;
+};
+
+export const verifyEmail = async (token: string) => {
+  const response = await axiosClient.patch(`${ENDPOINT.VERIFY_EMAIL}=${token}`);
 
   return response.data;
 };

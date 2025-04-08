@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const publicRoutes = ["/sign-in", "/Login", "/"];
+const publicRoutes = ["/sign-in", "/Login", "/", "/verify"];
 const authRoutes = ["/home", "/flashcard", "/course", "/flashcard/create"];
 
 export default async function middleware(req: NextRequest) {

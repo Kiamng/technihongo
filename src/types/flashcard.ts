@@ -1,19 +1,11 @@
 import { JSX } from "react";
 
 export type Flashcard = {
-  options: any;
-  flashcardId: any;
-  id: string;
-  flashcardName: string;
-  flashcardDescription: string;
-  star: number;
-  fullName: string;
-  subjectName: string;
-  numberOfFlashcardContent: number;
-  userImage: string;
-  userId: string;
-  updatedAt: Date;
-  status: Status;
+  flashcardId: number;
+  japaneseDefinition: string;
+  vietEngTranslation: string;
+  imageUrl: string;
+  cardOrder: number;
 };
 
 export type FlashcardContent = {
