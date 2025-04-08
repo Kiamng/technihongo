@@ -18,8 +18,10 @@ export interface FlashcardSet {
   studentSetId: number;
   title: string;
   description: string;
+  totalViews: number;
   isPublic: boolean;
   flashcards: Flashcard[];
+  createdAt: Date;
 }
 
 export const getAllFlashcardSets = async (token: string): Promise<any> => {

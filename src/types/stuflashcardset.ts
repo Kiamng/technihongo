@@ -9,6 +9,8 @@ export type FlashcardSet = {
   studentSetId: number;
   title: string;
   description: string;
+  totalViews: number;
+  createdAt: Date;
   isPublic: boolean;
   flashcards: Flashcard[];
 };
