@@ -1,4 +1,4 @@
-import { useParams } from "next/navigation";
+/*import { useParams } from "next/navigation";
 
 export default function FolderDetailModule() {
     const params = useParams();
@@ -6,3 +6,4 @@ export default function FolderDetailModule() {
 
     return <div>folder id la : {folderId}</div>;
 }
+*/

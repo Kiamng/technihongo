@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
-  Eye,
   FolderPlus,
   MoreVertical,
   Edit,
@@ -12,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +37,7 @@ interface FlashcardProps {
   flashcardId: string;
   name: string;
   description: string;
+  totalView: number;
 }
 
 interface DeleteConfirmationDialogProps {
@@ -45,7 +46,7 @@ interface DeleteConfirmationDialogProps {
   onConfirm: () => void;
 }
 
-const Flashcard = ({ flashcardId, name, description }: FlashcardProps) => {
+/*const Flashcard = ({ flashcardId, name, description }: FlashcardProps) => {
   return (
     <div className="w-full p-3 flex flex-col justify-between border-[1px] border-primary rounded-lg gap-y-3 hover:-translate-y-1 hover:opacity-90 transition-all duration-300 hover:shadow-lg">
       <Link href={`/flashcard/${flashcardId}`}>
@@ -65,7 +66,7 @@ const Flashcard = ({ flashcardId, name, description }: FlashcardProps) => {
       </Link>
     </div>
   );
-};
+}; */
 
 const DeleteConfirmationDialog = ({
   isOpen,
@@ -318,7 +319,7 @@ export default function FlashcardModule() {
       </div>
 
       <div className="max-w-[1200px] mx-auto flex flex-col gap-10 p-5 relative z-1">
-        {/* TechNihongo gợi ý */}
+        {/* TechNihongo gợi ý 
         <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50">
           <div className="text-2xl font-semibold text-primary">
             TechNihongo gợi ý
@@ -340,7 +341,7 @@ export default function FlashcardModule() {
               name="Flashcard 3"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* MY FOLDER */}
         <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
@@ -374,7 +375,7 @@ export default function FlashcardModule() {
                 <>
                   <div className="relative overflow-hidden">
                     <div
-                      className="flex space-x-4 overflow-x-auto scroll-smooth py-2 px-1"
+                      className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
                       id="folder-carousel"
                     >
                       {folders.map((folder) => (
@@ -385,7 +386,7 @@ export default function FlashcardModule() {
                           <div className="flex items-center justify-between">
                             <Link
                               className="flex-grow"
-                              href={`/folder/${folder.folderId}`}
+                              href={`/flashcard/folder/${folder.folderId}`}
                             >
                               <h3 className="text-lg font-semibold text-green-600 truncate">
                                 {folder.name}
@@ -473,7 +474,7 @@ export default function FlashcardModule() {
       bg-green-500 text-white rounded-t-2xl 
       shadow-lg border border-green-700"
             >
-              <span className="text-2xl font-semibold">Recently Viewed</span>
+              <span className="text-2xl font-semibold">My Flashcard Set</span>
             </div>
           </div>
 
@@ -503,9 +504,13 @@ export default function FlashcardModule() {
                             <h3 className="text-lg font-semibold text-green-600 truncate">
                               {set.title}
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                            <p className="text-sm text-gray-600 mt-1">
                               {set.flashcards?.length || 0} thuật ngữ
                             </p>
+                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                              <Eye className="w-4 h-4 mr-1" />
+                              {set.totalViews || 0} lượt xem
+                            </div>
                           </Link>
                         </div>
                       ))}
