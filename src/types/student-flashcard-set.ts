@@ -10,3 +10,8 @@ export type StudentFlashcardSet = {
   flashcards: Flashcard[];
   createdAt: Date;
 };
+export type CreateStudentFlashcardSetResponse = {
+  success: boolean;
+  message: string;
+  data: StudentFlashcardSet;
+};
