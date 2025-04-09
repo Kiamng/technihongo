@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,11 @@ export default function PublicFlashcardSetList() {
                         <p className="text-sm text-gray-600 mt-1">
                           {set.flashcards?.length || 0} thuật ngữ
                         </p>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <Eye className="w-4 h-4 mr-1" />
+                          {set.totalViews || 0} lượt xem
+                        </div>
+
                         {set.description && (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                             {set.description}

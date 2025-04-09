@@ -26,6 +26,7 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
   const [isSetup, setIsSetup] = useState<boolean>(true);
   const [isFalse, setIsFalse] = useState<Flashcard[]>([]);
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
+  const [currentOptions, setCurrentOptions] = useState<Flashcard[]>([]); // State mới để lưu options
 
   const shuffleFlashcards = (flashcards: Flashcard[]): Flashcard[] => {
     const shuffled = [...flashcards];
@@ -39,6 +40,49 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
     return shuffled;
   };
 
+  const generateOptions = (currentQuestion: Flashcard) => {
+    let incorrectAnswers = flashcardSet.flashcards
+      .filter(
+        (q) =>
+          q.flashcardId !== currentQuestion.flashcardId &&
+          q.vietEngTranslation !== currentQuestion.vietEngTranslation,
+      )
+      .sort(() => Math.random() - 0.5);
+
+    const uniqueIncorrectAnswers: Flashcard[] = [];
+    const usedTranslations = new Set<string>([
+      currentQuestion.vietEngTranslation,
+    ]);
+
+    for (const flashcard of incorrectAnswers) {
+      if (!usedTranslations.has(flashcard.vietEngTranslation)) {
+        uniqueIncorrectAnswers.push(flashcard);
+        usedTranslations.add(flashcard.vietEngTranslation);
+      }
+      if (uniqueIncorrectAnswers.length === 3) break;
+    }
+
+    if (uniqueIncorrectAnswers.length < 3) {
+      const remainingNeeded = 3 - uniqueIncorrectAnswers.length;
+      const additionalIncorrect = isStudying
+        .filter(
+          (q) =>
+            q.flashcardId !== currentQuestion.flashcardId &&
+            q.vietEngTranslation !== currentQuestion.vietEngTranslation &&
+            !usedTranslations.has(q.vietEngTranslation),
+        )
+        .slice(0, remainingNeeded);
+
+      uniqueIncorrectAnswers.push(...additionalIncorrect);
+    }
+
+    const options = [...uniqueIncorrectAnswers, currentQuestion].sort(
+      () => Math.random() - 0.5,
+    );
+
+    setCurrentOptions(options); // Lưu options vào state
+  };
+
   const handleStartLearning = () => {
     if (flashcardSet?.flashcards?.length) {
       const shuffledFlashcards = shuffleFlashcards(flashcardSet.flashcards);
@@ -46,6 +90,7 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
 
       setIsStudying(selectedFlashcards);
       setIsSetup(false);
+      generateOptions(selectedFlashcards[0]); // Sinh options cho câu đầu tiên
     }
   };
 
@@ -65,7 +110,6 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
       setIsCorrect(false);
       setIsFalse((prev) => [...prev, currentQuestion]);
     }
-
     setQuestionsAnswered((prev) => prev + 1);
   };
 
@@ -79,29 +123,29 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
       return;
     }
 
-    // Process the answer result
     if (isCorrect) {
       setIsLearned((prev) => [...prev, currentQuestion]);
-
       const newStudying = isStudying.filter(
         (q) => q.flashcardId !== currentQuestion.flashcardId,
       );
 
       setIsStudying(newStudying);
-
       if (newStudying.length === 0) {
         setShowResults(true);
 
         return;
       }
-
       setCurrentQuestionIndex((prev) => Math.min(prev, newStudying.length - 1));
+      generateOptions(
+        newStudying[Math.min(currentQuestionIndex, newStudying.length - 1)],
+      );
     } else {
-      // If wrong, just move to next question but keep this one in the study list
       setCurrentQuestionIndex((prev) => (prev + 1) % isStudying.length);
+      generateOptions(
+        isStudying[(currentQuestionIndex + 1) % isStudying.length],
+      );
     }
 
-    // Reset the answer state
     setSelectedAnswer(null);
     setIsCorrect(null);
     setShowAnswer(false);
@@ -111,6 +155,7 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
     setShowResults(false);
     setCurrentQuestionIndex(0);
     setQuestionsAnswered(0);
+    generateOptions(isStudying[0]); // Sinh options khi tiếp tục
   };
 
   const currentQuestion = isStudying[currentQuestionIndex];
@@ -212,48 +257,6 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
     );
   }
 
-  // Get incorrect answers from entire flashcardSet
-  let incorrectAnswers = flashcardSet.flashcards
-    .filter(
-      (q) =>
-        q.flashcardId !== currentQuestion.flashcardId &&
-        q.vietEngTranslation !== currentQuestion.vietEngTranslation,
-    )
-    .sort(() => Math.random() - 0.5);
-
-  // Get 3 unique incorrect answers
-  const uniqueIncorrectAnswers: Flashcard[] = [];
-  const usedTranslations = new Set<string>([
-    currentQuestion.vietEngTranslation,
-  ]);
-
-  for (const flashcard of incorrectAnswers) {
-    if (!usedTranslations.has(flashcard.vietEngTranslation)) {
-      uniqueIncorrectAnswers.push(flashcard);
-      usedTranslations.add(flashcard.vietEngTranslation);
-    }
-    if (uniqueIncorrectAnswers.length === 3) break;
-  }
-
-  // If not enough incorrect answers, add from studying set
-  if (uniqueIncorrectAnswers.length < 3) {
-    const remainingNeeded = 3 - uniqueIncorrectAnswers.length;
-    const additionalIncorrect = isStudying
-      .filter(
-        (q) =>
-          q.flashcardId !== currentQuestion.flashcardId &&
-          q.vietEngTranslation !== currentQuestion.vietEngTranslation &&
-          !usedTranslations.has(q.vietEngTranslation),
-      )
-      .slice(0, remainingNeeded);
-
-    uniqueIncorrectAnswers.push(...additionalIncorrect);
-  }
-
-  const options = [...uniqueIncorrectAnswers, currentQuestion].sort(
-    () => Math.random() - 0.5,
-  );
-
   return (
     <div className="min-h-screen bg-[#1A2A44] text-white p-6 flex flex-col items-center">
       <div className="flex items-center mb-6">
@@ -286,16 +289,16 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
 
         <h3 className="text-lg font-bold mb-4">Chọn thuật ngữ ứng dụng</h3>
         <div className="grid grid-cols-2 gap-4">
-          {options.map((option, index) => (
+          {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
               className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${
                 showAnswer &&
                 option.vietEngTranslation === currentQuestion.vietEngTranslation
-                  ? "border-green-500" // Luôn viền xanh cho đáp án đúng
+                  ? "border-green-500"
                   : selectedAnswer === option.vietEngTranslation
-                    ? "border-red-500" // Viền đỏ nếu chọn sai
-                    : "border-transparent hover:border-gray-400" // Chưa chọn
+                    ? "border-red-500"
+                    : "border-transparent hover:border-gray-400"
               }`}
               disabled={showAnswer}
               onClick={() => handleAnswerSelect(option.vietEngTranslation)}
