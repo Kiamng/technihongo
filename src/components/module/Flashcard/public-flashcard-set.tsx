@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
@@ -6,17 +7,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getPublicFlashcardSets } from "@/app/api/studentfolder/stufolder.api";
 import { FlashcardSet } from "@/types/stuflashcardset";
+import { getUserByStudentId } from "@/app/api/studentflashcardset/stuflashcard.api";
 
 export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
   const token = session?.user?.token;
+  const [userNames, setUserNames] = useState<{ [key: number]: string }>({});
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSets = async () => {
+    const fetchSetsAndUsers = async () => {
       if (status === "loading") {
-        // Nếu session đang loading, không làm gì
         return;
       }
 
@@ -27,17 +29,45 @@ export default function PublicFlashcardSetList() {
       }
 
       try {
+        // Lấy danh sách flashcard sets
         const data = await getPublicFlashcardSets(token);
 
         setSets(data);
+
+        // Lấy userName cho từng studentId
+        const studentIds = [...new Set(data.map((set) => set.studentId))]; // Loại bỏ trùng lặp
+        const userPromises = studentIds.map((studentId) =>
+          getUserByStudentId(token, studentId)
+            .then((user) => ({ studentId, userName: user.userName }))
+            .catch((err) => {
+              console.error(
+                `Failed to fetch user for studentId ${studentId}`,
+                err,
+              );
+
+              return { studentId, userName: "Unknown" }; // Giá trị mặc định nếu lỗi
+            }),
+        );
+
+        const userResults = await Promise.all(userPromises);
+        const userMap = userResults.reduce(
+          (acc, { studentId, userName }) => {
+            acc[studentId] = userName;
+
+            return acc;
+          },
+          {} as { [key: number]: string },
+        );
+
+        setUserNames(userMap);
       } catch (err) {
-        console.error("Failed to fetch public flashcard sets", err);
+        console.error("Failed to fetch public flashcard sets or users", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSets();
+    fetchSetsAndUsers();
   }, [token, status]);
 
   return (
@@ -84,7 +114,7 @@ export default function PublicFlashcardSetList() {
                     >
                       <Link
                         className="flex-grow"
-                        href={`/flashcard/${set.studentSetId}`}
+                        href={`/flashcard/${set.studentSetId}?studentId=${set.studentId}`}
                       >
                         <h3 className="text-lg font-semibold text-green-600 truncate">
                           {set.title}
@@ -97,12 +127,21 @@ export default function PublicFlashcardSetList() {
                           {set.totalViews || 0} lượt xem
                         </div>
 
-                        {set.description && (
+                        {/* {set.description && (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                             {set.description}
                           </p>
-                        )}
+                        )} */}
                       </Link>
+                      <div className="text-sm text-gray-600 mt-1">
+                        Created by:{" "}
+                        <Link
+                          className="hover:text-primary"
+                          href={`/flashcard/userFolder/${set.studentId}`}
+                        >
+                          {userNames[set.studentId]}
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>

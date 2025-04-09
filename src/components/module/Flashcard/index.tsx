@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -27,11 +26,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { getAllFlashcardSets } from "@/app/api/studentflashcardset/stuflashcard.api";
+import {
+  FlashcardSet,
+  getAllFlashcardSets,
+  getUserByStudentId,
+} from "@/app/api/studentflashcardset/stuflashcard.api";
 import {
   getStuFolder,
   deleteStuFolder,
 } from "@/app/api/studentfolder/stufolder.api"; // Import getStuFolder
+import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
 
 interface FlashcardProps {
   flashcardId: string;
@@ -101,7 +105,7 @@ export default function FlashcardModule() {
   const [folders, setFolders] = useState<
     { folderId: number; name: string; description: string }[]
   >([]);
-  const [flashcardSets, setFlashcardSets] = useState<any>([]);
+  const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingFlashcardSets, setLoadingFlashcardSets] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -116,6 +120,7 @@ export default function FlashcardModule() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [searchResults, setSearchResults] = useState<any>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [userNames, setUserNames] = useState<{ [key: number]: string }>({});
 
   const fetchUserFolders = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.token) {
@@ -152,7 +157,36 @@ export default function FlashcardModule() {
       const data = await getAllFlashcardSets(session.user.token);
 
       console.log("Flashcard sets data:", data);
-      setFlashcardSets(data.data || []);
+      const sets: FlashcardSet[] = data.data || [];
+
+      setFlashcardSets(sets);
+
+      // Lấy danh sách studentId từ flashcard sets
+      const studentIds = [...new Set(sets.map((set) => set.studentId))];
+      const userPromises = studentIds.map((studentId) =>
+        getUserByStudentId(session.user.token, studentId)
+          .then((user) => ({ studentId, userName: user.userName }))
+          .catch((err) => {
+            console.error(
+              `Failed to fetch user for studentId ${studentId}`,
+              err,
+            );
+
+            return { studentId, userName: "Unknown" };
+          }),
+      );
+
+      const userResults = await Promise.all(userPromises);
+      const userMap = userResults.reduce(
+        (acc, { studentId, userName }) => {
+          acc[studentId] = userName;
+
+          return acc;
+        },
+        {} as { [key: number]: string },
+      );
+
+      setUserNames(userMap);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách flashcard sets:", error);
       setFlashcardSets([]);
@@ -200,11 +234,30 @@ export default function FlashcardModule() {
 
         return;
       }
+
+      // Lấy danh sách các mục trong thư mục
+      const folderItems = await getFolderItemsByFolderId(
+        session.user.token,
+        folderId,
+      );
+
+      // Kiểm tra xem thư mục có chứa studentSetId không
+      if (folderItems.length > 0) {
+        toast.error("Không thể xóa thư mục vì nó chứa các bộ flashcard!");
+        setIsDeleteDialogOpen(false); // Đóng dialog sau khi hiển thị lỗi
+
+        return;
+      }
+
+      // Nếu không có mục nào, tiến hành xóa
       await deleteStuFolder(session.user.token, folderId);
       toast.success("Xoá thư mục thành công!");
-      fetchUserFolders(); // Cập nhật lại danh sách sau khi xóa
+      fetchUserFolders();
+      setIsDeleteDialogOpen(false);
+      setFolderToDelete(null);
     } catch (error) {
       toast.error("Xoá thư mục thất bại.");
+      console.error("Error in handleDelete:", error);
     }
   };
   // Memoize handleSearchResults và handleLoading
@@ -295,6 +348,9 @@ export default function FlashcardModule() {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {set.flashcards?.length || 0} thuật ngữ
                         </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Created by: {userNames[set.studentId]}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center text-yellow-500">
@@ -344,7 +400,7 @@ export default function FlashcardModule() {
         </div> */}
 
         {/* MY FOLDER */}
-        <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
+        <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
           <div className="flex justify-between items-start">
             <div
               className="absolute top-[-20px] left-0 px-6 py-3 
@@ -511,6 +567,9 @@ export default function FlashcardModule() {
                               <Eye className="w-4 h-4 mr-1" />
                               {set.totalViews || 0} lượt xem
                             </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Created by: {userNames[set.studentId]}
+                            </p>
                           </Link>
                         </div>
                       ))}

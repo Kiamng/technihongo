@@ -58,13 +58,23 @@ export const getFolderItemsByFolderId = async (
 
     return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error: any) {
+    const status = error.response?.status;
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch folder items";
+
+    // Không log lỗi 403, chỉ ném lỗi gốc
+    if (status === 403) {
+      throw error; // Giữ lỗi gốc để component xử lý
+    }
+
+    // Log các lỗi khác (tùy chọn, có thể bỏ nếu không muốn log gì)
     console.error(
       "Error fetching folder items:",
       error.response?.data || error.message,
     );
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch folder items",
-    );
+    throw new Error(message);
   }
 };
 

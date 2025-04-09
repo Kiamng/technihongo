@@ -14,6 +14,8 @@ const ENDPOINT = {
   GET_ALL_FLASHCARD_SETS: `/student-flashcard-set/all`,
   GET_FLASHCARD_SET_BY_ID: (setId: number) =>
     `/student-flashcard-set/getUserFlashcard/${setId}`,
+  GET_FLASHCARD_SETS_BY_STUDENT_ID: (studentId: number) =>
+    `/student-flashcard-set/getStudentFlashcardSet/${studentId}`,
   GET_STUDENT_FLASHCARD_SET_BY_ID: "/student-flashcard-set/getUserFlashcard",
   UPDATE_FLASHCARD_ORDER: "/student-flashcard-set/updateOrder",
   DELETE_FLASHCARD: "/flashcard/delete",
@@ -22,8 +24,15 @@ const ENDPOINT = {
   CREATE_STUDENT_SET: "/student-flashcard-set/create",
   UPDATE_STUDENT_SET: "/student-flashcard-set/update",
   UPDATE_PUBLIC_STATUS: "/student-flashcard-set/updateVisibility",
+  GET_USER_FROM_STUDENT: (studentId: number) =>
+    `/user/getUserByStudentId/${studentId}`,
 };
 
+export interface UsertoStudent {
+  userId: number;
+  userName: string;
+  email: string;
+}
 export interface Flashcard {
   flashcardId: number;
   japaneseDefinition: string;
@@ -41,6 +50,57 @@ export interface FlashcardSet {
   flashcards: Flashcard[];
   createdAt: Date;
 }
+export const getFlashcardSetsByStudentId = async (
+  studentId: number,
+  token: string,
+): Promise<FlashcardSet[]> => {
+  try {
+    const response = await axiosClient.get(
+      ENDPOINT.GET_FLASHCARD_SETS_BY_STUDENT_ID(studentId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching flashcard sets by studentId:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+export const getUserByStudentId = async (
+  token: string,
+  studentId: number,
+): Promise<UsertoStudent> => {
+  if (!studentId) throw new Error("Invalid studentId");
+  if (!token) throw new Error("Invalid token");
+
+  try {
+    const response = await axiosClient.get(
+      ENDPOINT.GET_USER_FROM_STUDENT(studentId),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    // Nếu BE trả về response như: { success, message, data }
+    return response.data.data;
+  } catch (error: any) {
+    console.error(
+      "Lỗi khi gọi API getUserByStudentId:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
 
 export const getAllFlashcardSets = async (token: string): Promise<any> => {
   try {
