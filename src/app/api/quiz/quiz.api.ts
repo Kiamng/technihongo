@@ -104,22 +104,13 @@ export const startQuizAttempt = async (
   token: string,
   quizId: number,
 ): Promise<StartAttemptResponse> => {
-  try {
-    const response = await axiosClient.post(
-      `${ENDPOINT.START_ATTEMPT}/${quizId}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    const data: StartAttemptResponse = response.data;
+  const response = await axiosClient.post(
+    `${ENDPOINT.START_ATTEMPT}/${quizId}`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
 
-    console.log("Start attempt response:", data);
-    if (!data.success) throw new Error(data.message);
-
-    return data;
-  } catch (error) {
-    console.error("Error starting quiz attempt:", error);
-    throw error;
-  }
+  return response.data;
 };
 
 export const getQuizQuestions = async (

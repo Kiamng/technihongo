@@ -11,3 +11,13 @@ export type StudyPlan = {
   createdAt: string;
   default: boolean;
 };
+
+export type StudentActiveStudyPlan = {
+  studentPlanId: number;
+  studentId: number;
+  studyPlanId: number;
+  previousPlanId: number | null;
+  startDate: Date;
+  status: string;
+  switchDate: Date | null;
+};
