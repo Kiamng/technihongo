@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 import ReviewGame from "./reviewPage";
+import TextHighlighterWithTranslate from "./TextHighlighterWithTranslate";
 
 import TermList from "@/components/module/FlashcardDetail/term-list";
 import {
@@ -67,12 +68,18 @@ export default function FlashcardDetailModule({
 
   return (
     <div className="w-full space-y-20 min-h-screen">
+      <TextHighlighterWithTranslate />
       <div>
-        <div
-          className="px-8 py-4 text-white dark:text-inherit text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]"
-          style={{ backgroundColor: "#56D071" }}
-        >
-          {flashcardSet.title || "No title"}
+        <div className="text-center mb-4">
+          <div
+            className="px-8 py-4 text-white dark:text-inherit text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]"
+            style={{ backgroundColor: "#56D071" }}
+          >
+            {flashcardSet.title || "No title"}
+          </div>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-[800px] mx-auto">
+            {flashcardSet.description || ""}
+          </p>
         </div>
         <div className="w-full flex justify-center">
           <div className="flashcard-app flex flex-col space-y-6 bg-gray-100 dark:bg-gray-800 p-10 w-fit rounded-2xl shadow-md dark:shadow-none min-w-[800px]">
