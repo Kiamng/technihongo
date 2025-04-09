@@ -91,7 +91,7 @@ export default function FlashcardDetailModule({
 
             {isReview ? (
               <ReviewGame
-                flashcardSet={flashcardSet}
+                flashcards={flashcardSet.flashcards}
                 onExit={() => setIsReview(false)}
               />
             ) : (

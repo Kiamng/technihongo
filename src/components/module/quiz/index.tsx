@@ -135,8 +135,6 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"; // Import DotLottieReact
 
-import { QuizContainer } from "./_components/QuizContainer";
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuizData } from "@/types/quiz";
@@ -193,11 +191,9 @@ export function QuizList() {
     fetchQuizzes();
   };
 
-  if (selectedQuiz) {
-    return (
-      <QuizContainer quizData={selectedQuiz} onBackToList={handleBackToList} />
-    );
-  }
+  // if (selectedQuiz) {
+  //   return <QuizContainer quizData={selectedQuiz} />;
+  // }
 
   if (isLoading) {
     return (

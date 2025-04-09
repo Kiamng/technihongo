@@ -22,6 +22,7 @@ const ENDPOINT = {
   CREATE_STUDENT_SET: "/student-flashcard-set/create",
   UPDATE_STUDENT_SET: "/student-flashcard-set/update",
   UPDATE_PUBLIC_STATUS: "/student-flashcard-set/updateVisibility",
+  ADD_FLASHCARD_FROM_LEARNING_RESOURCE: "/student-flashcard-set/from-resource",
 };
 
 export interface Flashcard {
@@ -236,6 +237,35 @@ export const updateFlashcardSetPublicStatus = async (
   const response = await axiosClient.patch(
     `${ENDPOINT.UPDATE_PUBLIC_STATUS}/${setId}?isPublic=${publicStatus}`,
     {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data;
+};
+
+interface ImportFlashcard {
+  japaneseDefinition: string;
+  vietEngTranslation: string;
+  imageUrl: string;
+}
+
+export const addFlashcardFromLearningResourece = async (
+  token: string,
+  resourceId: number,
+  flashcards: ImportFlashcard[],
+) => {
+  const response = await axiosClient.post(
+    ENDPOINT.ADD_FLASHCARD_FROM_LEARNING_RESOURCE,
+    {
+      resourceId: resourceId,
+      description: "",
+      isPublic: false,
+      flashcards: flashcards,
+    },
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -23,14 +23,17 @@ export default async function middleware(req: NextRequest) {
 
   console.log("Path:", pathname, "Token:", token);
 
+  const isPublicRoute = publicRoutes.includes(pathname);
+  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+
   // Nếu user đã đăng nhập và đang cố vào trang public -> chuyển hướng về /home
-  if (token && publicRoutes.includes(pathname) && pathname !== "/home") {
+  if (token && isPublicRoute && pathname !== "/home") {
     return NextResponse.redirect(new URL("/home", req.url));
   }
 
   // Nếu user chưa đăng nhập và cố vào trang yêu cầu auth -> chuyển hướng về /login
-  if (!token && authRoutes.includes(pathname) && pathname !== "/login") {
-    return NextResponse.redirect(new URL("/login", req.url));
+  if (!token && isAuthRoute && pathname !== "/Login") {
+    return NextResponse.redirect(new URL("/Login", req.url));
   }
 
   return NextResponse.next();

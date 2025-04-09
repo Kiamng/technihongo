@@ -15,14 +15,14 @@ export default function RootLayout({
           <Header />
         </div>
 
-        <div className="flex flex-row flex-1 overflow-hidden">
+        <div
+          className="flex flex-row flex-1 overflow-hidden"
+          style={{ maxHeight: "calc(100vh - 73px)" }}
+        >
           <Navigation />
 
           {/* Phần children sẽ cuộn */}
-          <div
-            className="flex-1 overflow-y-auto pl-6 bg-secondary max-h-screen"
-            style={{ maxHeight: "calc(100vh - 73px)" }}
-          >
+          <div className="flex-1 overflow-y-auto pl-6 bg-secondary">
             {children}
           </div>
         </div>

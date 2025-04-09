@@ -1,8 +1,10 @@
 import axiosClient from "@/lib/axiosClient";
-import { CourseList } from "@/types/course";
+import { CourseList, CourseProgress } from "@/types/course";
 
 const ENDPOINT = {
   ALL: "/course/all/paginated",
+  GET_ALL_COURSE_PROGRESS_BY_STUDENT_ID: "/course-progress/all",
+  GET_A_STUDENT_COURSE_PROGRESS: "/course-progress/view",
 };
 
 export const getAllCourse = async ({
@@ -35,4 +37,37 @@ export const getAllCourse = async ({
   );
 
   return response.data.data as CourseList;
+};
+
+export const getStudentAllCourseProgress = async (
+  studentId: number,
+  token: string,
+): Promise<CourseProgress[]> => {
+  const response = await axiosClient.get(
+    `${ENDPOINT.GET_ALL_COURSE_PROGRESS_BY_STUDENT_ID}/${studentId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data.data;
+};
+
+export const getAStudentCourseProgress = async (
+  studentId: number,
+  token: string,
+  courseId: number,
+): Promise<CourseProgress> => {
+  const response = await axiosClient.get(
+    `${ENDPOINT.GET_A_STUDENT_COURSE_PROGRESS}/${studentId}?courseId=${courseId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data.data;
 };

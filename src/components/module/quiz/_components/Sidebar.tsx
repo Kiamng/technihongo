@@ -29,7 +29,7 @@ export function Sidebar({
         Hoàn thành: {completedQuestions}/{totalQuestions}
       </p>
       <p className="mb-4">Còn lại: {remainingQuestions}</p>
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="grid grid-cols-10 gap-2 mb-4">
         {questions.map((question, index) => {
           const questionId = question.id;
           const isAnswered =
@@ -42,12 +42,11 @@ export function Sidebar({
           return (
             <Button
               key={questionId}
-              className={`w-10 h-10 flex items-center justify-center ${
-                isAnswered
+              className={`w-10 h-10 flex items-center justify-center ${isAnswered
                   ? "bg-green-500 text-white hover:bg-green-600"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-              disabled={isSubmitting} // Có thể sử dụng isSubmitting để vô hiệu hóa nút khi đang submit
+                }`}
+              disabled={isSubmitting}
               onClick={() => onQuestionClick(index)}
             >
               {index + 1}
