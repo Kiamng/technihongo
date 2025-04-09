@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Star,
   Eye,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -527,11 +528,23 @@ export default function FlashcardModule() {
           <div className="flex justify-between items-start">
             <div
               className="absolute top-[-20px] left-0 px-6 py-3 
-      bg-green-500 text-white rounded-t-2xl 
-      shadow-lg border border-green-700"
+           bg-green-500 text-white rounded-t-2xl 
+           shadow-lg border border-green-700"
             >
-              <span className="text-2xl font-semibold">My Flashcard Set</span>
+              <span className="text-2xl font-semibold">
+                Các bài học của tôi
+              </span>
             </div>
+            <Link href={"/flashcard/create"}>
+              <Button
+                className="absolute top-[-20px] right-0 px-4 py-3 
+           bg-green-500 text-white rounded-t-2xl 
+           shadow-lg border border-green-700 hover:bg-green-600 transition-colors"
+              >
+                <Copy className="inline-block mr-2" size={24} />
+                Thêm mới bài học
+              </Button>
+            </Link>
           </div>
 
           {loadingFlashcardSets ? (

@@ -42,10 +42,11 @@ export function Sidebar({
           return (
             <Button
               key={questionId}
-              className={`w-10 h-10 flex items-center justify-center ${isAnswered
+              className={`w-10 h-10 flex items-center justify-center ${
+                isAnswered
                   ? "bg-green-500 text-white hover:bg-green-600"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
+              }`}
               disabled={isSubmitting}
               onClick={() => onQuestionClick(index)}
             >

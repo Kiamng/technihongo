@@ -7,9 +7,14 @@ import { Flashcard } from "@/app/api/studentflashcardset/stuflashcard.api";
 interface ReviewGameProps {
   flashcards: Flashcard[];
   onExit: () => void;
+  isSystem?: boolean;
 }
 
-export default function ReviewGame({ flashcards, onExit }: ReviewGameProps) {
+export default function ReviewGame({
+  flashcards,
+  onExit,
+  isSystem,
+}: ReviewGameProps) {
   const [isStudying, setIsStudying] = useState<Flashcard[]>([]);
   const [isLearned, setIsLearned] = useState<Flashcard[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -170,6 +175,7 @@ export default function ReviewGame({ flashcards, onExit }: ReviewGameProps) {
         <div className="flex items-center mb-4">
           <input
             className="p-2 bg-gray-800 text-white rounded-lg w-32 mr-2"
+            disabled={isSystem}
             max={flashcards.length}
             min="1"
             type="number"
@@ -184,12 +190,14 @@ export default function ReviewGame({ flashcards, onExit }: ReviewGameProps) {
           />
           <span> / {flashcards.length} câu</span>
         </div>
-        <button
-          className="px-4 py-2 bg-gray-700 text-white rounded-lg mb-4 hover:bg-gray-600"
-          onClick={() => setSocau(flashcards.length)}
-        >
-          Chọn tất cả
-        </button>
+        {!isSystem && (
+          <button
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg mb-4 hover:bg-gray-600"
+            onClick={() => setSocau(flashcards.length)}
+          >
+            Chọn tất cả
+          </button>
+        )}
         <button
           className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
           onClick={handleStartLearning}
@@ -283,13 +291,14 @@ export default function ReviewGame({ flashcards, onExit }: ReviewGameProps) {
           {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
-              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${showAnswer &&
-                  option.vietEngTranslation === currentQuestion.vietEngTranslation
+              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${
+                showAnswer &&
+                option.vietEngTranslation === currentQuestion.vietEngTranslation
                   ? "border-green-500"
                   : selectedAnswer === option.vietEngTranslation
                     ? "border-red-500"
                     : "border-transparent hover:border-gray-400"
-                }`}
+              }`}
               disabled={showAnswer}
               onClick={() => handleAnswerSelect(option.vietEngTranslation)}
             >
@@ -299,7 +308,7 @@ export default function ReviewGame({ flashcards, onExit }: ReviewGameProps) {
               </div>
               {showAnswer &&
                 (option.vietEngTranslation ===
-                  currentQuestion.vietEngTranslation ? (
+                currentQuestion.vietEngTranslation ? (
                   <span className="text-green-500 font-bold">✔</span>
                 ) : selectedAnswer === option.vietEngTranslation ? (
                   <span className="text-red-500 font-bold">✕</span>

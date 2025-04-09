@@ -219,7 +219,7 @@ export function QuizContainer({
               question={question}
               onAnswerChange={handleAnswerChange}
               onClearAnswer={handleClearAnswer}
-              onNext={() => { }}
+              onNext={() => {}}
             />
           </div>
         ))
