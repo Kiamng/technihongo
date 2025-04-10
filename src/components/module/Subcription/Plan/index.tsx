@@ -1,4 +1,3 @@
-// // src/components/module/Subscription/Plan/index.tsx
 // "use client";
 
 // import { useState, useEffect } from "react";
@@ -77,8 +76,13 @@
 //   };
 
 //   const handleSubscribe = (subPlanId: number) => {
-//     console.log("Navigating to:", `/subscription-plan/${subPlanId}`); // Debug
-//     router.push(`/subscription-plan/${subPlanId}`);
+//     const lastOrderId = localStorage.getItem("lastOrderId"); // Lấy orderId từ localStorage nếu có
+//     const redirectPath = lastOrderId
+//       ? `/subscription-plan/${subPlanId}?orderId=${lastOrderId}`
+//       : `/subscription-plan/${subPlanId}`;
+
+//     console.log("Navigating to:", redirectPath); // Debug
+//     router.push(redirectPath);
 //   };
 
 //   if (loading) {
@@ -224,7 +228,7 @@ const LoadingAnimation = () => {
   );
 };
 
-export const SubcriptionPlanModule = () => {
+export const SubscriptionPlanModule = () => {
   const router = useRouter();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -267,12 +271,12 @@ export const SubcriptionPlanModule = () => {
   };
 
   const handleSubscribe = (subPlanId: number) => {
-    const lastOrderId = localStorage.getItem("lastOrderId"); // Lấy orderId từ localStorage nếu có
+    const lastOrderId = localStorage.getItem("lastOrderId");
     const redirectPath = lastOrderId
       ? `/subscription-plan/${subPlanId}?orderId=${lastOrderId}`
       : `/subscription-plan/${subPlanId}`;
 
-    console.log("Navigating to:", redirectPath); // Debug
+    console.log("Navigating to:", redirectPath);
     router.push(redirectPath);
   };
 
