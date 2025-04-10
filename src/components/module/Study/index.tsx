@@ -146,10 +146,11 @@ export default function StudyModule() {
 
       if (activePlan) {
         setActiveStudyPlan(activePlan);
-        console.log("activePlan", activePlan);
+        fetchLessons(activePlan.studyPlanId);
+        // console.log("activePlan", activePlan);
       }
       setAvailablesStudyPlans(response);
-      console.log("activePlan", activePlan);
+      // console.log("Available Study Plans", response);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải kế hoạch học", error);
     }
