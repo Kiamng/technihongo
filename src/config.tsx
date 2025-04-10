@@ -8,7 +8,7 @@ import {
   FileChartPie,
   GraduationCap,
   Heart,
-  Home,
+  Languages,
   PackageOpenIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -26,12 +26,12 @@ export const NavItems = () => {
     {
       sectionName: "Học tập",
       sectionList: [
-        {
-          name: "Home",
-          href: "/home",
-          icon: <Home size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/home"),
-        },
+        // {
+        //   name: "Home",
+        //   href: "/home",
+        //   icon: <Home size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/home"),
+        // },
         {
           name: "Thống kê",
           href: "/learning-statistic",
@@ -71,7 +71,7 @@ export const NavItems = () => {
         {
           name: "Dịch tài liệu IT tiếng nhật",
           href: "/translate",
-          icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
+          icon: <Languages size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/translate"),
         },
       ],

@@ -27,8 +27,8 @@ export default async function middleware(req: NextRequest) {
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   // Nếu user đã đăng nhập và đang cố vào trang public -> chuyển hướng về /home
-  if (token && isPublicRoute && pathname !== "/home") {
-    return NextResponse.redirect(new URL("/home", req.url));
+  if (token && isPublicRoute && pathname !== "/course") {
+    return NextResponse.redirect(new URL("/course", req.url));
   }
 
   // Nếu user chưa đăng nhập và cố vào trang yêu cầu auth -> chuyển hướng về /login

@@ -1,8 +1,9 @@
 import { axiosClientUpload } from "@/lib/axiosClient";
 import { SubscriptionHistoryResponse } from "@/types/supbscription";
-
+import axiosClient from "@/lib/axiosClient";
 const ENDPOINT = {
   SUBSCRIPTION_HISTORY: "/v1/subscription/history",
+  CURRENT_SUBSCRIPTION: "/v1/subscription/current-plan",
 };
 
 export const getSubscriptionHistory = async ({
@@ -39,4 +40,14 @@ export const getSubscriptionHistory = async ({
 
     throw new Error("Không thể lấy lịch sử gói đăng ký: " + errorMessage);
   }
+};
+
+export const getCurrentSubscription = async (token: string) => {
+  const response = await axiosClient.get(ENDPOINT.CURRENT_SUBSCRIPTION, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
 };

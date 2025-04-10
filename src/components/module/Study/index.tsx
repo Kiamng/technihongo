@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -30,9 +30,11 @@ import {
 } from "@/app/api/lesson-resource/lesson-resource.api";
 import { LessonResource } from "@/types/lesson-resource";
 import { Separator } from "@/components/ui/separator";
+import { getCurrentSubscription } from "@/app/api/subscription/subscription.api";
 
 export default function StudyModule() {
   const params = useParams();
+  const router = useRouter();
   const courseId = Number(params.courseId);
   const [isLoading, setIsloading] = useState<boolean>(false);
   const [isLoadingLR, setIsLoadingLR] = useState<boolean>(false);
@@ -85,6 +87,8 @@ export default function StudyModule() {
         session?.user.token as string,
         courseId,
       );
+
+      console.log("progress", response);
 
       setCourseProgress(response);
       if (response.currentLesson) {
@@ -142,8 +146,10 @@ export default function StudyModule() {
 
       if (activePlan) {
         setActiveStudyPlan(activePlan);
+        console.log("activePlan", activePlan);
       }
       setAvailablesStudyPlans(response);
+      console.log("activePlan", activePlan);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải kế hoạch học", error);
     }
@@ -250,8 +256,6 @@ export default function StudyModule() {
       await Promise.all([fetchProgress(), fetchAllAvailableStudyPlan()]);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
-    } finally {
-      setIsloading(false);
     }
   };
 
@@ -260,15 +264,39 @@ export default function StudyModule() {
       return;
     }
     setIsloading(true);
-
     fetchData();
+
+    setIsloading(false);
   }, [session?.user.token, session?.user.studentId, courseId]);
 
   useEffect(() => {
-    if (activeStudyPlan?.studyPlanId) {
-      fetchLessons(activeStudyPlan.studyPlanId);
-    }
-  }, [activeStudyPlan]);
+    const fetchWithSubscriptionCheck = async () => {
+      if (!session?.user.studentId || !session?.user.token) {
+        return;
+      }
+
+      setIsloading(true);
+
+      try {
+        const hasSubscription = await getCurrentSubscription(
+          session.user.token,
+        );
+
+        if (hasSubscription) {
+          await fetchData();
+        } else {
+          toast.error("Bạn chưa có gói học. Vui lòng đăng ký để tiếp tục.");
+        }
+      } catch (error) {
+        toast.error("Bạn cần đăng ký gói để tiếp tục");
+        router.push("/course");
+      } finally {
+        setIsloading(false);
+      }
+    };
+
+    fetchWithSubscriptionCheck();
+  }, [session?.user.token, session?.user.studentId, courseId]);
 
   if (isLoading) {
     return (

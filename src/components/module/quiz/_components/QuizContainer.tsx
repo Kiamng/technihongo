@@ -247,6 +247,9 @@ export function QuizContainer({
             ? `${Math.floor(attemptData.remainingTimeInSeconds / 60)} phút`
             : "Đang tải..."}
         </p>
+        <p className="text-gray-600 mb-6">
+          Điểm cần đạt : {quizData.passingScore * 10}
+        </p>
         <div className="flex justify-center gap-4">
           <Button onClick={handleStartQuiz}>Bắt đầu làm quiz</Button>
         </div>

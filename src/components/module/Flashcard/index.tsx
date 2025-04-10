@@ -12,6 +12,7 @@ import {
   Star,
   Eye,
   Copy,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -561,7 +562,7 @@ export default function FlashcardModule() {
                       className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
                       id="recently-viewed-carousel"
                     >
-                      {flashcardSets.map((set: any) => (
+                      {flashcardSets.map((set) => (
                         <div
                           key={set.studentSetId}
                           className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col"
@@ -584,6 +585,13 @@ export default function FlashcardModule() {
                               Created by: {userNames[set.studentId]}
                             </p>
                           </Link>
+                          <div className="w-full flex justify-end">
+                            <Link href={`/flashcard/edit/${set.studentSetId}`}>
+                              <Button size="icon" variant="ghost">
+                                <Pencil />
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       ))}
                     </div>

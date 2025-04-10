@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { Lock, PlayCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -55,6 +55,7 @@ export default function CourseDetail({
   const { data: session } = useSession();
   const params = useParams();
   const courseId = Number(params.courseId);
+  const router = useRouter();
 
   const {
     studyPlans,
@@ -162,6 +163,11 @@ export default function CourseDetail({
             ? "Bạn cần có gói đăng ký hoạt động để tham gia khóa học cao cấp!"
             : result.message || "Đăng ký khóa học thất bại!",
         );
+        if (
+          result.message.includes("Student must have an active subscription")
+        ) {
+          router.push("/subscription-plan");
+        }
       }
     } catch (error: any) {
       const errorMessage =
@@ -169,6 +175,9 @@ export default function CourseDetail({
           ? "Bạn cần có gói đăng ký hoạt động để tham gia khóa học cao cấp!"
           : "Đã có lỗi xảy ra khi đăng ký khóa học!";
 
+      if (error.response?.status === 400) {
+        router.push("/subscription-plan");
+      }
       toast.error(errorMessage);
     } finally {
       setIsEnrolling(false);
@@ -229,11 +238,10 @@ export default function CourseDetail({
                 (chapter: Chapter, chapterIndex: number) => (
                   <div
                     key={chapterIndex}
-                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
-                      selectedChapter === chapterIndex
+                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${selectedChapter === chapterIndex
                         ? "bg-green-100"
                         : "bg-gray-100"
-                    }`}
+                      }`}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedChapter(chapterIndex)}
@@ -256,11 +264,10 @@ export default function CourseDetail({
                           (section: Section, sectionIndex: number) => (
                             <div
                               key={`${chapterIndex}-${sectionIndex}`}
-                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
-                                selectedSection === sectionIndex
+                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${selectedSection === sectionIndex
                                   ? "bg-green-200"
                                   : "bg-gray-50"
-                              }`}
+                                }`}
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {

@@ -17,3 +17,12 @@ export type CreateLearningResourceResponse = {
   message: string;
   data: LearningResource;
 };
+
+export type LearningResourceList = {
+  content: LearningResource[];
+  pageNo: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+};
