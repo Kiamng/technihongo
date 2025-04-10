@@ -231,7 +231,12 @@ export default function StudyModule() {
   ) => {
     try {
       hanldeUpdateCompletedStatus(lessonReourceId);
-
+      console.log(
+        "hanldeCompleteLessonResource:",
+        type,
+        lessonReourceId,
+        entityId,
+      );
       if (type === "LearningResource") {
         await completeLearningResource(entityId, session?.user.token as string);
       }
@@ -312,6 +317,7 @@ export default function StudyModule() {
       <div className="resource flex-1 h-min-screen overflow-y-auto">
         {currentContentType === "LearningResource" && (
           <DynamicLearningResource
+            handleTrackLearningResource={handleTrackLearningResource}
             hanldeCompleteLessonResource={hanldeCompleteLessonResource}
             lessonResource={currentLessonResource!}
             token={session?.user.token as string}

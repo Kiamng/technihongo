@@ -14,6 +14,7 @@ import {
 import { LessonResource } from "@/types/lesson-resource";
 
 interface DynamicLearningResourceProps {
+  handleTrackLearningResource: (resourceId: number) => Promise<void>;
   lessonResource: LessonResource;
   token: string;
   hanldeCompleteLessonResource: (
@@ -27,6 +28,7 @@ const DynamicLearningResource = ({
   lessonResource,
   token,
   hanldeCompleteLessonResource,
+  handleTrackLearningResource,
 }: DynamicLearningResourceProps) => {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isLoading, startTransition] = useTransition();
@@ -89,6 +91,12 @@ const DynamicLearningResource = ({
       hanldeCompleteLessonResource(
         "LearningResource",
         lessonResource.lessonResourceId,
+        lessonResource.learningResource?.resourceId as number,
+      );
+    }
+
+    if (percentageWatched >= 10) {
+      handleTrackLearningResource(
         lessonResource.learningResource?.resourceId as number,
       );
     }
