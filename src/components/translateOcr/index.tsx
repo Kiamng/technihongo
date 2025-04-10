@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import UploadZone from "./UploadZone";
 import OCRPreview from "./OCRPreview ";
@@ -22,19 +23,23 @@ export default function OCRTranslatePage() {
     "Học lập trình giống như học một ngôn ngữ mới. Bạn cần hiểu ngữ pháp cơ bản, cú pháp và cách tư duy logic. Ngôn ngữ tốt nhất để bắt đầu phụ thuộc vào mục tiêu của bạn. Nếu bạn quan tâm đến phát triển web, JavaScript là một lựa chọn tốt.";
 
   const handleFileChange = (uploadedFile: File | null) => {
-    setFile(uploadedFile);
-
     if (uploadedFile) {
-      // Create preview URL for images
+      // Kiểm tra xem file có phải là ảnh hay không
       if (uploadedFile.type.startsWith("image/")) {
+        setFile(uploadedFile);
+
+        // Tạo preview URL cho ảnh
         const url = URL.createObjectURL(uploadedFile);
 
         setPreviewUrl(url);
       } else {
-        // For PDFs, we don't create previews, just show the icon
+        // Nếu không phải ảnh, không cho phép tải lên và reset lại
+        toast.error("Please upload an image file.");
+        setFile(null);
         setPreviewUrl(null);
       }
     } else {
+      setFile(null);
       setPreviewUrl(null);
     }
   };
