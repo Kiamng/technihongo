@@ -23,7 +23,11 @@ interface QuizResultsProps {
   quizId: number;
   questions: QuizQuestion[];
   onRetake: () => void;
-  hanldeUpdateCompletedStatus: (lessonReourceId: number) => void;
+  hanldeCompleteLessonResource: (
+    type: string,
+    lessonReourceId: number,
+    entityId: number,
+  ) => Promise<void>;
   lessonResourceId: number;
 }
 
@@ -32,7 +36,7 @@ export function QuizResults({
   quizId,
   questions,
   onRetake,
-  hanldeUpdateCompletedStatus,
+  hanldeCompleteLessonResource,
   lessonResourceId,
 }: QuizResultsProps) {
   const { data: session } = useSession();
@@ -98,7 +102,7 @@ export function QuizResults({
             incorrectAnswers: reviewResponse.data.incorrectAnswers,
           });
           if (reviewResponse.data.isPassed) {
-            hanldeUpdateCompletedStatus(lessonResourceId);
+            hanldeCompleteLessonResource("Quiz", lessonResourceId, quizId);
           }
           setShowConfetti(reviewResponse.data.isPassed);
         } else {
@@ -234,11 +238,10 @@ export function QuizResults({
                     </span>
                   </p>
                   <p
-                    className={`text-xl font-semibold ${
-                      currentAttempt.isPassed
+                    className={`text-xl font-semibold ${currentAttempt.isPassed
                         ? "text-green-500"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
                     Trạng thái: {currentAttempt.isPassed ? "Đạt" : "Không đạt"}
                   </p>
@@ -263,13 +266,12 @@ export function QuizResults({
                 {reviewData.answers.map((answer, index) => (
                   <Button
                     key={answer.questionId}
-                    className={`w-10 h-10 flex items-center justify-center ${
-                      answer.isCorrect
+                    className={`w-10 h-10 flex items-center justify-center ${answer.isCorrect
                         ? "bg-green-500 text-white hover:bg-green-600"
                         : answer.selectedOptions.length === 0
                           ? "bg-gray-500 text-white hover:bg-gray-600"
                           : "bg-red-500 text-white hover:bg-red-600"
-                    }`}
+                      }`}
                     onClick={() => handleQuestionClick(index)}
                   >
                     {index + 1}
@@ -289,11 +291,10 @@ export function QuizResults({
                       ref={(el) => {
                         questionRefs.current[index] = el;
                       }}
-                      className={`p-4 rounded-lg ${
-                        selectedQuestionIndex === index
+                      className={`p-4 rounded-lg ${selectedQuestionIndex === index
                           ? "ring-2 ring-[#56D071]"
                           : ""
-                      }`}
+                        }`}
                     >
                       <QuizCard
                         answers={{}}
@@ -325,8 +326,8 @@ export function QuizResults({
                           selectedOptions: answer.selectedOptions,
                           correctOptions: [],
                         }}
-                        onAnswerChange={() => {}}
-                        onNext={() => {}}
+                        onAnswerChange={() => { }}
+                        onNext={() => { }}
                       />
                     </div>
                   );

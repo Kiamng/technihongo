@@ -88,27 +88,35 @@ export default function StudyModule() {
 
       setCourseProgress(response);
       if (response.currentLesson) {
-        await toggleLessonResource(response.currentLesson.lessonId);
+        const resources = await getLessonResourceByLessonId(
+          session?.user.token as string,
+          response.currentLesson.lessonId,
+        );
 
-        const lessonId = response.currentLesson.lessonId;
-        let lessonResourceList = lessonResources[lessonId];
-        let selectedLessonResource = lessonResourceList
-          ?.filter((resource) => resource.progressCompleted)
-          .sort((a, b) => b.typeOrder - a.typeOrder)[0];
+        setExpandedLessonId(response.currentLesson.lessonId);
+        setLessonResources((prev) => ({
+          ...prev,
+          [response.currentLesson.lessonId]: resources,
+        }));
 
-        if (!selectedLessonResource) {
-          const resourceWithTypeOrder1 = lessonResourceList?.find(
-            (resource) => resource.typeOrder === 1,
-          );
+        if (resources && resources.length > 0) {
+          let selectedLessonResource = resources
+            .filter((resource) => resource.progressCompleted)
+            .sort((a, b) => b.typeOrder - a.typeOrder)[0];
 
-          if (resourceWithTypeOrder1) {
-            selectedLessonResource = resourceWithTypeOrder1;
+          if (!selectedLessonResource) {
+            const resourceWithTypeOrder1 = resources.find(
+              (resource) => resource.typeOrder === 1,
+            );
+
+            if (resourceWithTypeOrder1) {
+              selectedLessonResource = resourceWithTypeOrder1;
+            }
           }
-        }
-
-        if (selectedLessonResource) {
-          setCurrentLessonResource(selectedLessonResource);
-          setCurrentContentType(selectedLessonResource.type);
+          if (selectedLessonResource) {
+            setCurrentLessonResource(selectedLessonResource);
+            setCurrentContentType(selectedLessonResource.type);
+          }
         }
       }
     } catch (error) {
@@ -133,11 +141,9 @@ export default function StudyModule() {
       );
 
       if (activePlan) {
-        console.log("activePlan : ", activePlan);
-        setActiveStudyPlan(activePlan); // Lưu active plan vào state
+        setActiveStudyPlan(activePlan);
       }
-      console.log("availableStudyPlans : ", response);
-      setAvailablesStudyPlans(response); // Cập nhật availableStudyPlans sau khi đã tìm được activePlan
+      setAvailablesStudyPlans(response);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải kế hoạch học", error);
     }
@@ -162,17 +168,16 @@ export default function StudyModule() {
         lessonId,
       );
 
-      console.log("resources : ", resources);
       setLessonResources((prev) => ({
         ...prev,
         [lessonId]: Array.isArray(resources) ? resources : [],
       }));
       if (resources === null) {
-        console.warn(`Lesson ${lessonId} has no resources.`);
+        console.warn(`${lessonId} không có nội dung nào.`);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load lesson resource.");
+      toast.error("Tải dự liệu thất bại");
       setLessonResources((prev) => ({
         ...prev,
         [lessonId]: [],
@@ -227,6 +232,11 @@ export default function StudyModule() {
       if (type === "FlashcardSet") {
         await completeSystemSet(entityId, session?.user.token as string);
       }
+
+      const resources = await getLessonResourceByLessonId(
+        session?.user.token as string,
+        expandedLessonId!,
+      );
     } catch (error) {
       console.error(
         "Có lỗi xảy ra trong quá trình hoàn thành tài nguyên học",
@@ -280,7 +290,7 @@ export default function StudyModule() {
         )}
         {currentContentType === "Quiz" && (
           <DynamicQuiz
-            hanldeUpdateCompletedStatus={hanldeUpdateCompletedStatus}
+            hanldeCompleteLessonResource={hanldeCompleteLessonResource}
             lessonResource={currentLessonResource!}
             token={session?.user.token as string}
           />

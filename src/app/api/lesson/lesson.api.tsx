@@ -11,7 +11,8 @@ interface EnrollResponse {
 const ENDPOINT = {
   GET_BY_STUDY_PLAN: "/lesson/study-plan/paginated",
   ENROLL_COURSE: "/course-progress/enroll",
-  CHECK_ENROLL: "/course-progress/check-enroll", // Thêm endpoint mới
+  CHECK_ENROLL: "/course-progress/check-enroll",
+  TRACK_STUDENT_LESSON_PROGRESS: "/lesson-progress/track",
 };
 
 // Hàm kiểm tra trạng thái đăng ký
@@ -84,4 +85,21 @@ export const enrollCourse = async (
   );
 
   return response.data as EnrollResponse;
+};
+
+export const trackStudentLessonProgress = async (
+  lessonId: number,
+  token: string,
+): Promise<void> => {
+  const response = await axiosClient.patch(
+    `${ENDPOINT.TRACK_STUDENT_LESSON_PROGRESS}?lessonId=${lessonId}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data;
 };
