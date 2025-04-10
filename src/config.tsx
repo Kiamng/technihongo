@@ -62,14 +62,14 @@ export const NavItems = () => {
           icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/flashcard"),
         },
+        // {
+        //   name: "Quiz",
+        //   href: "/quiz",
+        //   icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/quiz"),
+        // },
         {
-          name: "Quiz",
-          href: "/quiz",
-          icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/quiz"),
-        },
-        {
-          name: "Smart OCR",
+          name: "Dịch tài liệu IT tiếng nhật",
           href: "/translate",
           icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/translate"),
