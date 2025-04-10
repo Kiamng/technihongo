@@ -1,6 +1,7 @@
 import { Creator } from "./creator";
 import { DifficultyLevel } from "./difficulty-level";
 import { Domain } from "./domain";
+import { StudyPlan } from "./study-plan";
 
 export type Course = {
   courseId: number;
@@ -26,4 +27,20 @@ export type CourseList = {
   totalElements: number;
   totalPages: number;
   last: boolean;
+};
+
+export type CourseProgress = {
+  progressId: number;
+  student: number;
+  course: Course;
+  completionPercentage: number;
+  completionStatus: "COMPLETED" | "IN_PROGRESS" | "PAUSED" | "NOT_STARTED";
+  currentLesson: {
+    lessonId: number;
+    studyPlan: StudyPlan;
+  };
+  completedLessons: number;
+  totalStudyDate: number;
+  completedDate: Date;
+  createdAt: Date;
 };

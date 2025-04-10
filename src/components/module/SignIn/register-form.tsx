@@ -39,6 +39,7 @@ const RegisterForm = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
+    console.log("", values);
     try {
       setIsPending(!isPending);
       const response = await register(values);
@@ -50,8 +51,9 @@ const RegisterForm = () => {
         form.setValue("email", values.email);
         setIsRegistered(true);
       }
-    } catch (error) {
-      return error;
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+      console.log("Error:", error);
     } finally {
       setIsPending(false);
     }
@@ -290,7 +292,6 @@ const RegisterForm = () => {
               <Button
                 className="ml-auto w-full mt-4 text-lg text-white"
                 type="submit"
-                onClick={() => toast}
               >
                 Đăng ký
               </Button>
@@ -301,6 +302,7 @@ const RegisterForm = () => {
         <Button
           className="ml-auto w-full text-lg"
           disabled={isPending}
+          type="button"
           variant="outline"
           onClick={() => signIn("google")}
         >

@@ -5,7 +5,7 @@ export type Flashcard = {
   imageUrl: string | null;
 };
 export type FlashcardSet = {
-  studentId?: number;
+  studentId: number;
   studentSetId: number;
   title: string;
   description: string;

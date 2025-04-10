@@ -2,25 +2,34 @@
 
 import { useState } from "react";
 
-import {
-  Flashcard,
-  FlashcardSet,
-} from "@/app/api/studentflashcardset/stuflashcard.api";
+import { Flashcard } from "@/app/api/studentflashcardset/stuflashcard.api";
+import { LessonResource } from "@/types/lesson-resource";
 
 interface ReviewGameProps {
-  flashcardSet: FlashcardSet;
+  flashcards: Flashcard[];
   onExit: () => void;
+  isSystem?: boolean;
+  lessonResource?: LessonResource;
+  hanldeCompleteLessonResource?: (
+    type: string,
+    lessonReourceId: number,
+    resourceId: number,
+  ) => Promise<void>;
 }
 
-export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
+export default function ReviewGame({
+  flashcards,
+  onExit,
+  isSystem,
+  lessonResource,
+  hanldeCompleteLessonResource,
+}: ReviewGameProps) {
   const [isStudying, setIsStudying] = useState<Flashcard[]>([]);
   const [isLearned, setIsLearned] = useState<Flashcard[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [socau, setSocau] = useState<number>(
-    Math.min(10, flashcardSet.flashcards.length),
-  );
+  const [socau, setSocau] = useState<number>(Math.min(10, flashcards.length));
   const [questionsAnswered, setQuestionsAnswered] = useState<number>(0);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [isSetup, setIsSetup] = useState<boolean>(true);
@@ -41,7 +50,7 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
   };
 
   const generateOptions = (currentQuestion: Flashcard) => {
-    let incorrectAnswers = flashcardSet.flashcards
+    let incorrectAnswers = flashcards
       .filter(
         (q) =>
           q.flashcardId !== currentQuestion.flashcardId &&
@@ -84,8 +93,8 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
   };
 
   const handleStartLearning = () => {
-    if (flashcardSet?.flashcards?.length) {
-      const shuffledFlashcards = shuffleFlashcards(flashcardSet.flashcards);
+    if (flashcards?.length) {
+      const shuffledFlashcards = shuffleFlashcards(flashcards);
       const selectedFlashcards = shuffledFlashcards.slice(0, socau);
 
       setIsStudying(selectedFlashcards);
@@ -132,6 +141,13 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
       setIsStudying(newStudying);
       if (newStudying.length === 0) {
         setShowResults(true);
+        if (isSystem && lessonResource && hanldeCompleteLessonResource) {
+          hanldeCompleteLessonResource(
+            "FlashcardSet",
+            lessonResource.lessonResourceId,
+            lessonResource.systemFlashCardSet?.systemSetId as number,
+          );
+        }
 
         return;
       }
@@ -175,30 +191,29 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
         <div className="flex items-center mb-4">
           <input
             className="p-2 bg-gray-800 text-white rounded-lg w-32 mr-2"
-            max={flashcardSet.flashcards.length}
+            disabled={isSystem}
+            max={flashcards.length}
             min="1"
             type="number"
             value={socau}
             onChange={(e) => {
               const value = parseInt(e.target.value);
 
-              if (
-                !isNaN(value) &&
-                value > 0 &&
-                value <= flashcardSet.flashcards.length
-              ) {
+              if (!isNaN(value) && value > 0 && value <= flashcards.length) {
                 setSocau(value);
               }
             }}
           />
-          <span> / {flashcardSet.flashcards.length} câu</span>
+          <span> / {flashcards.length} câu</span>
         </div>
-        <button
-          className="px-4 py-2 bg-gray-700 text-white rounded-lg mb-4 hover:bg-gray-600"
-          onClick={() => setSocau(flashcardSet.flashcards.length)}
-        >
-          Chọn tất cả
-        </button>
+        {!isSystem && (
+          <button
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg mb-4 hover:bg-gray-600"
+            onClick={() => setSocau(flashcards.length)}
+          >
+            Chọn tất cả
+          </button>
+        )}
         <button
           className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
           onClick={handleStartLearning}
@@ -292,14 +307,13 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
           {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
-              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${
-                showAnswer &&
-                option.vietEngTranslation === currentQuestion.vietEngTranslation
+              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${showAnswer &&
+                  option.vietEngTranslation === currentQuestion.vietEngTranslation
                   ? "border-green-500"
                   : selectedAnswer === option.vietEngTranslation
                     ? "border-red-500"
                     : "border-transparent hover:border-gray-400"
-              }`}
+                }`}
               disabled={showAnswer}
               onClick={() => handleAnswerSelect(option.vietEngTranslation)}
             >
@@ -309,7 +323,7 @@ export default function ReviewGame({ flashcardSet, onExit }: ReviewGameProps) {
               </div>
               {showAnswer &&
                 (option.vietEngTranslation ===
-                currentQuestion.vietEngTranslation ? (
+                  currentQuestion.vietEngTranslation ? (
                   <span className="text-green-500 font-bold">✔</span>
                 ) : selectedAnswer === option.vietEngTranslation ? (
                   <span className="text-red-500 font-bold">✕</span>

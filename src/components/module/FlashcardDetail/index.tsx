@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { format } from "date-fns";
 
 import ReviewGame from "./reviewPage";
+import TextHighlighterWithTranslate from "./TextHighlighterWithTranslate";
 
 import TermList from "@/components/module/FlashcardDetail/term-list";
 import {
@@ -66,32 +68,36 @@ export default function FlashcardDetailModule({
     session?.user?.userName || `Student ${flashcardSet.studentSetId}`;
 
   return (
-    <div className="w-full space-y-20 min-h-screen">
+    <div className="w-full space-y-20 min-h-screen pt-6">
+      <TextHighlighterWithTranslate />
       <div>
-        <div
-          className="px-8 py-4 text-white dark:text-inherit text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]"
-          style={{ backgroundColor: "#56D071" }}
-        >
-          {flashcardSet.title || "No title"}
+        <div className="text-center">
+          <div className="px-8 py-4 bg-primary  dark:text-inherit  w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]">
+            <span className="text-white text-2xl font-bold">
+              {flashcardSet.title || "No title"}
+            </span>
+            <p className="mt-2 text-sm text-white mx-auto">
+              {flashcardSet.description || ""}
+            </p>
+          </div>
         </div>
         <div className="w-full flex justify-center">
-          <div className="flashcard-app flex flex-col space-y-6 bg-gray-100 dark:bg-gray-800 p-10 w-fit rounded-2xl shadow-md dark:shadow-none min-w-[800px]">
+          <div className="flashcard-app flex flex-col space-y-6 bg-white dark:bg-gray-800 p-10 w-fit rounded-2xl shadow-md dark:shadow-none min-w-[800px]">
             <div className="flex gap-x-2 items-center">
-              <div
-                className="avatar w-10 h-10 rounded-full"
-                style={{ backgroundColor: "#56D071" }}
-              />
+              <div className="avatar w-10 h-10 rounded-full bg-primary" />
               <div>
-                <div className="text-xl font-bold" style={{ color: "#56D071" }}>
+                <div className="text-xl font-bold text-primary">
                   {creatorName}
                 </div>
-                <div className="italic text-base text-gray-400">dd/mm/yyyy</div>
+                <div className="italic text-base text-gray-400">
+                  {format(new Date(flashcardSet.createdAt), "dd-MM-yyyy")}
+                </div>
               </div>
             </div>
 
             {isReview ? (
               <ReviewGame
-                flashcardSet={flashcardSet}
+                flashcards={flashcardSet.flashcards}
                 onExit={() => setIsReview(false)}
               />
             ) : (
@@ -103,7 +109,7 @@ export default function FlashcardDetailModule({
                 )}
                 {flashcardSet.flashcards.length > 0 && (
                   <button
-                    className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:scale-105 transition duration-200"
                     onClick={() => setIsReview(true)}
                   >
                     Học

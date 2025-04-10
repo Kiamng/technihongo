@@ -1,58 +1,3 @@
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import { useSession } from "next-auth/react";
-
-// import CourseCards from "./course-card";
-
-// import { CourseList } from "@/types/course";
-// import { getAllCourse } from "@/app/api/course/course.api";
-
-// export default function CourseModule() {
-//   const { data: session } = useSession();
-//   const [currentPage, setCurrentPage] = useState<number>(0);
-//   const [isLoading, setIsloading] = useState<boolean>(false);
-//   const [coursesList, setCoursesList] = useState<CourseList>();
-
-//   const fetchCourses = async () => {
-//     try {
-//       setIsloading(true);
-//       const response = await getAllCourse({
-//         token: session?.user.token as string,
-//         pageNo: currentPage,
-//         pageSize: 5,
-//         sortBy: "createdAt",
-//         sortDir: "desc",
-//       });
-
-//       setCoursesList(response);
-//     } catch (err) {
-//       console.error(err);
-//     } finally {
-//       setIsloading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (!session?.user?.token) {
-//       return;
-//     }
-//     fetchCourses();
-//   }, [session?.user?.token, currentPage]);
-
-//   return (
-//     <div className="w-full">
-//       {isLoading ? (
-//         <div className="flex justify-center items-center h-64">
-//           <p>Đang tải khóa học...</p>
-//         </div>
-//       ) : (
-//         <CourseCards courses={coursesList?.content} />
-//       )}
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -61,8 +6,11 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react"; // Import DotLott
 
 import CourseCards from "./course-card";
 
-import { CourseList } from "@/types/course";
-import { getAllCourse } from "@/app/api/course/course.api";
+import { CourseList, CourseProgress } from "@/types/course";
+import {
+  getAllCourse,
+  getStudentAllCourseProgress,
+} from "@/app/api/course/course.api";
 
 // Component Loading Animation
 const LoadingAnimation = () => {
@@ -81,42 +29,82 @@ export default function CourseModule() {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [isLoading, setIsloading] = useState<boolean>(false);
   const [coursesList, setCoursesList] = useState<CourseList>();
+  const [courseProgress, setCourseProgress] = useState<CourseProgress[]>([]);
+
+  const fetchCoursesProgress = async () => {
+    const response = await getStudentAllCourseProgress(
+      Number(session?.user.studentId),
+      session?.user.token as string,
+    );
+
+    setCourseProgress(response);
+  };
 
   const fetchCourses = async () => {
-    try {
-      setIsloading(true);
-      const response = await getAllCourse({
-        token: session?.user.token as string,
-        pageNo: currentPage,
-        pageSize: 5,
-        sortBy: "createdAt",
-        sortDir: "desc",
-      });
+    const response = await getAllCourse({
+      token: session?.user.token as string,
+      pageNo: currentPage,
+      pageSize: 5,
+      sortBy: "createdAt",
+      sortDir: "desc",
+    });
 
-      setCoursesList(response);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsloading(false);
-    }
+    setCoursesList(response);
   };
 
   useEffect(() => {
     if (!session?.user?.token) {
       return;
     }
-    fetchCourses();
+
+    const fetchData = async () => {
+      setIsloading(true);
+      try {
+        // Chạy cả 2 fetch đồng thời
+        await Promise.all([fetchCourses(), fetchCoursesProgress()]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsloading(false);
+      }
+    };
+
+    fetchData();
   }, [session?.user?.token, currentPage]);
 
-  return (
-    <div className="w-full">
-      {isLoading ? (
+  if (isLoading) {
+    return (
+      <div className="w-full">
         <div className="flex justify-center items-center h-64">
           <LoadingAnimation /> {/* Sử dụng component LoadingAnimation */}
         </div>
-      ) : (
-        <CourseCards courses={coursesList?.content} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
+      {courseProgress && (
+        <>
+          <h2 className="text-2xl font-bold">Khóa học của tôi</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {courseProgress?.map((courseProgress) => (
+              <CourseCards
+                key={courseProgress.progressId}
+                course={courseProgress.course}
+                courseProgress={courseProgress}
+              />
+            ))}
+          </div>
+        </>
       )}
+
+      <h2 className="text-2xl font-bold">Khóa học gợi ý</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {coursesList?.content.map((course) => (
+          <CourseCards key={course.courseId} course={course} />
+        ))}
+      </div>
     </div>
   );
 }

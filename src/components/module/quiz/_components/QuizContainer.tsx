@@ -25,10 +25,15 @@ import { Button } from "@/components/ui/button";
 
 interface QuizContainerProps {
   quizData: QuizData;
-  onBackToList: () => void;
+  hanldeUpdateCompletedStatus: (lessonReourceId: number) => void;
+  lessonResourceId: number;
 }
 
-export function QuizContainer({ quizData, onBackToList }: QuizContainerProps) {
+export function QuizContainer({
+  quizData,
+  hanldeUpdateCompletedStatus,
+  lessonResourceId,
+}: QuizContainerProps) {
   const { data: session } = useSession();
   const [selectedAnswers, setSelectedAnswers] = useState<Answers>({});
   const [answers, setAnswers] = useState<Answers>({});
@@ -78,15 +83,20 @@ export function QuizContainer({ quizData, onBackToList }: QuizContainerProps) {
         quizData.quizId,
       );
 
+      if (response.success === false) {
+        toast.message(
+          "Bạn đã đạt mức 3 lần làm bài quiz rồi, hãy thử lại sau 7 phút",
+        );
+
+        return;
+      }
       setAttemptData(response.data);
       await fetchQuizQuestions([session.user.token, quizData.quizId]);
       setIsQuizStarted(true);
       setIsLoading(false);
-    } catch (error: any) {
+    } catch (error) {
+    } finally {
       setIsLoading(false);
-      toast(error.message || "Không thể bắt đầu quiz!", {
-        className: "bg-red-500 text-white",
-      });
     }
   };
 
@@ -235,7 +245,6 @@ export function QuizContainer({ quizData, onBackToList }: QuizContainerProps) {
         </p>
         <div className="flex justify-center gap-4">
           <Button onClick={handleStartQuiz}>Bắt đầu làm quiz</Button>
-          <Button onClick={onBackToList}>Quay lại danh sách</Button>
         </div>
       </div>
     );
@@ -245,9 +254,10 @@ export function QuizContainer({ quizData, onBackToList }: QuizContainerProps) {
     return (
       <QuizResults
         attemptId={reviewAttemptId}
+        hanldeUpdateCompletedStatus={hanldeUpdateCompletedStatus}
+        lessonResourceId={lessonResourceId}
         questions={questions}
         quizId={quizData.quizId}
-        onBackToList={onBackToList}
         onRetake={handleRetake}
       />
     );
@@ -256,12 +266,6 @@ export function QuizContainer({ quizData, onBackToList }: QuizContainerProps) {
   return (
     <>
       <div className="max-w-4xl mx-auto p-4">
-        <div className="mb-4 flex justify-end">
-          <Button variant="default" onClick={onBackToList}>
-            Quay lại danh sách
-          </Button>
-        </div>
-
         <Sidebar
           answers={selectedAnswers}
           completedQuestions={completedQuestions}

@@ -15,7 +15,6 @@ import {
   getFolderItemsByFolderId,
 } from "@/app/api/folderitem/folderitem.api";
 import { getStuFolder } from "@/app/api/studentfolder/stufolder.api";
-// Đảm bảo đường dẫn đúng
 
 interface FolderDetailProps {
   folderId: number;
@@ -32,15 +31,16 @@ export default function FolderDetail({
   const [loading, setLoading] = useState(true);
   const [folderItems, setFolderItems] = useState<FolderItem[]>([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [folderName, setFolderName] = useState(initialName || "");
+  const [accessDenied, setAccessDenied] = useState(false);
   const [folderDescription, setFolderDescription] = useState(
     initialDescription || "",
   );
 
   const token = session?.user?.token;
 
-  // Fetch folder details if not provided via props
+  // Lấy thông tin folder nếu không được truyền qua props
   useEffect(() => {
     const fetchFolderDetails = async () => {
       if (!token || !session?.user?.studentId) return;
@@ -86,8 +86,12 @@ export default function FolderDetail({
       const sets = await Promise.all(flashcardSetPromises);
 
       setFlashcardSets(sets);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi khi lấy folder items:", error);
+
+      if (error.response?.status === 403) {
+        setAccessDenied(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -109,8 +113,7 @@ export default function FolderDetail({
         folderItemId: item.folderItemId,
         studentId: Number(session.user.studentId),
       });
-
-      await fetchFolderItems(); // cần await để đảm bảo state cập nhật đúng lúc
+      await fetchFolderItems();
     } catch (error) {
       console.error("Lỗi khi xóa:", error);
     }
@@ -120,32 +123,47 @@ export default function FolderDetail({
     return <div className="text-center text-gray-500">Đang tải...</div>;
   }
 
+  if (accessDenied) {
+    return (
+      <div className="text-center text-red-600 mt-10 font-semibold text-lg">
+        ❌ Bạn không có quyền truy cập vào folder này (Private)
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-cyan-300 to-cyan-200 relative overflow-hidden">
+    <main
+      className="min-h-screen bg-gradient-to-br from-[#7EE395] to-cyan-100 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, #7EE395 50%, #d1f1f9 100%)",
+      }}
+    >
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
         <div className="absolute bottom-0 left-0 w-full h-1/2">
-          <div className="absolute bottom-0 left-0 w-1/3 h-64 bg-cyan-100 opacity-50 rounded-tr-full" />
-          <div className="absolute bottom-0 left-1/4 w-1/2 h-96 bg-cyan-100 opacity-30 rounded-t-full" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-80 bg-cyan-100 opacity-40 rounded-tl-full" />
+          <div className="absolute bottom-0 left-0 w-1/3 h-64 bg-[#7EE395] opacity-30 rounded-tr-full" />
+          <div className="absolute bottom-0 left-1/4 w-1/2 h-96 bg-[#7EE395] opacity-20 rounded-t-full" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-80 bg-[#7EE395] opacity-25 rounded-tl-full" />
         </div>
 
         {/* Stylized Mountains */}
-        <div className="absolute bottom-0 left-0 w-1/3 h-64 bg-cyan-50 opacity-70 transform -rotate-12 rounded-tr-3xl" />
-        <div className="absolute bottom-0 right-0 w-1/3 h-80 bg-cyan-50 opacity-70 transform rotate-12 rounded-tl-3xl" />
+        <div className="absolute bottom-0 left-0 w-1/3 h-64 bg-[#7EE395] opacity-50 transform -rotate-12 rounded-tr-3xl" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-80 bg-[#7EE395] opacity-50 transform rotate-12 rounded-tl-3xl" />
 
         {/* Birds */}
-        <div className="absolute top-1/4 left-1/3 text-cyan-100 text-2xl">
+        <div className="absolute top-1/4 left-1/3 text-[#7EE395] text-2xl">
           ✓
         </div>
-        <div className="absolute top-1/3 left-1/4 text-cyan-100 text-xl">✓</div>
-        <div className="absolute top-1/5 right-1/3 text-cyan-100 text-xl">
+        <div className="absolute top-1/3 left-1/4 text-[#7EE395] text-xl">
+          ✓
+        </div>
+        <div className="absolute top-1/5 right-1/3 text-[#7EE395] text-xl">
           ✓
         </div>
       </div>
 
       {/* Header */}
-      <div className="relative z-10 p-6 bg-white/20 backdrop-blur-sm rounded-xl m-4 shadow-sm">
+      <div className="relative z-10 p-6 bg-white/20 backdrop-blur-sm rounded-xl m-4 shadow-sm border border-[#7EE395]/30">
         <div className="flex items-center gap-3">
           <div className="bg-white p-2 rounded-lg shadow-sm">
             <img
@@ -164,7 +182,7 @@ export default function FolderDetail({
       {/* User Profile */}
       <div className="relative z-10 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Avatar className="border-2 border-white h-12 w-12">
+          <Avatar className="border-2 border-[#7EE395] h-12 w-12">
             <AvatarImage alt="User" src="https://via.placeholder.com/48" />
             <AvatarFallback>HKD</AvatarFallback>
           </Avatar>
@@ -175,7 +193,7 @@ export default function FolderDetail({
 
         <div className="flex gap-2">
           <Button
-            className="bg-cyan-200/50 hover:bg-cyan-200/70 border-0 rounded-lg h-10 w-10"
+            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
             size="icon"
             variant="outline"
             onClick={() => setIsModalOpen(true)}
@@ -183,21 +201,21 @@ export default function FolderDetail({
             <span className="text-xl">✏️</span>
           </Button>
           <Button
-            className="bg-cyan-200/50 hover:bg-cyan-200/70 border-0 rounded-lg h-10 w-10"
+            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
             size="icon"
             variant="outline"
           >
             <span className="text-xl">📷</span>
           </Button>
           <Button
-            className="bg-cyan-200/50 hover:bg-cyan-200/70 border-0 rounded-lg h-10 w-10"
+            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
             size="icon"
             variant="outline"
           >
             <span className="text-xl">🔔</span>
           </Button>
           <Button
-            className="bg-cyan-200/50 hover:bg-cyan-200/70 border-0 rounded-lg h-10 w-10"
+            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
             size="icon"
             variant="outline"
           >
@@ -227,7 +245,7 @@ export default function FolderDetail({
                   tốt hơn nhé
                 </p>
                 <Button
-                  className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-md"
+                  className="bg-[#7EE395] hover:bg-[#7EE395]/80 text-white px-6 py-2 rounded-md"
                   onClick={() => setIsModalOpen(true)}
                 >
                   Thêm Flashcard Set
@@ -238,10 +256,10 @@ export default function FolderDetail({
                 {flashcardSets.map((set) => (
                   <div
                     key={set.studentSetId}
-                    className="p-4 bg-white/90 rounded-lg shadow-md flex justify-between items-center"
+                    className="p-4 bg-white/90 rounded-lg shadow-md flex justify-between items-center border-l-4 border-[#7EE395]/50"
                   >
                     <div>
-                      <h4 className="text-lg font-semibold text-green-700">
+                      <h4 className="text-lg font-semibold text-[#7EE395]">
                         {set.title}
                       </h4>
                       <p className="text-sm text-gray-600">{set.description}</p>
@@ -273,9 +291,9 @@ export default function FolderDetail({
 
       {/* Decorative Elements */}
       <div className="absolute bottom-0 left-0 w-full flex justify-center z-0 opacity-30">
-        <div className="w-2 h-2 bg-yellow-300 rounded-full animate-ping mx-16 mb-12" />
-        <div className="w-2 h-2 bg-yellow-300 rounded-full animate-ping mx-16 mb-24 animate-delay-300" />
-        <div className="w-2 h-2 bg-yellow-300 rounded-full animate-ping mx-16 mb-8 animate-delay-700" />
+        <div className="w-2 h-2 bg-[#7EE395] rounded-full animate-ping mx-16 mb-12" />
+        <div className="w-2 h-2 bg-[#7EE395] rounded-full animate-ping mx-16 mb-24 animate-delay-300" />
+        <div className="w-2 h-2 bg-[#7EE395] rounded-full animate-ping mx-16 mb-8 animate-delay-700" />
       </div>
     </main>
   );
