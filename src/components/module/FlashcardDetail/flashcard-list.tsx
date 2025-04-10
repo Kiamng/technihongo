@@ -8,7 +8,11 @@ import Flashcard from "./flashcard";
 import { Progress } from "@/components/ui/progress";
 
 interface FlashcardListProps {
-  FlashcardList: { japaneseDefinition: string; vietEngTranslation: string }[];
+  FlashcardList: {
+    japaneseDefinition: string;
+    vietEngTranslation: string;
+    imageUrl: string;
+  }[];
 }
 
 const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
@@ -70,6 +74,7 @@ const FlashcardList = ({ FlashcardList }: FlashcardListProps) => {
               }}
             >
               <Flashcard
+                imageUrl={card.imageUrl}
                 japaneseDefinition={card.japaneseDefinition}
                 vietEngTranslation={card.vietEngTranslation}
               />

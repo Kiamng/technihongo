@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 interface FlashcardProps {
   japaneseDefinition: string;
   vietEngTranslation: string;
+  imageUrl: string;
 }
 
 const Flashcard: React.FC<FlashcardProps> = ({
   japaneseDefinition,
   vietEngTranslation,
+  imageUrl,
 }) => {
   const [flipped, setFlipped] = useState(false);
 
@@ -60,7 +62,22 @@ const Flashcard: React.FC<FlashcardProps> = ({
 
         {/* Mặt sau của flashcard */}
         <div className="back bg-white dark:bg-secondary absolute w-full h-full backface-hidden flex justify-center items-center rounded-[20px] border-[4px] border-primary transform rotateY-[180deg] text-center">
-          <div className="flashcard-content-font">{vietEngTranslation}</div>
+          {imageUrl ? (
+            <>
+              <div className="flex-1 text-5xl font-bold">
+                {vietEngTranslation}
+              </div>
+              <div className="flex-1 flex justify-center items-center">
+                <img
+                  alt="flashcard-img"
+                  className="max-w-[300px] max-h-[300px] object-cover"
+                  src={imageUrl}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flashcard-content-font">{vietEngTranslation}</div>
+          )}
           <Button
             className="rounded-full absolute bottom-4 right-4"
             size={"icon"}
