@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react";
 
+import { Button } from "../ui/button";
+
 interface TranslationDisplayProps {
   japaneseText: string;
   vietnameseText: string;
   onClear: () => void;
+  isTranslating: boolean;
 }
 
 export default function TranslationDisplay({
   japaneseText,
   vietnameseText,
   onClear,
+  isTranslating,
 }: TranslationDisplayProps) {
   const [displayedVietText, setDisplayedVietText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -51,23 +55,21 @@ export default function TranslationDisplay({
 
   return (
     <div className="space-y-8">
-      <h2 className="text-lg font-medium text-gray-900 dark:text-white text-center mb-4">
-        Translation Results
+      <h2 className="text-2xl font-bold text-primary text-center">
+        Kết quả dịch
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Original Text Column */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Original Japanese
-            </h3>
-            <button
-              className="text-blue-600 dark:text-blue-400 text-xs hover:text-blue-800 dark:hover:text-blue-300"
+            <h3 className="text-lg font-bold text-primary">Nội dung từ ảnh</h3>
+            <Button
+              variant="outline"
               onClick={() => copyToClipboard(japaneseText)}
             >
               Copy
-            </button>
+            </Button>
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 shadow-inner min-h-40">
@@ -80,23 +82,25 @@ export default function TranslationDisplay({
         {/* Translation Column */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Vietnamese Translation
-            </h3>
-            <button
-              className="text-blue-600 dark:text-blue-400 text-xs hover:text-blue-800 dark:hover:text-blue-300"
-              disabled={isTyping}
+            <h3 className="text-lg font-bold text-primary">Nội dung dịch</h3>
+            <Button
+              variant="outline"
               onClick={() => copyToClipboard(vietnameseText)}
             >
               Copy
-            </button>
+            </Button>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 shadow-inner min-h-40">
+          <div className="bg-green-500 bg-opacity-50 dark:bg-secondary rounded-lg p-4 shadow-inner min-h-40">
             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
               {displayedVietText}
-              {isTyping && (
-                <span className="inline-block w-2 h-4 bg-blue-600 dark:bg-blue-400 ml-1 animate-pulse" />
+              {isTranslating && (
+                <span className="text-gray-500 dark:text-gray-400">
+                  Đang dịch...
+                </span>
+              )}
+              {isTyping && !isTranslating && (
+                <span className="inline-block w-2 h-4 bg-primary bg-opacity-50 dark:bg-primary dark:bg-opacity-50 ml-1 animate-pulse" />
               )}
             </p>
           </div>
@@ -104,12 +108,9 @@ export default function TranslationDisplay({
       </div>
 
       <div className="flex justify-center space-x-4 pt-4">
-        <button
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          onClick={onClear}
-        >
-          Clear & Upload New
-        </button>
+        <Button variant={"secondary"} onClick={onClear}>
+          Xóa và tải lên mới
+        </Button>
       </div>
     </div>
   );

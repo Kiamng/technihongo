@@ -57,12 +57,12 @@ export default function UploadZone({ onFileChange }: UploadZoneProps) {
         </svg>
         <div className="text-gray-700 dark:text-gray-300 font-medium">
           {isDragActive ? (
-            <p>Drop the file here...</p>
+            <p>Đặt file vào đây...</p>
           ) : (
             <>
-              <p>Drag & drop file here, or click to select</p>
+              <p>Kéo thả file vào đây, hoặc click để chọn</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Supports: JPG, JPEG, PNG, PDF
+                Hỗ trợ: JPG, JPEG, PNG, PDF
               </p>
             </>
           )}

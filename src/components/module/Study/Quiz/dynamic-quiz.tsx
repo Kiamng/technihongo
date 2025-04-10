@@ -6,17 +6,21 @@ import { QuizData } from "@/types/quiz";
 interface DynamicQuizProps {
   lessonResource: LessonResource;
   token: string;
-  hanldeUpdateCompletedStatus: (lessonReourceId: number) => void;
+  hanldeCompleteLessonResource: (
+    type: string,
+    lessonReourceId: number,
+    entityId: number,
+  ) => Promise<void>;
 }
 
 const DynamicQuiz = ({
   lessonResource,
   token,
-  hanldeUpdateCompletedStatus,
+  hanldeCompleteLessonResource,
 }: DynamicQuizProps) => {
   return (
     <QuizContainer
-      hanldeUpdateCompletedStatus={hanldeUpdateCompletedStatus}
+      hanldeCompleteLessonResource={hanldeCompleteLessonResource}
       lessonResourceId={lessonResource.lessonResourceId}
       quizData={lessonResource.quiz as unknown as QuizData}
     />

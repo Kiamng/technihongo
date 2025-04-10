@@ -5,6 +5,7 @@ const ENDPOINT = {
   ALL: "/course/all/paginated",
   GET_ALL_COURSE_PROGRESS_BY_STUDENT_ID: "/course-progress/all",
   GET_A_STUDENT_COURSE_PROGRESS: "/course-progress/view",
+  TRACK_STUDENT_COURSE_PROGRESS: "/course-progress/track",
 };
 
 export const getAllCourse = async ({
@@ -62,6 +63,23 @@ export const getAStudentCourseProgress = async (
 ): Promise<CourseProgress> => {
   const response = await axiosClient.get(
     `${ENDPOINT.GET_A_STUDENT_COURSE_PROGRESS}/${studentId}?courseId=${courseId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data.data;
+};
+
+export const trackStudentCourseProgress = async (
+  token: string,
+  courseId: number,
+): Promise<void> => {
+  const response = await axiosClient.patch(
+    `${ENDPOINT.TRACK_STUDENT_COURSE_PROGRESS}?courseId=${courseId}`,
+    {},
     {
       headers: {
         Authorization: `Bearer ${token}`,

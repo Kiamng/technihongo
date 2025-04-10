@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Tesseract from "tesseract.js";
+import { toast } from "sonner";
+
+import { Button } from "../ui/button";
 
 import UploadZone from "./UploadZone";
 import OCRPreview from "./OCRPreview ";
@@ -14,92 +18,147 @@ export default function OCRTranslatePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResults, setShowResults] = useState(false);
-
-  // Example mocked data
-  const mockJapaneseText =
-    "プログラミングを学ぶことは、新しい言語を学ぶことと似ています。基本的な文法、構文、そして論理的な思考方法を理解する必要があります。始めるのに最適な言語は、あなたの目標によって異なります。ウェブ開発に興味があるなら、JavaScriptが良いでしょう。";
-  const mockVietnameseText =
-    "Học lập trình giống như học một ngôn ngữ mới. Bạn cần hiểu ngữ pháp cơ bản, cú pháp và cách tư duy logic. Ngôn ngữ tốt nhất để bắt đầu phụ thuộc vào mục tiêu của bạn. Nếu bạn quan tâm đến phát triển web, JavaScript là một lựa chọn tốt.";
+  const [ocrText, setOcrText] = useState<string>("");
+  const [translateText, setTranslateText] = useState<string>("");
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const handleFileChange = (uploadedFile: File | null) => {
-    setFile(uploadedFile);
-
     if (uploadedFile) {
-      // Create preview URL for images
       if (uploadedFile.type.startsWith("image/")) {
+        setFile(uploadedFile);
+
         const url = URL.createObjectURL(uploadedFile);
 
         setPreviewUrl(url);
       } else {
-        // For PDFs, we don't create previews, just show the icon
+        toast.error("Hãy tải lên 1 file ảnh!");
+        setFile(null);
         setPreviewUrl(null);
       }
     } else {
+      setFile(null);
       setPreviewUrl(null);
     }
   };
 
-  const handleScanTranslate = () => {
+  const handleOCR = async () => {
     if (!file) return;
 
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      const imageUrl = reader.result as string;
+
+      const {
+        data: { text },
+      } = await Tesseract.recognize(imageUrl, "jpn");
+
+      setOcrText(text);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleTranslate = async () => {
+    if (!ocrText) return;
+    setIsTranslating(true);
+    console.log("ocrText to translate:", ocrText); // Log ocrText trước khi gửi yêu cầu
+
+    try {
+      const response = await fetch("/api/ai-translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: ocrText }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const responseText = await response.text();
+
+      console.log("Translation Response:", responseText); // Log phản hồi của API
+
+      if (!responseText) {
+        throw new Error("Empty response from server");
+      }
+
+      const data = JSON.parse(responseText);
+
+      setTranslateText(data.translation);
+      setIsTranslating(false);
+    } catch (error) {
+      console.error("Translation error:", error); // Log lỗi cụ thể
+      setTranslateText("Lỗi khi dịch văn bản. Vui lòng thử lại.");
+      setIsTranslating(false);
+    }
+  };
+
+  const handleScanTranslate = async () => {
     setIsProcessing(true);
 
-    // Simulate processing delay
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowResults(true);
-    }, 2500);
+    await handleOCR();
+
+    setIsProcessing(false);
+    setShowResults(true);
   };
 
   const handleClear = () => {
     setFile(null);
     setPreviewUrl(null);
+    setOcrText("");
     setShowResults(false);
   };
 
+  useEffect(() => {
+    if (ocrText) {
+      handleTranslate();
+    }
+  }, [ocrText]);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Japanese OCR Translation
+            Dịch tài liệu IT tiếng nhật
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Upload an image or PDF with Japanese text to translate to Vietnamese
+            Tải lên ảnh tài liệu IT tiếng nhật để dịch sang tiếng việt
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
-          <UploadZone onFileChange={handleFileChange} />
-
-          {file && (
+        <div className="bg-white dark:bg-black shadow-md rounded-lg p-6 mb-8">
+          {file ? (
             <div className="mt-6">
               <OCRPreview file={file} previewUrl={previewUrl} />
 
               <div className="mt-6 flex justify-center">
-                <button
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                <Button
+                  className="hover:scale-105 transition-all duration-300"
                   disabled={isProcessing}
                   onClick={handleScanTranslate}
                 >
                   {isProcessing ? "Processing..." : "Scan & Translate"}
-                </button>
+                </Button>
               </div>
             </div>
+          ) : (
+            <UploadZone onFileChange={handleFileChange} />
           )}
         </div>
 
         {isProcessing && (
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+          <div className="bg-white dark:bg-black shadow-md rounded-lg p-6">
             <LoadingAnimation />
           </div>
         )}
 
         {showResults && !isProcessing && (
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+          <div className="bg-white dark:bg-black shadow-md rounded-lg p-6">
             <TranslationDisplay
-              japaneseText={mockJapaneseText}
-              vietnameseText={mockVietnameseText}
+              isTranslating={isTranslating}
+              japaneseText={ocrText}
+              vietnameseText={translateText}
               onClear={handleClear}
             />
           </div>

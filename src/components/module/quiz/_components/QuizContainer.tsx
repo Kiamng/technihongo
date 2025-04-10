@@ -25,13 +25,17 @@ import { Button } from "@/components/ui/button";
 
 interface QuizContainerProps {
   quizData: QuizData;
-  hanldeUpdateCompletedStatus: (lessonReourceId: number) => void;
+  hanldeCompleteLessonResource: (
+    type: string,
+    lessonReourceId: number,
+    entityId: number,
+  ) => Promise<void>;
   lessonResourceId: number;
 }
 
 export function QuizContainer({
   quizData,
-  hanldeUpdateCompletedStatus,
+  hanldeCompleteLessonResource,
   lessonResourceId,
 }: QuizContainerProps) {
   const { data: session } = useSession();
@@ -219,7 +223,7 @@ export function QuizContainer({
               question={question}
               onAnswerChange={handleAnswerChange}
               onClearAnswer={handleClearAnswer}
-              onNext={() => {}}
+              onNext={() => { }}
             />
           </div>
         ))
@@ -254,7 +258,7 @@ export function QuizContainer({
     return (
       <QuizResults
         attemptId={reviewAttemptId}
-        hanldeUpdateCompletedStatus={hanldeUpdateCompletedStatus}
+        hanldeCompleteLessonResource={hanldeCompleteLessonResource}
         lessonResourceId={lessonResourceId}
         questions={questions}
         quizId={quizData.quizId}
