@@ -19,13 +19,13 @@ const CourseCards: React.FC<CourseCardsProps> = ({
 }) => {
   const getProgressColor = (percentage: number) => {
     if (percentage <= 25)
-      return { progressColor: "bg-slate-500", textColor: "text-slate-500" };
+      return { progressColor: "text-slate-500", textColor: "text-slate-500" };
     if (percentage <= 50)
-      return { progressColor: "bg-red-500", textColor: "text-red-500" };
+      return { progressColor: "text-red-500", textColor: "text-red-500" };
     if (percentage <= 75)
-      return { progressColor: "bg-yellow-500", textColor: "text-yellow-500" };
+      return { progressColor: "text-yellow-500", textColor: "text-yellow-500" };
 
-    return { progressColor: "bg-green-500", textColor: "text-green-500" };
+    return { progressColor: "text-green-500", textColor: "text-green-500" };
   };
 
   // Function to generate a color based on course title
@@ -110,12 +110,8 @@ const CourseCards: React.FC<CourseCardsProps> = ({
         {courseProgress && (
           <div className="w-full flex flex-row space-x-2 items-center">
             <Progress
-              className="mx-auto h-1"
+              className={`mx-auto h-1 ${getProgressColor(courseProgress.completionPercentage).progressColor}`}
               value={courseProgress.completionPercentage}
-              // Đặt màu cho thanh tiến độ
-              style={{
-                backgroundColor: getProgressColor(courseProgress.completionPercentage).progressColor,
-              }}
             />
             <span
               className={`text-xs ${getProgressColor(courseProgress.completionPercentage).textColor}`}

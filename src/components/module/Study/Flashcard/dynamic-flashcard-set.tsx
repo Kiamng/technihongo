@@ -13,11 +13,17 @@ import { Flashcard } from "@/types/flashcard";
 interface DynamicFlashcardSetProps {
   lessonResource: LessonResource;
   token: string;
+  hanldeCompleteLessonResource: (
+    type: string,
+    lessonReourceId: number,
+    resourceId: number,
+  ) => Promise<void>;
 }
 
 const DynamicFlashcardSet = ({
   lessonResource,
   token,
+  hanldeCompleteLessonResource,
 }: DynamicFlashcardSetProps) => {
   const [flashcardSet, setFlashcardSet] = useState<SystemFlashcardSet>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -66,13 +72,15 @@ const DynamicFlashcardSet = ({
             {isReview ? (
               <ReviewGame
                 flashcards={flashcardSet?.flashcards as Flashcard[]}
+                hanldeCompleteLessonResource={hanldeCompleteLessonResource}
                 isSystem={true}
+                lessonResource={lessonResource}
                 onExit={() => setIsReview(false)}
               />
             ) : (
               <>
                 {flashcardSet?.flashcards.length &&
-                flashcardSet?.flashcards.length > 0 ? (
+                  flashcardSet?.flashcards.length > 0 ? (
                   <FlashcardList FlashcardList={flashcardSet.flashcards} />
                 ) : (
                   <p>No flashcards available</p>
@@ -92,8 +100,8 @@ const DynamicFlashcardSet = ({
       </div>
 
       {!isReview &&
-      flashcardSet?.flashcards.length &&
-      flashcardSet?.flashcards.length > 0 ? (
+        flashcardSet?.flashcards.length &&
+        flashcardSet?.flashcards.length > 0 ? (
         <TermList FlashcardList={flashcardSet?.flashcards} />
       ) : null}
     </div>

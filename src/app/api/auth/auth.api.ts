@@ -2,6 +2,7 @@ import * as z from "zod";
 
 import axiosClient from "@/lib/axiosClient";
 import { RegisterSchema } from "@/schema/auth/register";
+import { RegisterResponse } from "@/types/user";
 
 const ENDPOINT = {
   LOGIN: "/user/login",
@@ -20,7 +21,9 @@ export const login = async (email: string, password: string) => {
   return response.data;
 };
 
-export const register = async (values: z.infer<typeof RegisterSchema>) => {
+export const register = async (
+  values: z.infer<typeof RegisterSchema>,
+): Promise<RegisterResponse> => {
   const response = await axiosClient.post(ENDPOINT.REGISTER, {
     userName: values.userName,
     email: values.email,

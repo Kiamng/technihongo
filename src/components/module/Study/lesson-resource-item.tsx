@@ -9,6 +9,7 @@ interface LessonResourceListProps {
     learningResource: LessonResource,
   ) => Promise<void>;
   handleTrackLearningResource: (resourceId: number) => Promise<void>;
+  handleTrackFlashcardSet: (setId: number) => Promise<void>;
 }
 
 // Mapping giữa type và thuộc tính tương ứng
@@ -41,6 +42,7 @@ const LessonResourceItem = ({
   lessonResource,
   handleChangeLR,
   handleTrackLearningResource,
+  handleTrackFlashcardSet,
 }: LessonResourceListProps) => {
   const resource = resourceTypeConfig[lessonResource.type];
 
@@ -48,6 +50,12 @@ const LessonResourceItem = ({
     if (lessonResource.type === "LearningResource") {
       await handleTrackLearningResource(
         lessonResource.learningResource?.resourceId as number,
+      );
+    }
+
+    if (lessonResource.type === "FlashcardSet") {
+      await handleTrackFlashcardSet(
+        lessonResource.systemFlashCardSet?.systemSetId as number,
       );
     }
   };

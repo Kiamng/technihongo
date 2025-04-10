@@ -7,6 +7,7 @@ const ENDPOINT = {
   GET_BY_ID: "/study-plan",
   GET_STUDENT_ACTIVE_STUDY_PLAN: "/student-study-plan/activeStudyPlan",
   GET_ALL_AVAILABLE_STUDY_PLAN: "/study-plan/course",
+  SWITCH_STUDY_PLAN: "/student-study-plan/switchStudyPlan",
 };
 
 export const getStudyPlansByCourse = async ({
@@ -74,4 +75,23 @@ export const getCourseAvailableStudyPlan = async (
   );
 
   return response.data.data;
+};
+
+export const switchStudyPlan = async (
+  token: string,
+  studentId: number,
+  newStudyPlanId: number,
+  currentStudyPlanId: number,
+) => {
+  const response = await axiosClient.post(
+    ENDPOINT.SWITCH_STUDY_PLAN,
+    {
+      studentId: studentId,
+      newStudyPlanId: newStudyPlanId,
+      currentStudyPlanId: currentStudyPlanId,
+    },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+
+  return response.data;
 };

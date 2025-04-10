@@ -10,6 +10,7 @@ import LessonResourceItem from "./lesson-resource-item";
 import DynamicLearningResource from "./LearningResource/dynamic-learning-resource";
 import DynamicQuiz from "./Quiz/dynamic-quiz";
 import DynamicFlashcardSet from "./Flashcard/dynamic-flashcard-set";
+import ChangeStudyPlanPopUp from "./change-study-plan-pop-up";
 
 import { CourseProgress } from "@/types/course";
 import { StudyPlan } from "@/types/study-plan";
@@ -21,13 +22,14 @@ import {
 import { Lesson } from "@/types/lesson";
 import { getLessonsByStudyPlan } from "@/app/api/lesson/lesson.api";
 import {
-  completeLessonResource,
+  completeLearningResource,
+  completeSystemSet,
   getLessonResourceByLessonId,
   trackLearningResource,
+  trackSystemSet,
 } from "@/app/api/lesson-resource/lesson-resource.api";
 import { LessonResource } from "@/types/lesson-resource";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 
 export default function StudyModule() {
   const params = useParams();
@@ -84,15 +86,12 @@ export default function StudyModule() {
         courseId,
       );
 
-      console.log("lessonId : ", response.currentLesson.lessonId);
       setCourseProgress(response);
       if (response.currentLesson) {
         await toggleLessonResource(response.currentLesson.lessonId);
 
         const lessonId = response.currentLesson.lessonId;
         let lessonResourceList = lessonResources[lessonId];
-
-        console.log("lessonResourceList : ", lessonResourceList);
         let selectedLessonResource = lessonResourceList
           ?.filter((resource) => resource.progressCompleted)
           .sort((a, b) => b.typeOrder - a.typeOrder)[0];
@@ -134,9 +133,10 @@ export default function StudyModule() {
       );
 
       if (activePlan) {
+        console.log("activePlan : ", activePlan);
         setActiveStudyPlan(activePlan); // Lưu active plan vào state
       }
-
+      console.log("availableStudyPlans : ", response);
       setAvailablesStudyPlans(response); // Cập nhật availableStudyPlans sau khi đã tìm được activePlan
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải kế hoạch học", error);
@@ -189,6 +189,10 @@ export default function StudyModule() {
     );
   };
 
+  const handleTrackFlashcardSet = async (setId: number) => {
+    const response = await trackSystemSet(setId, session?.user.token as string);
+  };
+
   const hanldeUpdateCompletedStatus = async (lessonReourceId: number) => {
     setLessonResources((prevResources) => {
       const updatedResources = { ...prevResources };
@@ -209,13 +213,20 @@ export default function StudyModule() {
   };
 
   const hanldeCompleteLessonResource = async (
+    type: string,
     lessonReourceId: number,
-    resourceId: number,
+    entityId: number,
   ) => {
     try {
       hanldeUpdateCompletedStatus(lessonReourceId);
 
-      await completeLessonResource(resourceId, session?.user.token as string);
+      if (type === "LearningResource") {
+        await completeLearningResource(entityId, session?.user.token as string);
+      }
+
+      if (type === "FlashcardSet") {
+        await completeSystemSet(entityId, session?.user.token as string);
+      }
     } catch (error) {
       console.error(
         "Có lỗi xảy ra trong quá trình hoàn thành tài nguyên học",
@@ -224,20 +235,21 @@ export default function StudyModule() {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      await Promise.all([fetchProgress(), fetchAllAvailableStudyPlan()]);
+    } catch (error) {
+      console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
   useEffect(() => {
     if (!session?.user.studentId || !session?.user.token) {
       return;
     }
     setIsloading(true);
-    const fetchData = async () => {
-      try {
-        await Promise.all([fetchProgress(), fetchAllAvailableStudyPlan()]);
-      } catch (error) {
-        console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
-      } finally {
-        setIsloading(false);
-      }
-    };
 
     fetchData();
   }, [session?.user.token, session?.user.studentId, courseId]);
@@ -261,7 +273,7 @@ export default function StudyModule() {
       <div className="resource flex-1 h-min-screen overflow-y-auto">
         {currentContentType === "LearningResource" && (
           <DynamicLearningResource
-            handleCompleteLessonResource={hanldeCompleteLessonResource}
+            hanldeCompleteLessonResource={hanldeCompleteLessonResource}
             lessonResource={currentLessonResource!}
             token={session?.user.token as string}
           />
@@ -275,6 +287,7 @@ export default function StudyModule() {
         )}
         {currentContentType === "FlashcardSet" && (
           <DynamicFlashcardSet
+            hanldeCompleteLessonResource={hanldeCompleteLessonResource}
             lessonResource={currentLessonResource!}
             token={session?.user.token as string}
           />
@@ -285,9 +298,15 @@ export default function StudyModule() {
           <div className="font-bold text-lg text-primary">
             {activeStudyPlan?.title}
           </div>
-          <Button size={"sm"} variant={"outline"}>
-            Thay đổi
-          </Button>
+          {availableStudyPlans.length > 1 && activeStudyPlan && (
+            <ChangeStudyPlanPopUp
+              currentStudyPlanId={activeStudyPlan?.studyPlanId as number}
+              fetchData={fetchData}
+              studentId={Number(session?.user.studentId)}
+              studyPlans={availableStudyPlans}
+              token={session?.user.token as string}
+            />
+          )}
         </div>
         <div className="w-full flex flex-col space-y-1 overflow-y-auto">
           {currentLessons.map((lesson) => (
@@ -319,6 +338,7 @@ export default function StudyModule() {
                           <LessonResourceItem
                             key={lessonResource.lessonResourceId}
                             handleChangeLR={handleChangeLR}
+                            handleTrackFlashcardSet={handleTrackFlashcardSet}
                             handleTrackLearningResource={
                               handleTrackLearningResource
                             }

@@ -3,17 +3,26 @@
 import { useState } from "react";
 
 import { Flashcard } from "@/app/api/studentflashcardset/stuflashcard.api";
+import { LessonResource } from "@/types/lesson-resource";
 
 interface ReviewGameProps {
   flashcards: Flashcard[];
   onExit: () => void;
   isSystem?: boolean;
+  lessonResource?: LessonResource;
+  hanldeCompleteLessonResource?: (
+    type: string,
+    lessonReourceId: number,
+    resourceId: number,
+  ) => Promise<void>;
 }
 
 export default function ReviewGame({
   flashcards,
   onExit,
   isSystem,
+  lessonResource,
+  hanldeCompleteLessonResource,
 }: ReviewGameProps) {
   const [isStudying, setIsStudying] = useState<Flashcard[]>([]);
   const [isLearned, setIsLearned] = useState<Flashcard[]>([]);
@@ -132,6 +141,13 @@ export default function ReviewGame({
       setIsStudying(newStudying);
       if (newStudying.length === 0) {
         setShowResults(true);
+        if (isSystem && lessonResource && hanldeCompleteLessonResource) {
+          hanldeCompleteLessonResource(
+            "FlashcardSet",
+            lessonResource.lessonResourceId,
+            lessonResource.systemFlashCardSet?.systemSetId as number,
+          );
+        }
 
         return;
       }
@@ -291,14 +307,13 @@ export default function ReviewGame({
           {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
-              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${
-                showAnswer &&
-                option.vietEngTranslation === currentQuestion.vietEngTranslation
+              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${showAnswer &&
+                  option.vietEngTranslation === currentQuestion.vietEngTranslation
                   ? "border-green-500"
                   : selectedAnswer === option.vietEngTranslation
                     ? "border-red-500"
                     : "border-transparent hover:border-gray-400"
-              }`}
+                }`}
               disabled={showAnswer}
               onClick={() => handleAnswerSelect(option.vietEngTranslation)}
             >
@@ -308,7 +323,7 @@ export default function ReviewGame({
               </div>
               {showAnswer &&
                 (option.vietEngTranslation ===
-                currentQuestion.vietEngTranslation ? (
+                  currentQuestion.vietEngTranslation ? (
                   <span className="text-green-500 font-bold">✔</span>
                 ) : selectedAnswer === option.vietEngTranslation ? (
                   <span className="text-red-500 font-bold">✕</span>

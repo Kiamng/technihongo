@@ -16,7 +16,8 @@ import { LessonResource } from "@/types/lesson-resource";
 interface DynamicLearningResourceProps {
   lessonResource: LessonResource;
   token: string;
-  handleCompleteLessonResource: (
+  hanldeCompleteLessonResource: (
+    type: string,
     lessonReourceId: number,
     resourceId: number,
   ) => Promise<void>;
@@ -25,10 +26,9 @@ interface DynamicLearningResourceProps {
 const DynamicLearningResource = ({
   lessonResource,
   token,
-  handleCompleteLessonResource,
+  hanldeCompleteLessonResource,
 }: DynamicLearningResourceProps) => {
   const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [isFinish, setIsFinish] = useState<boolean>(false);
   const [isLoading, startTransition] = useTransition();
 
   useEffect(() => {
@@ -85,8 +85,9 @@ const DynamicLearningResource = ({
     const percentageWatched =
       (videoElement.currentTime / videoElement.duration) * 100;
 
-    if (percentageWatched >= 90 && !isFinish) {
-      handleCompleteLessonResource(
+    if (percentageWatched >= 90) {
+      hanldeCompleteLessonResource(
+        "LearningResource",
         lessonResource.lessonResourceId,
         lessonResource.learningResource?.resourceId as number,
       );
