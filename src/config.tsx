@@ -68,6 +68,12 @@ export const NavItems = () => {
           icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/quiz"),
         },
+        {
+          name: "Smart OCR",
+          href: "/translate",
+          icon: <Copy size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/translate"),
+        },
       ],
     },
     {
