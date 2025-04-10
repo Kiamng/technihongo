@@ -197,22 +197,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Bell, DollarSign, MessageSquareQuote } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAllSubscriptionPlans } from "@/app/api/subscription-plan/subscription-plan.api";
-
-interface SubscriptionPlan {
-  subPlanId: number;
-  name: string;
-  price: number;
-  benefits: string;
-  durationDays: number;
-  createdAt: string;
-  active: boolean;
-}
+import {
+  getAllSubscriptionPlans,
+  getCurrentSubscription,
+} from "@/app/api/subscription-plan/subscription-plan.api";
 
 const LoadingAnimation = () => {
   return (
@@ -230,7 +224,9 @@ const LoadingAnimation = () => {
 
 export const SubscriptionPlanModule = () => {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -242,16 +238,26 @@ export const SubscriptionPlanModule = () => {
 
         console.log("Fetched subscription plans:", subscriptionPlans);
         setPlans(subscriptionPlans);
+
+        if (session?.user?.token) {
+          const currentSub = await getCurrentSubscription(session.user.token);
+
+          setCurrentSubscription(currentSub);
+        }
       } catch (err: any) {
         console.error("Failed to fetch plans:", err);
-        setError(err.message || "Không thể tải danh sách gói đăng ký");
+        if (err.response?.status === 500) {
+          setError("Lỗi server. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
+        } else {
+          setError(err.message || "Không thể tải danh sách gói đăng ký");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchPlans();
-  }, []);
+  }, [session]);
 
   const activePlans = plans.filter((plan) => plan.active);
 
@@ -280,7 +286,7 @@ export const SubscriptionPlanModule = () => {
     router.push(redirectPath);
   };
 
-  if (loading) {
+  if (loading || status === "loading") {
     return (
       <div className="flex justify-center items-center h-64 bg-[#0b0b23] text-white">
         <LoadingAnimation />
@@ -305,6 +311,13 @@ export const SubscriptionPlanModule = () => {
           />
         </svg>
         <p className="text-lg">{error}</p>
+        <Button
+          className="mt-4"
+          variant="outline"
+          onClick={() => window.location.reload()}
+        >
+          Thử lại
+        </Button>
       </div>
     );
   }
@@ -327,7 +340,7 @@ export const SubscriptionPlanModule = () => {
               className="bg-blue-500 text-white mt-4 w-full"
               onClick={() => handleSubscribe(plan.subPlanId)}
             >
-              Subscribe
+              {currentSubscription?.isActive ? "Gia hạn" : "Subscribe"}
             </Button>
           </Card>
         ))}
