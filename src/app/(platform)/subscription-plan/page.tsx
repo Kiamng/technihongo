@@ -1,7 +1,7 @@
 import React from "react";
 
-import { SubcriptionPlanModule } from "@/components/module/Subcription/Plan";
+import { SubscriptionPlanModule } from "@/components/module/Subcription/Plan";
 
 export default function SubscriptionPlanPage() {
-  return <SubcriptionPlanModule />;
+  return <SubscriptionPlanModule />;
 }
