@@ -1,8 +1,7 @@
-// src/components/course-detail.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, PlayCircle } from "lucide-react";
+import { Lock, PlayCircle, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
@@ -13,6 +12,15 @@ import { useStudyPlans } from "../StudyPlan/useStudyPlans";
 
 import { enrollCourse, checkEnrollStatus } from "@/app/api/lesson/lesson.api";
 import { Button } from "@/components/ui/button";
+import {
+  getAverageCourseRating,
+  getCourseRatings,
+  createCourseRating,
+  getStudentCourseRating,
+  updateCourseRating,
+  deleteCourseRating,
+  CourseRating,
+} from "@/app/api/course/course.api";
 
 interface LessonItem {
   title: string;
@@ -73,6 +81,22 @@ export default function CourseDetail({
 
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [averageRating, setAverageRating] = useState<number>(0);
+
+  const [allRatings, setAllRatings] = useState<CourseRating[]>([]);
+  const [displayedRatings, setDisplayedRatings] = useState<CourseRating[]>([]);
+  const [ratingsPageSize] = useState(3);
+  const [ratingsCount, setRatingsCount] = useState(ratingsPageSize);
+  const [isLoadingRatings, setIsLoadingRatings] = useState(false);
+
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [newRating, setNewRating] = useState<number>(0);
+  const [newReview, setNewReview] = useState<string>("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [hasRated, setHasRated] = useState<boolean>(false);
+  const [existingRating, setExistingRating] = useState<CourseRating | null>(
+    null,
+  );
 
   const {
     lessons,
@@ -85,6 +109,25 @@ export default function CourseDetail({
 
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
   const [selectedSection, setSelectedSection] = useState<number>(0);
+
+  // Hàm lấy đánh giá của người dùng
+  const fetchStudentRating = async () => {
+    if (session?.user?.token) {
+      try {
+        const studentRating = await getStudentCourseRating({
+          courseId,
+          token: session.user.token,
+        });
+
+        setHasRated(!!studentRating);
+        setExistingRating(studentRating);
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra đánh giá của người dùng:", error);
+        setHasRated(false);
+        setExistingRating(null);
+      }
+    }
+  };
 
   useEffect(() => {
     const checkEnrollment = async () => {
@@ -99,7 +142,47 @@ export default function CourseDetail({
       }
     };
 
+    const fetchAverageRating = async () => {
+      if (session?.user?.token) {
+        try {
+          const rating = await getAverageCourseRating(
+            courseId,
+            session.user.token,
+          );
+
+          setAverageRating(rating);
+        } catch (error) {
+          console.error("Lỗi khi lấy đánh giá trung bình:", error);
+          setAverageRating(0);
+        }
+      }
+    };
+
+    const fetchCourseRatings = async () => {
+      if (session?.user?.token) {
+        setIsLoadingRatings(true);
+        try {
+          const ratings = await getCourseRatings({
+            courseId,
+            token: session.user.token,
+          });
+
+          setAllRatings(ratings);
+          setDisplayedRatings(ratings.slice(0, ratingsPageSize));
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách đánh giá:", error);
+          setAllRatings([]);
+          setDisplayedRatings([]);
+        } finally {
+          setIsLoadingRatings(false);
+        }
+      }
+    };
+
     checkEnrollment();
+    fetchAverageRating();
+    fetchCourseRatings();
+    fetchStudentRating();
   }, [courseId, session?.user?.token]);
 
   useEffect(() => {
@@ -110,28 +193,34 @@ export default function CourseDetail({
         isLocked: !studyPlans?.[0]?.active,
       }));
 
-      if (pageNo === 0) {
-        setAllLessons(newLessons);
-        setDisplayedLessons(newLessons);
-      } else {
-        setAllLessons((prev) => {
-          const updatedLessons = [...prev, ...newLessons];
+      setAllLessons((prev) => {
+        // Lọc bài học trùng lặp dựa trên tiêu đề
+        const existingTitles = new Set(prev.map((lesson) => lesson.title));
+        const uniqueNewLessons = newLessons.filter(
+          (lesson) => !existingTitles.has(lesson.title),
+        );
+        const updatedLessons = [...prev, ...uniqueNewLessons];
 
-          setDisplayedLessons(updatedLessons);
+        // Cập nhật displayedLessons với số bài học cần hiển thị
+        const totalDisplay = (pageNo + 1) * pageSize;
 
-          return updatedLessons;
-        });
-      }
+        setDisplayedLessons(updatedLessons.slice(0, totalDisplay));
 
+        return updatedLessons;
+      });
+
+      // Kiểm tra hasMore
       const totalPages =
         lessons.totalPages || Math.ceil(lessons.totalElements / pageSize) || 1;
 
-      setHasMore(pageNo < totalPages - 1);
+      setHasMore(pageNo < totalPages - 1 && newLessons.length > 0);
+    } else {
+      setHasMore(false);
     }
-  }, [lessons, pageNo, studyPlans]);
+  }, [lessons, pageNo, studyPlans, pageSize]);
 
   const handleLoadMore = () => {
-    if (hasMore) {
+    if (hasMore && !isLoadingLessons) {
       setPageNo((prev) => prev + 1);
     }
   };
@@ -139,7 +228,7 @@ export default function CourseDetail({
   const handleCollapse = () => {
     setDisplayedLessons(allLessons.slice(0, pageSize));
     setPageNo(0);
-    setHasMore(true);
+    setHasMore(allLessons.length > pageSize);
   };
 
   const handleEnroll = async () => {
@@ -150,7 +239,6 @@ export default function CourseDetail({
     }
 
     setIsEnrolling(true);
-
     try {
       const result = await enrollCourse(courseId, session.user.token);
 
@@ -181,6 +269,150 @@ export default function CourseDetail({
       toast.error(errorMessage);
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handleLoadMoreRatings = () => {
+    const newCount = ratingsCount + ratingsPageSize;
+
+    setRatingsCount(newCount);
+    setDisplayedRatings(allRatings.slice(0, newCount));
+  };
+
+  const openRatingModal = () => {
+    if (!session?.user?.token) {
+      toast.error("Vui lòng đăng nhập để đánh giá khóa học!");
+
+      return;
+    }
+    if (!isEnrolled) {
+      toast.error("Bạn cần đăng ký khóa học trước khi đánh giá!");
+
+      return;
+    }
+
+    if (hasRated && existingRating) {
+      setNewRating(existingRating.rating);
+      setNewReview(existingRating.review || "");
+    } else {
+      setNewRating(0);
+      setNewReview("");
+    }
+    setShowRatingModal(true);
+  };
+
+  const closeRatingModal = () => {
+    setShowRatingModal(false);
+    setNewRating(0);
+    setNewReview("");
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setNewRating(rating);
+  };
+
+  const submitRating = async () => {
+    if (!session?.user?.token) return;
+    if (newRating < 1 || newRating > 5) {
+      toast.error("Vui lòng chọn số sao từ 1 đến 5!");
+
+      return;
+    }
+    if (!newReview.trim()) {
+      toast.error("Vui lòng nhập nội dung đánh giá!");
+
+      return;
+    }
+
+    setIsSubmittingRating(true);
+    try {
+      let updatedRatingData: CourseRating;
+
+      if (hasRated && existingRating) {
+        updatedRatingData = await updateCourseRating({
+          ratingId: existingRating.ratingId,
+          courseId,
+          rating: newRating,
+          review: newReview,
+          token: session.user.token,
+        });
+        setAllRatings((prev) =>
+          prev.map((rating) =>
+            rating.ratingId === existingRating.ratingId
+              ? updatedRatingData
+              : rating,
+          ),
+        );
+        setDisplayedRatings((prev) =>
+          prev
+            .map((rating) =>
+              rating.ratingId === existingRating.ratingId
+                ? updatedRatingData
+                : rating,
+            )
+            .slice(0, ratingsCount),
+        );
+        toast.success("Đánh giá của bạn đã được cập nhật!");
+      } else {
+        updatedRatingData = await createCourseRating({
+          courseId,
+          rating: newRating,
+          review: newReview,
+          token: session.user.token,
+        });
+        setAllRatings((prev) => [updatedRatingData, ...prev]);
+        setDisplayedRatings((prev) =>
+          [updatedRatingData, ...prev].slice(0, ratingsCount),
+        );
+        setHasRated(true);
+        toast.success("Đánh giá của bạn đã được gửi!");
+      }
+      await fetchStudentRating();
+      const newAverage = await getAverageCourseRating(
+        courseId,
+        session.user.token,
+      );
+
+      setAverageRating(newAverage);
+      closeRatingModal();
+    } catch (error) {
+      console.error("Lỗi khi xử lý đánh giá:", error);
+      toast.error("Không thể xử lý đánh giá. Vui lòng thử lại!");
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
+  const handleDeleteRating = async () => {
+    if (!session?.user?.token || !existingRating) return;
+
+    try {
+      await deleteCourseRating({
+        ratingId: existingRating.ratingId,
+        token: session.user.token,
+      });
+      setAllRatings((prev) =>
+        prev.filter((rating) => rating.ratingId !== existingRating.ratingId),
+      );
+      setDisplayedRatings((prev) =>
+        prev.filter((rating) => rating.ratingId !== existingRating.ratingId),
+      );
+      setHasRated(false);
+      setExistingRating(null);
+      setNewRating(0);
+      setNewReview("");
+      await fetchStudentRating();
+      const newAverage = await getAverageCourseRating(
+        courseId,
+        session.user.token,
+      );
+
+      setAverageRating(newAverage);
+      toast.success("Đánh giá đã được xóa thành công!");
+      closeRatingModal();
+    } catch (error) {
+      console.error("Lỗi khi xóa đánh giá:", error);
+      toast.error("Không thể xóa đánh giá. Vui lòng thử lại!");
     }
   };
 
@@ -238,10 +470,11 @@ export default function CourseDetail({
                 (chapter: Chapter, chapterIndex: number) => (
                   <div
                     key={chapterIndex}
-                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${selectedChapter === chapterIndex
+                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
+                      selectedChapter === chapterIndex
                         ? "bg-green-100"
                         : "bg-gray-100"
-                      }`}
+                    }`}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedChapter(chapterIndex)}
@@ -264,10 +497,11 @@ export default function CourseDetail({
                           (section: Section, sectionIndex: number) => (
                             <div
                               key={`${chapterIndex}-${sectionIndex}`}
-                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${selectedSection === sectionIndex
+                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
+                                selectedSection === sectionIndex
                                   ? "bg-green-200"
                                   : "bg-gray-50"
-                                }`}
+                              }`}
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {
@@ -366,13 +600,31 @@ export default function CourseDetail({
               </p>
 
               <div className="flex items-center justify-center mb-3">
-                <div className="flex text-orange-500 mr-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i}>★</span>
-                  ))}
+                <div className="flex text-orange-500 mr-2 relative">
+                  {[...Array(5)].map((_, i) => {
+                    const ratingValue = i + 1;
+
+                    return (
+                      <span key={i} className="relative inline-block">
+                        <span className="text-gray-300">★</span>
+                        {averageRating >= ratingValue ? (
+                          <span className="absolute top-0 left-0 text-orange-500">
+                            ★
+                          </span>
+                        ) : averageRating > i && averageRating < ratingValue ? (
+                          <span
+                            className="absolute top-0 left-0 text-orange-500 overflow-hidden"
+                            style={{ width: `${(averageRating - i) * 100}%` }}
+                          >
+                            ★
+                          </span>
+                        ) : null}
+                      </span>
+                    );
+                  })}
                 </div>
                 <span className="text-sm text-gray-600">
-                  5/5 (5999 đánh giá)
+                  {averageRating.toFixed(1)}/5 (5999 đánh giá)
                 </span>
               </div>
 
@@ -411,6 +663,15 @@ export default function CourseDetail({
             )}
 
             <div className="mt-4">
+              <Button
+                className="w-full hover:scale-105 duration-100 text-white"
+                onClick={openRatingModal}
+              >
+                {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"}
+              </Button>
+            </div>
+
+            <div className="mt-4">
               <h3 className="font-bold mb-3">Mục tiêu khóa học</h3>
               <div className="space-y-2">
                 {courseDetail.goals.map((goal: string, index: number) => (
@@ -434,9 +695,146 @@ export default function CourseDetail({
                 ))}
               </div>
             </div>
+
+            {/* Ratings Section */}
+            <div className="mt-6">
+              <h3 className="font-bold mb-3">Đánh giá từ học viên</h3>
+              {isLoadingRatings ? (
+                <div className="text-center text-gray-600">
+                  Đang tải đánh giá...
+                </div>
+              ) : displayedRatings.length === 0 ? (
+                <div className="text-center text-gray-600">
+                  Chưa có đánh giá nào
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {displayedRatings.map((rating) => (
+                    <div
+                      key={rating.ratingId}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <div className="flex items-center mb-2">
+                        <span className="font-semibold mr-2">
+                          {rating.userName}
+                        </span>
+                        <div className="flex text-orange-500">
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={
+                                i < rating.rating
+                                  ? "text-orange-500"
+                                  : "text-gray-300"
+                              }
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-600">{rating.review}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {allRatings.length > displayedRatings.length && (
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    className="hover:scale-105 duration-100"
+                    onClick={handleLoadMoreRatings}
+                  >
+                    Xem thêm
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={closeRatingModal}
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-xl font-bold text-center mb-4 text-[#2B5F54]">
+              {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"}
+            </h3>
+            <div className="mb-4">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="rating-input"
+              >
+                Số sao
+              </label>
+              <input
+                readOnly
+                id="rating-input"
+                type="hidden"
+                value={newRating}
+              />
+              <div className="flex justify-center space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    aria-label={`Chọn ${star} sao`}
+                    className={`text-2xl ${
+                      star <= newRating ? "text-orange-500" : "text-gray-300"
+                    } hover:text-orange-400 transition-colors`}
+                    onClick={() => handleRatingChange(star)}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="review-input"
+              >
+                Nhận xét
+              </label>
+              <textarea
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="review-input"
+                placeholder="Viết nhận xét của bạn..."
+                rows={4}
+                value={newReview}
+                onChange={(e) => setNewReview(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-center gap-4">
+              <Button
+                className="hover:scale-105 duration-100"
+                disabled={isSubmittingRating}
+                onClick={submitRating}
+              >
+                {isSubmittingRating
+                  ? "Đang xử lý..."
+                  : hasRated
+                    ? "Cập nhật đánh giá"
+                    : "Gửi đánh giá"}
+              </Button>
+              {hasRated && (
+                <Button
+                  className="bg-red-500 hover:bg-red-600 hover:scale-105 duration-100 text-white"
+                  onClick={handleDeleteRating}
+                >
+                  Xóa đánh giá
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ToastContainer
         autoClose={3000}
         hideProgressBar={false}
