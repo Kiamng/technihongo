@@ -15,8 +15,20 @@
 //   CardFooter,
 // } from "@/components/ui/card";
 // import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Label } from "@/components/ui/label";
+// import {
+//   getCurrentSubscription,
 //   getSubscriptionPlanDetail,
 //   initiateMomoPayment,
+//   initiateVNPayPayment,
+//   renewVNPayPayment,
 // } from "@/app/api/subscription-plan/subscription-plan.api";
 
 // interface SubscriptionPlan {
@@ -49,12 +61,18 @@
 //   const subPlanId = Number(params.subPlanId);
 //   const { data: session, status } = useSession();
 //   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
+//   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
 //   const [loading, setLoading] = useState<boolean>(true);
 //   const [error, setError] = useState<string | null>(null);
+//   const [renewalError, setRenewalError] = useState<string | null>(null);
 //   const [processingPayment, setProcessingPayment] = useState<boolean>(false);
+//   const [paymentMethod, setPaymentMethod] = useState<
+//     "momo" | "vnpay" | "vnpay-renew" | null
+//   >(null);
+//   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
 //   const primaryColor = "#57D061";
-//   const backendBaseUrl = "http://localhost:8080"; // Nên lưu trong biến môi trường
+//   const backendBaseUrl = "http://localhost:8080";
 
 //   useEffect(() => {
 //     const fetchPlanDetail = async () => {
@@ -70,15 +88,26 @@
 //         const planDetail = await getSubscriptionPlanDetail(subPlanId);
 
 //         setPlan(planDetail);
+
+//         if (session?.user?.token) {
+//           const currentSub = await getCurrentSubscription(session.user.token);
+
+//           setCurrentSubscription(currentSub);
+//         }
 //       } catch (err: any) {
-//         setError(err.message || "Không thể tải chi tiết gói đăng ký");
+//         console.error("Failed to fetch plan detail:", err);
+//         if (err.response?.status === 500) {
+//           setError("Lỗi server. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
+//         } else {
+//           setError(err.message || "Không thể tải chi tiết gói đăng ký");
+//         }
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
 
 //     fetchPlanDetail();
-//   }, [subPlanId]);
+//   }, [subPlanId, session]);
 
 //   const formatPrice = (price: number) => {
 //     return new Intl.NumberFormat("vi-VN", {
@@ -87,7 +116,17 @@
 //     }).format(price);
 //   };
 
-//   const handlePayment = async () => {
+//   const formatDate = (dateString: string) => {
+//     return new Date(dateString).toLocaleDateString("vi-VN");
+//   };
+
+//   const handlePaymentSelection = async () => {
+//     if (!paymentMethod) {
+//       setError("Vui lòng chọn phương thức thanh toán");
+
+//       return;
+//     }
+
 //     if (
 //       !subPlanId ||
 //       !plan?.active ||
@@ -100,26 +139,73 @@
 //     }
 
 //     setProcessingPayment(true);
+//     setRenewalError(null);
+
 //     try {
 //       const successUrl = `${backendBaseUrl}/api/v1/payment/success`;
 //       const failedUrl = `${backendBaseUrl}/api/v1/payment/failed`;
-//       const callbackUrl = `${window.location.origin}/api/v1/payment/callback`;
+//       let paymentResult;
 
-//       // Lưu subPlanId vào localStorage để sử dụng sau
-//       localStorage.setItem("lastSubPlanId", subPlanId.toString());
+//       if (currentSubscription?.isActive && paymentMethod === "vnpay-renew") {
+//         // VNPay renewal
+//         console.log("Initiating VNPay renewal payment...");
+//         paymentResult = await renewVNPayPayment(
+//           subPlanId,
+//           session.user.token,
+//           successUrl,
+//           failedUrl,
+//         );
+//         console.log("VNPay renewal payment result:", paymentResult);
+//       } else if (!currentSubscription?.isActive) {
+//         // New payment
+//         if (paymentMethod === "momo") {
+//           console.log("Initiating MoMo payment...");
+//           paymentResult = await initiateMomoPayment(
+//             subPlanId,
+//             session.user.token,
+//             successUrl,
+//             failedUrl,
+//           );
+//           console.log("MoMo payment result:", paymentResult);
+//         } else if (paymentMethod === "vnpay") {
+//           console.log("Initiating VNPay payment...");
+//           paymentResult = await initiateVNPayPayment(
+//             subPlanId,
+//             session.user.token,
+//             successUrl,
+//             failedUrl,
+//           );
+//           console.log("VNPay payment result:", paymentResult);
+//         }
+//       }
 
-//       const { payUrl, orderId } = await initiateMomoPayment(
-//         subPlanId,
-//         session.user.token as string,
-//         successUrl,
-//         failedUrl,
-//       );
+//       if (!paymentResult || !paymentResult.payUrl) {
+//         throw new Error("Không nhận được URL thanh toán hợp lệ");
+//       }
 
-//       localStorage.setItem("lastOrderId", orderId);
-//       window.location.href = payUrl;
+//       console.log("Redirecting to payment URL:", paymentResult.payUrl);
+
+//       // Lưu orderId nếu có
+//       if (paymentResult.orderId) {
+//         localStorage.setItem("lastOrderId", paymentResult.orderId);
+//       }
+
+//       // Chuyển hướng người dùng đến trang thanh toán
+//       window.location.href = paymentResult.payUrl;
 //     } catch (err: any) {
-//       setError(err.message || "Không thể khởi tạo thanh toán MoMo");
+//       console.error("Payment processing failed:", err);
+//       setError(err.message || "Không thể khởi tạo thanh toán");
 //       setProcessingPayment(false);
+//       setIsPaymentDialogOpen(false);
+
+//       // Thông báo lỗi nhưng không chuyển hướng đến trang failed
+//       // Nếu muốn chuyển hướng khi có lỗi, bỏ comment dòng dưới
+//       // router.push("/payment/failed");
+//     } finally {
+//       // Đảm bảo trạng thái processing được reset nếu có lỗi xảy ra
+//       if (processingPayment) {
+//         setProcessingPayment(false);
+//       }
 //     }
 //   };
 
@@ -141,10 +227,10 @@
 //           variant="outline"
 //           onClick={() => {
 //             setError(null);
-//             window.history.back();
+//             window.location.reload();
 //           }}
 //         >
-//           Quay lại
+//           Thử lại
 //         </Button>
 //       </div>
 //     );
@@ -211,6 +297,23 @@
 //         </CardHeader>
 
 //         <CardContent className="pt-6">
+//           {currentSubscription?.isActive && (
+//             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+//               <h3 className="font-semibold text-lg mb-2">
+//                 Gói hiện tại của bạn
+//               </h3>
+//               <p>Tên gói: {currentSubscription.planName}</p>
+//               <p>Ngày bắt đầu: {formatDate(currentSubscription.startDate)}</p>
+//               <p>Ngày kết thúc: {formatDate(currentSubscription.endDate)}</p>
+//               <p>Trạng thái: Đang hoạt động</p>
+//             </div>
+//           )}
+//           {renewalError && (
+//             <div className="mb-6 p-4 bg-red-50 rounded-lg flex items-center">
+//               <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+//               <p className="text-red-500">{renewalError}</p>
+//             </div>
+//           )}
 //           <div className="space-y-6">
 //             <div>
 //               <h3 className="font-semibold text-lg mb-3 text-gray-700">
@@ -232,28 +335,76 @@
 //         </CardContent>
 
 //         <CardFooter className="bg-gray-50 flex justify-center py-6">
-//           <Button
-//             className="text-white font-medium px-8 py-6 rounded-lg shadow-md transition-all flex items-center hover:bg-green-600"
-//             disabled={
-//               processingPayment || !plan.active || status !== "authenticated"
-//             }
-//             style={{
-//               backgroundColor: primaryColor,
-//             }}
-//             onClick={handlePayment}
+//           <Dialog
+//             open={isPaymentDialogOpen}
+//             onOpenChange={setIsPaymentDialogOpen}
 //           >
-//             {processingPayment ? (
-//               <>
-//                 <div className="mr-2 animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-//                 <span>Đang xử lý...</span>
-//               </>
-//             ) : (
-//               <>
+//             <DialogTrigger asChild>
+//               <Button
+//                 className="text-white font-medium px-8 py-6 rounded-lg shadow-md transition-all flex items-center hover:bg-green-600"
+//                 disabled={
+//                   processingPayment ||
+//                   !plan.active ||
+//                   status !== "authenticated"
+//                 }
+//                 style={{
+//                   backgroundColor: primaryColor,
+//                 }}
+//               >
 //                 <CreditCard className="mr-2" />
-//                 <span>Thanh toán ngay</span>
-//               </>
-//             )}
-//           </Button>
+//                 <span>
+//                   {currentSubscription?.isActive
+//                     ? "Gia hạn ngay"
+//                     : "Thanh toán ngay"}
+//                 </span>
+//               </Button>
+//             </DialogTrigger>
+//             <DialogContent>
+//               <DialogHeader>
+//                 <DialogTitle>Chọn phương thức thanh toán</DialogTitle>
+//               </DialogHeader>
+//               <RadioGroup
+//                 className="space-y-4"
+//                 value={paymentMethod || ""}
+//                 onValueChange={(value: "momo" | "vnpay" | "vnpay-renew") =>
+//                   setPaymentMethod(value)
+//                 }
+//               >
+//                 {!currentSubscription?.isActive && (
+//                   <>
+//                     <div className="flex items-center space-x-2">
+//                       <RadioGroupItem id="momo" value="momo" />
+//                       <Label htmlFor="momo">Thanh toán bằng MoMo</Label>
+//                     </div>
+//                     <div className="flex items-center space-x-2">
+//                       <RadioGroupItem id="vnpay" value="vnpay" />
+//                       <Label htmlFor="vnpay">Thanh toán bằng VNPay</Label>
+//                     </div>
+//                   </>
+//                 )}
+//                 {currentSubscription?.isActive && (
+//                   <div className="flex items-center space-x-2">
+//                     <RadioGroupItem id="vnpay-renew" value="vnpay-renew" />
+//                     <Label htmlFor="vnpay-renew">Gia hạn bằng VNPay</Label>
+//                   </div>
+//                 )}
+//               </RadioGroup>
+//               <div className="flex justify-end space-x-2 mt-4">
+//                 <Button
+//                   variant="outline"
+//                   onClick={() => setIsPaymentDialogOpen(false)}
+//                 >
+//                   Hủy
+//                 </Button>
+//                 <Button
+//                   disabled={!paymentMethod || processingPayment}
+//                   onClick={handlePaymentSelection}
+//                 >
+//                   {processingPayment ? "Đang xử lý..." : "Xác nhận"}
+//                 </Button>
+//               </div>
+//             </DialogContent>
+//           </Dialog>
 //         </CardFooter>
 //       </Card>
 
@@ -289,11 +440,32 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import {
   getCurrentSubscription,
   getSubscriptionPlanDetail,
   initiateMomoPayment,
+  initiateVNPayPayment,
+  renewVNPayPayment,
   renewSubscription,
 } from "@/app/api/subscription-plan/subscription-plan.api";
+
+interface SubscriptionPlan {
+  subPlanId: number;
+  name: string;
+  price: number;
+  benefits: string;
+  durationDays: number;
+  createdAt: string;
+  active: boolean;
+}
 
 const LoadingAnimation = () => {
   return (
@@ -320,9 +492,13 @@ const SubscriptionPlanDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [renewalError, setRenewalError] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState<boolean>(false);
+  const [paymentMethod, setPaymentMethod] = useState<
+    "momo" | "vnpay" | "momo-renew" | "vnpay-renew" | null
+  >(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   const primaryColor = "#57D061";
-  const backendBaseUrl = "http://localhost:8080"; // Nên lưu trong biến môi trường
+  const backendBaseUrl = "http://localhost:8080";
 
   useEffect(() => {
     const fetchPlanDetail = async () => {
@@ -370,7 +546,13 @@ const SubscriptionPlanDetail: React.FC = () => {
     return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
-  const handlePayment = async () => {
+  const handlePaymentSelection = async () => {
+    if (!paymentMethod) {
+      setError("Vui lòng chọn phương thức thanh toán");
+
+      return;
+    }
+
     if (
       !subPlanId ||
       !plan?.active ||
@@ -383,53 +565,109 @@ const SubscriptionPlanDetail: React.FC = () => {
     }
 
     setProcessingPayment(true);
-    setRenewalError(null); // Reset thông báo lỗi gia hạn trước khi thử lại
+    setRenewalError(null);
 
     try {
+      const successUrl = `${backendBaseUrl}/api/v1/payment/success`;
+      const failedUrl = `${backendBaseUrl}/api/v1/payment/failed`;
+      let paymentResult: any;
+
       if (currentSubscription?.isActive) {
-        // Gia hạn subscription
-        const result = await renewSubscription(subPlanId, session.user.token);
-
-        if (result.success && result.externalOrderId) {
-          localStorage.setItem("lastOrderId", result.externalOrderId);
-          router.push("/payment/success"); // Điều hướng đến trang thành công
-        } else {
-          // Hiển thị thông báo lỗi trên giao diện
-          const errorMessage =
-            result.errorMessage || "Không thể gia hạn gói đăng ký";
-
-          if (
-            errorMessage.includes(
-              "There is already a pending renewal transaction for this subscription",
-            )
-          ) {
-            setRenewalError(
-              "Không thể gia hạn vì đã có một giao dịch gia hạn đang chờ xử lý. Vui lòng kiểm tra lại hoặc liên hệ hỗ trợ.",
-            );
-          } else {
-            setRenewalError(errorMessage);
-          }
+        // Handle renewal payments
+        if (paymentMethod === "vnpay-renew") {
+          console.log("Initiating VNPay renewal payment...");
+          paymentResult = await renewVNPayPayment(
+            subPlanId,
+            session.user.token,
+            successUrl,
+            failedUrl,
+          );
+          console.log("VNPay renewal payment result:", paymentResult);
+        } else if (paymentMethod === "momo-renew") {
+          console.log("Initiating MoMo renewal payment...");
+          paymentResult = await renewSubscription(
+            subPlanId,
+            session.user.token,
+            "momo",
+            successUrl,
+            failedUrl,
+          );
+          console.log("MoMo renewal payment result:", paymentResult);
         }
       } else {
-        // Thanh toán mới
-        const successUrl = `${backendBaseUrl}/api/v1/payment/success`;
-        const failedUrl = `${backendBaseUrl}/api/v1/payment/failed`;
-        const { payUrl, orderId } = await initiateMomoPayment(
-          subPlanId,
-          session.user.token as string,
-          successUrl,
-          failedUrl,
+        // Handle new payments
+        if (paymentMethod === "momo") {
+          console.log("Initiating MoMo payment...");
+          paymentResult = await initiateMomoPayment(
+            subPlanId,
+            session.user.token,
+            successUrl,
+            failedUrl,
+          );
+          console.log("MoMo payment result:", paymentResult);
+        } else if (paymentMethod === "vnpay") {
+          console.log("Initiating VNPay payment...");
+          paymentResult = await initiateVNPayPayment(
+            subPlanId,
+            session.user.token,
+            successUrl,
+            failedUrl,
+          );
+          console.log("VNPay payment result:", paymentResult);
+        }
+      }
+
+      if (
+        !paymentResult ||
+        (!paymentResult.payUrl && !paymentResult.externalOrderId)
+      ) {
+        throw new Error("Không nhận được thông tin thanh toán hợp lệ");
+      }
+
+      // Handle cases where we get a payment URL (redirect flow)
+      if (paymentResult.payUrl) {
+        console.log("Redirecting to payment URL:", paymentResult.payUrl);
+
+        // Lưu orderId nếu có
+        if (paymentResult.orderId) {
+          localStorage.setItem("lastOrderId", paymentResult.orderId);
+        }
+
+        // Chuyển hướng người dùng đến trang thanh toán
+        window.location.href = paymentResult.payUrl;
+
+        return;
+      }
+
+      // Handle direct renewal success (no redirect needed)
+      if (paymentResult.externalOrderId) {
+        console.log(
+          "Renewal completed with order ID:",
+          paymentResult.externalOrderId,
+        );
+        localStorage.setItem("lastOrderId", paymentResult.externalOrderId);
+
+        // Redirect to success page or handle in-place
+        router.push(
+          "/payment/success?orderId=" + paymentResult.externalOrderId,
         );
 
-        localStorage.setItem("lastOrderId", orderId);
-        window.location.href = payUrl;
+        return;
       }
     } catch (err: any) {
       console.error("Payment processing failed:", err);
-      setError(err.message || "Không thể xử lý thanh toán");
-      router.push("/payment/failed");
-    } finally {
+      setError(err.message || "Không thể khởi tạo thanh toán");
       setProcessingPayment(false);
+      setIsPaymentDialogOpen(false);
+
+      // Thông báo lỗi nhưng không chuyển hướng đến trang failed
+      // Nếu muốn chuyển hướng khi có lỗi, bỏ comment dòng dưới
+      // router.push("/payment/failed");
+    } finally {
+      // Đảm bảo trạng thái processing được reset nếu có lỗi xảy ra
+      if (processingPayment) {
+        setProcessingPayment(false);
+      }
     }
   };
 
@@ -559,32 +797,82 @@ const SubscriptionPlanDetail: React.FC = () => {
         </CardContent>
 
         <CardFooter className="bg-gray-50 flex justify-center py-6">
-          <Button
-            className="text-white font-medium px-8 py-6 rounded-lg shadow-md transition-all flex items-center hover:bg-green-600"
-            disabled={
-              processingPayment || !plan.active || status !== "authenticated"
-            }
-            style={{
-              backgroundColor: primaryColor,
-            }}
-            onClick={handlePayment}
+          <Dialog
+            open={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
           >
-            {processingPayment ? (
-              <>
-                <div className="mr-2 animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                <span>Đang xử lý...</span>
-              </>
-            ) : (
-              <>
+            <DialogTrigger asChild>
+              <Button
+                className="text-white font-medium px-8 py-6 rounded-lg shadow-md transition-all flex items-center hover:bg-green-600"
+                disabled={
+                  processingPayment ||
+                  !plan.active ||
+                  status !== "authenticated"
+                }
+                style={{
+                  backgroundColor: primaryColor,
+                }}
+              >
                 <CreditCard className="mr-2" />
                 <span>
                   {currentSubscription?.isActive
                     ? "Gia hạn ngay"
                     : "Thanh toán ngay"}
                 </span>
-              </>
-            )}
-          </Button>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Chọn phương thức thanh toán</DialogTitle>
+              </DialogHeader>
+              <RadioGroup
+                className="space-y-4"
+                value={paymentMethod || ""}
+                onValueChange={(
+                  value: "momo" | "vnpay" | "vnpay-renew" | "momo-renew",
+                ) => setPaymentMethod(value)}
+              >
+                {!currentSubscription?.isActive && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="momo" value="momo" />
+                      <Label htmlFor="momo">Thanh toán bằng MoMo</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="vnpay" value="vnpay" />
+                      <Label htmlFor="vnpay">Thanh toán bằng VNPay</Label>
+                    </div>
+                  </>
+                )}
+                {currentSubscription?.isActive && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="vnpay-renew" value="vnpay-renew" />
+                      <Label htmlFor="vnpay-renew">Gia hạn bằng VNPay</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="momo-renew" value="momo-renew" />
+                      <Label htmlFor="momo-renew">Gia hạn bằng MoMo</Label>
+                    </div>
+                  </>
+                )}
+              </RadioGroup>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPaymentDialogOpen(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  disabled={!paymentMethod || processingPayment}
+                  onClick={handlePaymentSelection}
+                >
+                  {processingPayment ? "Đang xử lý..." : "Xác nhận"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardFooter>
       </Card>
 
