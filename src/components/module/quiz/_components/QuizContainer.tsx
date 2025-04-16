@@ -26,6 +26,7 @@ import {
   getQuizAttemptStatus,
 } from "@/app/api/quiz/quiz.api";
 import { Button } from "@/components/ui/button";
+import { useQuiz } from "@/components/core/common/providers/quiz-provider";
 
 interface QuizContainerProps {
   quizData: QuizData;
@@ -45,8 +46,8 @@ export function QuizContainer({
   const { data: session } = useSession();
   const [selectedAnswers, setSelectedAnswers] = useState<Answers>({});
   const [answers, setAnswers] = useState<Answers>({});
-  const [isQuizStarted, setIsQuizStarted] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // const [isQuizStarted, setIsQuizStarted] = useState(false);
+  // const [isSubmitted, setIsSubmitted] = useState(false);
   const [attemptData, setAttemptData] = useState<
     StartAttemptResponse["data"] | null
   >(null);
@@ -55,7 +56,8 @@ export function QuizContainer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reviewAttemptId, setReviewAttemptId] = useState<number | null>(null);
-
+  const { isQuizStarted, setIsQuizStarted, isSubmitted, setIsSubmitted } =
+    useQuiz();
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [timeUsed, setTimeUsed] = useState<number>(0);
   const navigate = useRouter();
@@ -257,80 +259,6 @@ export function QuizContainer({
     setQuizAttemptStatus(status);
   };
 
-  const showToast = () => {
-    toast("Hãy hoàn thành bài kiểm tra của bạn", {
-      className: "bg-red-500 text-white",
-    });
-  };
-
-  const showLeaveAlert = () => {
-    const result = window.confirm(
-      "Bạn chưa hoàn thành bài kiểm tra. Bạn cần nộp bài trước khi rời trang. Bạn có muốn nộp bài không?",
-    );
-
-    if (result) {
-      handleSubmit();
-    }
-  };
-
-  useEffect(() => {
-    // Chặn reload trang khi quiz đang làm
-    const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
-      if (isQuizStarted && !isSubmitted) {
-        event.returnValue =
-          "Bạn chưa hoàn thành bài kiểm tra. Bạn có chắc chắn muốn rời khỏi?";
-        showLeaveAlert(); // Hiển thị hộp thoại yêu cầu nộp bài
-
-        return "Bạn chưa hoàn thành bài kiểm tra. Bạn có chắc chắn muốn rời khỏi?";
-      }
-    };
-
-    // Chặn chuyển trang khi người dùng nhấn vào các Link Next.js
-    const handleLinkClick = (e: MouseEvent) => {
-      if (isQuizStarted && !isSubmitted) {
-        showToast();
-        e.preventDefault(); // Ngừng điều hướng
-      }
-    };
-
-    // Đăng ký sự kiện chỉ cho các link của Next.js (dùng cho thẻ <Link> cụ thể)
-    const links = document.querySelectorAll("a"); // Tìm tất cả các thẻ <a> trong trang
-
-    links.forEach((link) => {
-      link.addEventListener("click", (e: MouseEvent) => {
-        if (isQuizStarted && !isSubmitted) {
-          showToast();
-          e.preventDefault(); // Ngừng điều hướng
-        }
-      });
-    });
-
-    // Gắn sự kiện trước khi unload (reload, đóng trang)
-    window.addEventListener("beforeunload", beforeUnloadHandler);
-
-    // Thêm sự kiện khi người dùng sửa URL
-    const handlePopState = (event: PopStateEvent) => {
-      if (isQuizStarted && !isSubmitted) {
-        showToast();
-        event.preventDefault(); // Ngừng điều hướng URL
-
-        return false;
-      }
-    };
-
-    // Lắng nghe sự kiện thay đổi URL
-    window.addEventListener("popstate", handlePopState);
-
-    // Cleanup các event listener khi component bị hủy
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-      window.removeEventListener("popstate", handlePopState);
-      links.forEach((link) => {
-        link.removeEventListener("click", handleLinkClick);
-      });
-    };
-  }, [isQuizStarted, isSubmitted]);
-
   useEffect(() => {
     if (!isQuizStarted || isSubmitted) return; // Không bắt đầu đếm nếu quiz chưa bắt đầu hoặc đã submit
 
@@ -355,6 +283,8 @@ export function QuizContainer({
   }, [isQuizStarted, isSubmitted, quizData.timeLimit]);
 
   useEffect(() => {
+    setIsQuizStarted(false);
+    setIsSubmitted(false);
     fetchQuizAttemptStatus();
   }, [session?.user?.token, quizData.quizId]);
 
@@ -390,9 +320,9 @@ export function QuizContainer({
   return (
     <>
       {isQuizStarted && !isSubmitted && timeLeft !== null && (
-        <div className="w-full flex justify-end">
-          <div className="bg-primary text-white px-4 py-2 rounded-lg">
-            ⏱️ Còn lại: {Math.floor(timeLeft / 3600)}:
+        <div className="w-full flex justify-center">
+          <div className="fixed bottom-4 bg-primary text-white text-xl px-4 py-2 rounded-lg z-50">
+            {Math.floor(timeLeft / 3600)}:
             {String(Math.floor((timeLeft % 3600) / 60)).padStart(2, "0")}:
             {String(timeLeft % 60).padStart(2, "0")}
           </div>

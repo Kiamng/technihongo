@@ -259,14 +259,18 @@ export function QuizResults({
                       :{String(timeUsed % 60).padStart(2, "0")}
                     </span>
                   </p>
-                  <p className="text-xl">
+                  <p
+                    className={`text-xl ${quizAttemptStatus.remainingAttempts === 0 && "text-red-500"}`}
+                  >
                     Bạn còn:{" "}
                     <span className="font-semibold">
                       {quizAttemptStatus.remainingAttempts} lần
                     </span>
                   </p>
                   {quizAttemptStatus.remainingWaitTime !== 0 && (
-                    <p className="text-xl">
+                    <p
+                      className={`text-xl ${quizAttemptStatus.remainingAttempts === 0 && "text-red-500"}`}
+                    >
                       Hãy quay lại sau {quizAttemptStatus.remainingWaitTime}{" "}
                       phút
                     </p>

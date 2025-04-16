@@ -93,10 +93,12 @@ const QuizInformation = ({
                             </p>
                         </div>
                         {quizAttemptStatus && (
-                            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                            <div
+                                className={` p-4 rounded-lg border  ${quizAttemptStatus.remainingAttempts === 0 ? "bg-red-50 border-red-100" : "border-green-100 bg-green-50"}`}
+                            >
                                 <div className="flex items-center mb-2">
                                     <svg
-                                        className="h-5 w-5 text-[#57D061] mr-2"
+                                        className={`h-5 w-5 ${quizAttemptStatus.remainingAttempts === 0 ? "text-red-500" : "text-[#57D061]"} mr-2`}
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -113,12 +115,16 @@ const QuizInformation = ({
                                         Số lần làm bài còn lại
                                     </h3>
                                 </div>
-                                <p className="text-2xl font-bold text-[#57D061]">
+                                <p
+                                    className={`text-2xl font-bold ${quizAttemptStatus.remainingAttempts === 0 ? "text-red-500" : "text-[#57D061]"}`}
+                                >
                                     {quizAttemptStatus.remainingAttempts}/3 lần
                                 </p>
                                 {quizAttemptStatus.remainingWaitTime !== 0 && (
-                                    <p className="text-2xl font-bold text-[#57D061]">
-                                        {quizAttemptStatus.remainingWaitTime} phút
+                                    <p
+                                        className={`text-2xl font-bold ${quizAttemptStatus.remainingAttempts === 0 ? "text-red-500" : "text-[#57D061]"}`}
+                                    >
+                                        Thử lại sau {quizAttemptStatus.remainingWaitTime} phút
                                     </p>
                                 )}
                             </div>
