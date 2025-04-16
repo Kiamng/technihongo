@@ -624,7 +624,7 @@ export default function CourseDetail({
                   })}
                 </div>
                 <span className="text-sm text-gray-600">
-                  {averageRating.toFixed(1)}/5 (5999 đánh giá)
+                  {averageRating.toFixed(1)}/5
                 </span>
               </div>
 
