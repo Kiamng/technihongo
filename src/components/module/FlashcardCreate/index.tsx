@@ -5,10 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useTransition } from "react";
-import { CldUploadWidget } from "next-cloudinary";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { handleFlashcardFileUpload } from "./spreadsheet-import";
 import ImportCSVPopup from "./import-csv";
@@ -16,7 +16,10 @@ import QuickAddPopup from "./quick-import";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FlashcardSetCreateSchema } from "@/schema/Flashcard/flashcard";
+import {
+  FlashcardSchema,
+  FlashcardSetCreateSchema,
+} from "@/schema/Flashcard/flashcard";
 import {
   Form,
   FormControl,
@@ -35,13 +38,17 @@ import {
   createFlashcards,
   createStudentSet,
 } from "@/app/api/studentflashcardset/stuflashcard.api";
+import { uploadImageCloud } from "@/app/api/image/image-upload.api";
+
+type FlashcardInForm = z.infer<typeof FlashcardSchema>;
 
 export default function FlashcardCreateModule() {
   const { data: session } = useSession();
   const [isCreating, startTransition] = useTransition();
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
+  const [imageFiles, setImageFiles] = useState<(File | null)[]>([]);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-
+  const router = useRouter();
   const handleAddFlashcards = (
     newFlashcards: { japaneseDefinition: string; vietEngTranslation: string }[],
   ) => {
@@ -55,6 +62,49 @@ export default function FlashcardCreateModule() {
       });
     });
   };
+
+  const uploadImagesIfNeeded = async (
+    flashcards: FlashcardInForm[],
+    imageFiles: (File | null)[],
+  ): Promise<FlashcardInForm[]> => {
+    const updatedFlashcards = [...flashcards];
+
+    for (let i = 0; i < flashcards.length; i++) {
+      const file = imageFiles[i];
+      const isTempPreview =
+        flashcards[i].imageUrl && !flashcards[i].imageUrl?.startsWith("http");
+
+      if (file && file instanceof File && isTempPreview) {
+        const formData = new FormData();
+
+        formData.append("file", file);
+        const uploadedUrl = await uploadImageCloud(formData);
+
+        if (uploadedUrl) {
+          updatedFlashcards[i].imageUrl = uploadedUrl;
+
+          const currentFormValue = [...form.getValues().flashcards];
+
+          currentFormValue[i].imageUrl = uploadedUrl;
+          form.setValue("flashcards", currentFormValue);
+        }
+      }
+    }
+
+    return updatedFlashcards;
+  };
+
+  const handleImageSelect = (index: number, file: File) => {
+    const newImageFiles = [...imageFiles];
+
+    newImageFiles[index] = file;
+    setImageFiles(newImageFiles);
+
+    const previewUrl = URL.createObjectURL(file);
+
+    handleImageUpload(index, previewUrl);
+  };
+
   const handleImageUpload = (index: number, imageUrl: string) => {
     const updatedImageUrls = [...imageUrls];
 
@@ -147,10 +197,15 @@ export default function FlashcardCreateModule() {
           return;
         }
 
+        const updatedFlashcards = await uploadImagesIfNeeded(
+          data.flashcards,
+          imageFiles,
+        );
+
         const createFlashcardsResponse = await createFlashcards(
           session?.user.token as string,
           createSetResponse.data.studentSetId,
-          data.flashcards,
+          updatedFlashcards,
         );
 
         if (!createFlashcardsResponse.success) {
@@ -161,10 +216,12 @@ export default function FlashcardCreateModule() {
           return;
         }
 
-        toast.success("Tạo bộ flashcard thành công");
-
+        toast.success("Tạo bộ flashcard thành công 🎉");
+        router.push(`/flashcard/${createSetResponse.data.studentSetId}`);
         // Reset form nếu muốn (nếu cần)
         form.reset();
+        setImageFiles([]);
+        setImageUrls([]);
       } catch (error) {
         console.error("Error creating flashcard set:", error);
         toast.error("Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.");
@@ -375,41 +432,61 @@ export default function FlashcardCreateModule() {
                             </div>
                             <div className="flex-shrink-0">
                               {!field.imageUrl ? (
-                                <CldUploadWidget
-                                  options={{
-                                    sources: ["local", "camera", "url"],
-                                    resourceType: "auto",
-                                  }}
-                                  uploadPreset={
-                                    process.env
-                                      .NEXT_PUBLIC_CLOUD_IMAGE_UPLOAD_PRESET
-                                  }
-                                  onSuccess={(result) => {
-                                    if (
-                                      typeof result.info === "object" &&
-                                      result.info !== null
-                                    ) {
-                                      const uploadInfo = result.info;
-                                      const imageUrl = uploadInfo.secure_url;
+                                // <CldUploadWidget
+                                //   options={{
+                                //     sources: ["local", "camera", "url"],
+                                //     resourceType: "auto",
+                                //   }}
+                                //   uploadPreset={
+                                //     process.env
+                                //       .NEXT_PUBLIC_CLOUD_IMAGE_UPLOAD_PRESET
+                                //   }
+                                //   onSuccess={(result) => {
+                                //     if (
+                                //       typeof result.info === "object" &&
+                                //       result.info !== null
+                                //     ) {
+                                //       const uploadInfo = result.info;
+                                //       const imageUrl = uploadInfo.secure_url;
 
-                                      handleImageUpload(index, imageUrl);
-                                    }
-                                  }}
-                                >
-                                  {({ open }) => (
-                                    <button
-                                      className={`border-dashed border-[2px] rounded-lg h-[80px] w-[100px] flex items-center justify-center text-slate-500 ${isCreating ? "hover:cursor-not-allowed" : "hover:cursor-pointer hover:text-green-500 hover:scale-105 duration-100"}`}
-                                      disabled={isCreating}
-                                      type="button"
-                                      onClick={() => open()}
-                                    >
+                                //       handleImageUpload(index, imageUrl);
+                                //     }
+                                //   }}
+                                // >
+                                //   {({ open }) => (
+                                //     <button
+                                //       className={`border-dashed border-[2px] rounded-lg h-[80px] w-[100px] flex items-center justify-center text-slate-500 ${isCreating ? "hover:cursor-not-allowed" : "hover:cursor-pointer hover:text-green-500 hover:scale-105 duration-100"}`}
+                                //       disabled={isCreating}
+                                //       type="button"
+                                //       onClick={() => open()}
+                                //     >
+                                //       <ImagePlus />
+                                //     </button>
+                                //   )}
+                                // </CldUploadWidget>
+                                <>
+                                  <input
+                                    accept="image/*"
+                                    className="hidden"
+                                    id={`upload-${index}`}
+                                    type="file"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+
+                                      if (file) {
+                                        handleImageSelect(index, file);
+                                      }
+                                    }}
+                                  />
+                                  <label htmlFor={`upload-${index}`}>
+                                    <div className="border-dashed border-[2px] rounded-lg h-[92px] w-32 flex items-center justify-center text-slate-500 hover:text-green-500 hover:scale-105 duration-100 cursor-pointer">
                                       <ImagePlus />
-                                    </button>
-                                  )}
-                                </CldUploadWidget>
+                                    </div>
+                                  </label>
+                                </>
                               ) : (
                                 <div
-                                  className={`border-dashed border-[2px] rounded-lg h-[60px] w-[80px] flex justify-end text-slate-500`}
+                                  className={`border-dashed border-[2px] rounded-lg h-[92px] w-32 flex justify-end text-slate-500`}
                                   style={{
                                     backgroundImage: `url(${field.imageUrl})`,
                                     backgroundSize: "cover",
