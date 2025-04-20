@@ -20,12 +20,14 @@ const AnimatedFeatureCard = ({
   imageAlt,
   title,
   description,
+  backContent, // Nội dung mặt sau khi flip
 }: {
   imageFirst?: boolean;
   imageSrc: string;
   imageAlt: string;
   title: string;
   description: string;
+  backContent: string; // Thêm prop cho nội dung mặt sau
 }) => {
   const cardRef = useRef(null);
   const isInView = useInView(cardRef, { once: true, amount: 0.3 });
@@ -63,14 +65,44 @@ const AnimatedFeatureCard = ({
             animate={isInView ? "visible" : "hidden"}
             className="relative w-[300px] h-[200px] md:w-[400px] md:h-[300px] mb-4 md:mb-0 flex-shrink-0"
             initial="hidden"
+            style={{ transformStyle: "preserve-3d" }}
             variants={imageVariants}
           >
-            <Image
-              fill
-              alt={imageAlt}
-              className="rounded-lg object-cover"
-              src={imageSrc || "/placeholder.svg"}
-            />
+            <motion.div
+              className="relative w-full h-full"
+              style={{ transformStyle: "preserve-3d" }}
+              transition={{ duration: 0.4 }}
+              whileHover={{
+                rotateX: 5,
+                rotateY: 10,
+                scale: 1.05,
+                boxShadow: "0px 15px 25px rgba(0, 0, 0, 0.3)",
+                transition: { duration: 0.3 },
+              }}
+            >
+              {/* Mặt trước: Ảnh minh họa */}
+              <motion.div
+                className="absolute w-full h-full"
+                style={{ backfaceVisibility: "hidden" }}
+              >
+                <Image
+                  fill
+                  alt={imageAlt}
+                  className="rounded-lg object-cover"
+                  src={imageSrc || "/placeholder.svg"}
+                />
+              </motion.div>
+              {/* Mặt sau: Nội dung bổ sung */}
+              <motion.div
+                className="absolute w-full h-full bg-[#56D071] rounded-lg flex items-center justify-center text-white text-center p-4"
+                style={{
+                  backfaceVisibility: "hidden",
+                  transform: "rotateY(180deg)",
+                }}
+              >
+                <p className="text-lg font-semibold">{backContent}</p>
+              </motion.div>
+            </motion.div>
           </motion.div>
           <motion.div
             animate={isInView ? "visible" : "hidden"}
@@ -173,38 +205,42 @@ export default function LandingPage({}: LandingPageProps) {
                 Tại sao chọn TECHNIHONGO?
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Chúng tôi cung cấp nền tảng học tập toàn diện với nhiều tính
-                năng vượt trội
+                Khám phá các tính năng vượt trội giúp bạn thành thạo tiếng Nhật
+                IT
               </p>
             </div>
 
             <AnimatedFeatureCard
-              description="Nắm vững quy trình phát triển dự án phần mềm qua các khóa học bài bản, từ Agile, Scrum đến DevOps, kèm theo thuật ngữ tiếng Nhật IT."
-              imageAlt="TechNihongo Features"
+              backContent="Sẵn sàng làm việc tại Nhật!"
+              description="Học từ vựng, ngữ pháp, và thuật ngữ IT chuyên sâu để làm việc tại công ty Nhật Bản. Các khóa học được thiết kế theo lộ trình Agile, Scrum, và DevOps."
+              imageAlt="Khóa học tiếng Nhật IT"
               imageFirst={true}
               imageSrc="/assets/images/course.jpg"
-              title="Các Khóa Học Chuyên Sâu"
+              title="Tiếng Nhật IT Chuyên Sâu"
             />
 
             <AnimatedFeatureCard
-              description="Tài liệu, video, bài tập thực hành phong phú được thiết kế khoa học và cập nhật liên tục. Nội dung học tập được biên soạn kỹ lưỡng, dễ hiểu và phù hợp với mọi trình độ."
-              imageAlt="Learning Methods"
+              backContent="Học mọi lúc, mọi nơi!"
+              description="Truy cập video, bài tập thực hành, và tài liệu được cá nhân hóa. Nội dung cập nhật liên tục, phù hợp với mọi trình độ từ N5 đến N2."
+              imageAlt="Học liệu tương tác"
               imageFirst={false}
-              imageSrc="/assets/images/course.jpg"
-              title="Học liệu đa dạng"
+              imageSrc="/assets/images/flashcard.jpg"
+              title="Học Liệu Tương Tác"
             />
 
             <AnimatedFeatureCard
-              description="Kiểm tra và củng cố kiến thức thông qua các bài quiz thú vị theo từng chủ đề chuyên ngành."
-              imageAlt="Support"
+              backContent="Kiểm tra như thật!"
+              description="Củng cố kiến thức với các bài quiz mô phỏng môi trường làm việc IT Nhật Bản. Nhận phản hồi tức thì để cải thiện kỹ năng."
+              imageAlt="Quiz thực chiến"
               imageFirst={true}
               imageSrc="/assets/images/quiz.jpg"
-              title="Luyện Tập Với Quiz"
+              title="Quiz Thực Chiến"
             />
 
             <AnimatedFeatureCard
-              description="Chụp ảnh tài liệu tiếng Nhật và nhận bản dịch tiếng Việt - tiếng Anh theo đúng ngữ cảnh ngành CNTT."
-              imageAlt="Learning Methods"
+              backContent="Dịch chuẩn ngành IT!"
+              description="Chụp ảnh tài liệu tiếng Nhật và nhận bản dịch tiếng Việt/Anh theo ngữ cảnh CNTT. Công nghệ AI giúp dịch nhanh và chính xác."
+              imageAlt="Scan và dịch tài liệu"
               imageFirst={false}
               imageSrc="/assets/images/scan.jpg"
               title="Scan & Dịch Tài Liệu"
@@ -212,6 +248,7 @@ export default function LandingPage({}: LandingPageProps) {
           </div>
         </section>
 
+        {/* Các section khác giữ nguyên */}
         {/* Popular Courses */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4 md:px-6">
@@ -391,7 +428,7 @@ export default function LandingPage({}: LandingPageProps) {
                       className="absolute w-full h-full"
                       style={{
                         backfaceVisibility: "hidden",
-                        rotateY: "180deg",
+                        transform: "rotateY(180deg)",
                       }}
                     >
                       <Image
@@ -486,7 +523,7 @@ export default function LandingPage({}: LandingPageProps) {
                     Đăng ký ngay
                   </AnimatedButton>
                 </Link>
-                <Link href="/login">
+                <Link href="/Login">
                   <AnimatedButton
                     className="text-[#56D071] hover:bg-white text-lg px-8 py-6 h-auto"
                     variant="outline"

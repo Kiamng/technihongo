@@ -8,12 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FlashcardSet } from "@/types/stuflashcardset";
 import { getAllFlashcardSets } from "@/app/api/studentflashcardset/stuflashcard.api";
 import { addFolderItem } from "@/app/api/folderitem/folderitem.api";
-import { getPublicFlashcardSets } from "@/app/api/studentfolder/stufolder.api";
 
 interface AddFlashcardSetModalProps {
   folderId: number;
@@ -33,8 +31,8 @@ export const AddFlashcardSetModal = ({
   token,
 }: AddFlashcardSetModalProps) => {
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredSets, setFilteredSets] = useState<FlashcardSet[]>([]);
 
   useEffect(() => {
@@ -56,19 +54,11 @@ export const AddFlashcardSetModal = ({
 
     try {
       setLoading(true);
-      const [ownSets, publicSets] = await Promise.all([
-        getAllFlashcardSets(token),
-        getPublicFlashcardSets(token),
-      ]);
-
+      const response = await getAllFlashcardSets(token);
+      const sets = response.data as FlashcardSet[];
       const currentSetIdsSet = new Set(currentSetIds);
 
-      const mergedSets = [...ownSets.data, ...publicSets].filter(
-        (set, index, self) =>
-          index === self.findIndex((s) => s.studentSetId === set.studentSetId),
-      );
-
-      const filtered = mergedSets.filter(
+      const filtered = sets.filter(
         (set) =>
           set.studentSetId != null && !currentSetIdsSet.has(set.studentSetId),
       );
@@ -89,14 +79,23 @@ export const AddFlashcardSetModal = ({
     }
 
     try {
-      console.log("Gửi yêu cầu thêm:", { folderId, studentSetId });
       await addFolderItem(token, { folderId, studentSetId });
+
+      // Cập nhật danh sách flashcard sets
+      setFlashcardSets((prev) =>
+        prev.filter((set) => set.studentSetId !== studentSetId),
+      );
+
       onAddSuccess();
       onClose();
     } catch (error) {
       console.error("Lỗi khi thêm flashcard set vào folder:", error);
     }
   };
+
+  const noSetAvailable = !loading && flashcardSets.length === 0;
+  const noSearchResult =
+    !loading && flashcardSets.length > 0 && filteredSets.length === 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -106,19 +105,17 @@ export const AddFlashcardSetModal = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <Input
-            placeholder="Tìm kiếm flashcard sets..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
           {loading ? (
             <div className="flex justify-center py-8">
               <p>Đang tải flashcard sets...</p>
             </div>
-          ) : filteredSets.length === 0 ? (
+          ) : noSetAvailable ? (
             <div className="text-center py-8">
-              <p>Không tìm thấy flashcard sets nào</p>
+              <p>Hiện tại không còn flashcard set nào để thêm</p>
+            </div>
+          ) : noSearchResult ? (
+            <div className="text-center py-8">
+              <p>Không tìm thấy flashcard set nào phù hợp với từ khóa</p>
             </div>
           ) : (
             <div className="space-y-2">

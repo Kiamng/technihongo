@@ -8,13 +8,55 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserProfile } from "@/types/profile";
-import { getUserById, updateUsername } from "@/app/api/profile/profile.api";
+import {
+  getUserById,
+  updateUserNameFunction,
+  updateUserProfile,
+} from "@/app/api/profile/profile.api";
 
 export default function UserProfilePage() {
   const { data: session } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false); // Thêm trạng thái lưu
+
   const [editableUserName, setEditableUserName] = useState("");
+  const [editableBio, setEditableBio] = useState("");
+  const [editableDob, setEditableDob] = useState("");
+  const [editableOccupation, setEditableOccupation] = useState("");
+  const [editableReminder, setEditableReminder] = useState(false);
+  const [editableReminderTime, setEditableReminderTime] = useState("08:00");
+  const [dobError, setDobError] = useState("");
+  const [userNameError, setUserNameError] = useState("");
+  const [saveMessage, setSaveMessage] = useState(""); // Thông báo thành công/lỗi
+
+  const validateUserName = (name: string) => {
+    const hasLetter = /[a-zA-Z]/.test(name);
+
+    if (!hasLetter && name.length > 0) {
+      setUserNameError("Tên người dùng phải chứa ít nhất một chữ cái.");
+
+      return false;
+    }
+    setUserNameError("");
+
+    return true;
+  };
+
+  const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    setEditableDob(value);
+
+    const selectedDate = new Date(value);
+    const today = new Date();
+
+    if (selectedDate > today) {
+      setDobError("❌ Ngày sinh không được ở tương lai.");
+    } else {
+      setDobError("");
+    }
+  };
 
   const fetchUserData = useCallback(async () => {
     const userId = Number(session?.user?.id);
@@ -28,10 +70,20 @@ export default function UserProfilePage() {
 
     try {
       const response = await getUserById(session?.user.token, userId);
+      const data = response.data;
 
-      console.log("User data from API:", response.data);
-      setUser(response.data);
-      setEditableUserName(response.data.userName);
+      console.log("User data from API:", data);
+      setUser(data);
+      setEditableUserName(data.userName);
+      setEditableBio(data.student?.bio || "");
+      setEditableDob(data.dob || "");
+      setEditableOccupation(data.student?.occupation || "");
+      setEditableReminder(data.student?.reminderEnabled ?? false);
+      setEditableReminderTime(
+        data.student?.reminderTime
+          ? data.student.reminderTime.slice(0, 5)
+          : "08:00",
+      );
     } catch (error) {
       console.error("Lỗi lấy user:", error);
     } finally {
@@ -44,17 +96,51 @@ export default function UserProfilePage() {
   }, [session, fetchUserData]);
 
   const handleSave = async () => {
-    if (user && editableUserName !== user.userName) {
-      try {
-        await updateUsername(
-          session?.user.token as string,
-          user.userId,
-          editableUserName,
-        );
-        window.location.reload();
-      } catch (error) {
-        console.error("Error updating username:", error);
+    if (!user) return;
+    if (!validateUserName(editableUserName)) return;
+
+    setIsSaving(true);
+    setSaveMessage(""); // Xóa thông báo cũ
+
+    try {
+      const token = session?.user.token as string;
+
+      if (editableUserName !== user.userName) {
+        await updateUserNameFunction(token, user.userId, editableUserName);
       }
+
+      const formattedReminderTime = editableReminder
+        ? `${editableReminderTime}:00`
+        : null;
+
+      await updateUserProfile(token, user.userId, {
+        bio: editableBio,
+        dob: editableDob,
+        occupation: [
+          "STUDENT",
+          "EMPLOYED",
+          "UNEMPLOYED",
+          "FREELANCER",
+          "OTHER",
+        ].includes(editableOccupation)
+          ? (editableOccupation as
+              | "STUDENT"
+              | "EMPLOYED"
+              | "UNEMPLOYED"
+              | "FREELANCER"
+              | "OTHER")
+          : undefined,
+        reminderEnabled: editableReminder,
+        reminderTime: formattedReminderTime,
+      });
+
+      await fetchUserData(); // Cập nhật dữ liệu mà không reload
+      setSaveMessage("Cập nhật thông tin thành công!");
+    } catch (error) {
+      console.error(" Lỗi cập nhật thông tin:", error);
+      setSaveMessage("Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -66,7 +152,6 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen w-full bg-white rounded-lg shadow-sm overflow-hidden">
-      {/* Header */}
       <div className="relative w-full bg-[#56D071] p-6 text-white">
         <div className="flex justify-between">
           <div className="space-y-1">
@@ -77,7 +162,6 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* Profile avatar */}
         <div className="relative mt-4 inline-block">
           <div className="w-16 h-16 rounded-full bg-white p-1">
             <div className="w-full h-full rounded-full bg-[#56D071]/20 flex items-center justify-center overflow-hidden">
@@ -92,7 +176,7 @@ export default function UserProfilePage() {
                 <Image
                   alt="Profile avatar"
                   height={60}
-                  src="/placeholder.svg?height=60&width=60"
+                  src="/assets/images/logo.png"
                   width={60}
                 />
               )}
@@ -104,7 +188,6 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b">
         <div className="flex">
           <div className="px-6 py-3 border-b-2 border-[#56D071] text-[#56D071] font-medium">
@@ -113,10 +196,8 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Form */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Full name */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -126,17 +207,24 @@ export default function UserProfilePage() {
             </label>
             <div className="relative">
               <Input
-                className="pl-10"
+                className={`pl-10 ${userNameError ? "border-red-500" : ""}`}
                 id="userName"
                 placeholder="Nhập tên học viên"
                 value={editableUserName}
-                onChange={(e) => setEditableUserName(e.target.value)}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+
+                  setEditableUserName(newValue);
+                  validateUserName(newValue);
+                }}
               />
               <User2Icon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
+            {userNameError && (
+              <p className="text-red-500 text-sm mt-1">{userNameError}</p>
+            )}
           </div>
 
-          {/* Email */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -153,7 +241,6 @@ export default function UserProfilePage() {
             />
           </div>
 
-          {/* Date of birth */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -163,17 +250,20 @@ export default function UserProfilePage() {
             </label>
             <div className="relative">
               <Input
-                disabled
-                className="pl-10"
+                className={`pl-10 ${dobError ? "border-red-500" : ""}`}
                 id="dob"
+                max={new Date().toISOString().split("T")[0]}
                 type="date"
-                value={user.dob || ""}
+                value={editableDob}
+                onChange={handleDobChange}
               />
               <CalendarIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
+            {dobError && (
+              <p className="text-red-500 text-sm mt-1">{dobError}</p>
+            )}
           </div>
 
-          {/* Bio */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -182,14 +272,12 @@ export default function UserProfilePage() {
               Tiểu sử
             </label>
             <Input
-              disabled
-              className="bg-gray-100"
               id="bio"
-              value={user.bio || "Chưa có thông tin"}
+              value={editableBio}
+              onChange={(e) => setEditableBio(e.target.value)}
             />
           </div>
 
-          {/* Occupation */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -197,15 +285,21 @@ export default function UserProfilePage() {
             >
               Nghề nghiệp
             </label>
-            <Input
-              disabled
-              className="bg-gray-100"
+            <select
+              className="w-full border border-gray-300 rounded-md p-2"
               id="occupation"
-              value={user.occupation || "Không rõ"}
-            />
+              value={editableOccupation}
+              onChange={(e) => setEditableOccupation(e.target.value)}
+            >
+              <option value="">Chọn nghề nghiệp</option>
+              <option value="STUDENT">Học sinh / Sinh viên</option>
+              <option value="EMPLOYED">Đã đi làm</option>
+              <option value="UNEMPLOYED">Thất nghiệp</option>
+              <option value="FREELANCER">Freelancer</option>
+              <option value="OTHER">Khác</option>
+            </select>
           </div>
 
-          {/* Reminder Enabled */}
           <div className="space-y-2">
             <label
               className="block text-sm font-medium text-gray-700"
@@ -213,24 +307,56 @@ export default function UserProfilePage() {
             >
               Nhắc nhở bật/tắt
             </label>
-            <Input
-              disabled
-              className="bg-gray-100"
+            <select
+              className="w-full border border-gray-300 rounded-md p-2"
               id="reminderEnabled"
-              value={user.reminderEnabled ? "Bật" : "Tắt"}
-            />
+              value={editableReminder ? "true" : "false"}
+              onChange={(e) => setEditableReminder(e.target.value === "true")}
+            >
+              <option value="true">Bật</option>
+              <option value="false">Tắt</option>
+            </select>
           </div>
+
+          {editableReminder && (
+            <div className="space-y-2">
+              <label
+                className="block text-sm font-medium text-gray-700"
+                htmlFor="reminderTime"
+              >
+                Chọn thời điểm nhận lời nhắc học tập
+              </label>
+              <Input
+                className="w-full"
+                id="reminderTime"
+                type="time"
+                value={editableReminderTime}
+                onChange={(e) => setEditableReminderTime(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Action buttons */}
         <div className="mt-8 flex gap-4">
           <Button
             className="bg-[#56D071] hover:bg-[#56D071]/90"
+            disabled={isSaving}
             onClick={handleSave}
           >
-            Lưu thông tin
+            {isSaving ? "Đang lưu..." : "Lưu thông tin"}
           </Button>
         </div>
+        {saveMessage && (
+          <p
+            className={`mt-4 text-sm ${
+              saveMessage.includes("thành công")
+                ? "text-green-600"
+                : "text-red-500"
+            }`}
+          >
+            {saveMessage}
+          </p>
+        )}
       </div>
     </div>
   );
