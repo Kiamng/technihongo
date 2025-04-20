@@ -13,6 +13,7 @@ const ENDPOINT = {
   ENROLL_COURSE: "/course-progress/enroll",
   CHECK_ENROLL: "/course-progress/check-enroll",
   TRACK_STUDENT_LESSON_PROGRESS: "/lesson-progress/track",
+  TRACK_STUDENT_STUDY_TIME: "/learning-log/track",
 };
 
 // Hàm kiểm tra trạng thái đăng ký
@@ -93,6 +94,23 @@ export const trackStudentLessonProgress = async (
 ): Promise<void> => {
   const response = await axiosClient.patch(
     `${ENDPOINT.TRACK_STUDENT_LESSON_PROGRESS}?lessonId=${lessonId}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const trackStudentStudyTime = async (
+  studyTime: number,
+  token: string,
+): Promise<void> => {
+  const response = await axiosClient.post(
+    `${ENDPOINT.TRACK_STUDENT_STUDY_TIME}?studyTime=${studyTime}`,
     {},
     {
       headers: {

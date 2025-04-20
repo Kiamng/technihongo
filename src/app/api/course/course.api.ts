@@ -90,7 +90,12 @@
 //   return response.data.data;
 // };
 import axiosClient from "@/lib/axiosClient";
-import { CourseList, CourseProgress } from "@/types/course";
+import {
+  CourseList,
+  CourseProgress,
+  CourseRating,
+  CourseRatingResponse,
+} from "@/types/course";
 
 const ENDPOINT = {
   ALL: "/course/all/paginated",
@@ -104,16 +109,6 @@ const ENDPOINT = {
   UPDATE_COURSE_RATING: "/student-course-rating/update",
   DELETE_COURSE_RATING: "/student-course-rating/delete",
 };
-
-export interface CourseRating {
-  ratingId: number;
-  studentId: number;
-  userName: string;
-  profileImg: string | null;
-  courseId: number;
-  rating: number;
-  review?: string;
-}
 
 export const getAllCourse = async ({
   token,
@@ -254,7 +249,7 @@ export const createCourseRating = async ({
   rating: number;
   review: string;
   token: string;
-}): Promise<CourseRating> => {
+}): Promise<CourseRatingResponse> => {
   const response = await axiosClient.post(
     ENDPOINT.CREATE_COURSE_RATING,
     {
@@ -269,7 +264,7 @@ export const createCourseRating = async ({
     },
   );
 
-  return response.data.data as CourseRating;
+  return response.data;
 };
 
 export const getStudentCourseRating = async ({
@@ -307,7 +302,7 @@ export const updateCourseRating = async ({
   rating: number;
   review: string;
   token: string;
-}): Promise<CourseRating> => {
+}): Promise<CourseRatingResponse> => {
   const response = await axiosClient.patch(
     `${ENDPOINT.UPDATE_COURSE_RATING}/${ratingId}`,
     {
@@ -322,7 +317,7 @@ export const updateCourseRating = async ({
     },
   );
 
-  return response.data.data as CourseRating;
+  return response.data;
 };
 
 export const deleteCourseRating = async ({

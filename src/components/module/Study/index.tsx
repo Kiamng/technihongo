@@ -1,25 +1,40 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, CircleCheck, Loader2 } from "lucide-react";
+import Confetti from "react-confetti";
 
+import RatingModal from "../Course/RatingModal";
+
+import CongratulationDialog from "./CongratulationDialog";
 import LessonResourceItem from "./lesson-resource-item";
 import DynamicLearningResource from "./LearningResource/dynamic-learning-resource";
 import DynamicQuiz from "./Quiz/dynamic-quiz";
 import DynamicFlashcardSet from "./Flashcard/dynamic-flashcard-set";
 import ChangeStudyPlanPopUp from "./change-study-plan-pop-up";
 
-import { CourseProgress } from "@/types/course";
+import {
+  CourseProgress,
+  CourseRating,
+  CourseRatingResponse,
+} from "@/types/course";
 import { StudyPlan } from "@/types/study-plan";
-import { getAStudentCourseProgress } from "@/app/api/course/course.api";
+import { Lesson, LessonList } from "@/types/lesson";
+import { LessonResource } from "@/types/lesson-resource";
+import {
+  createCourseRating,
+  deleteCourseRating,
+  getAStudentCourseProgress,
+  getStudentCourseRating,
+  updateCourseRating,
+} from "@/app/api/course/course.api";
 import {
   getCourseAvailableStudyPlan,
   getStudentActiveStudyPlan,
 } from "@/app/api/StudyPlan/study-plan.api";
-import { Lesson } from "@/types/lesson";
 import { getLessonsByStudyPlan } from "@/app/api/lesson/lesson.api";
 import {
   completeLearningResource,
@@ -28,23 +43,46 @@ import {
   trackLearningResource,
   trackSystemSet,
 } from "@/app/api/lesson-resource/lesson-resource.api";
-import { LessonResource } from "@/types/lesson-resource";
-import { Separator } from "@/components/ui/separator";
 import { getCurrentSubscription } from "@/app/api/subscription/subscription.api";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
 export default function StudyModule() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const courseId = Number(params.courseId);
-  const [isLoading, setIsloading] = useState<boolean>(false);
+  const lessonOrderParam = searchParams.get("lessonOrder");
+  const lessonOrder = lessonOrderParam ? parseInt(lessonOrderParam, 10) : 1;
+  const initialPage = Math.floor((lessonOrder - 1) / 10);
+  const lessonId = searchParams.get("lessonId");
+
+  //Loading
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingLR, setIsLoadingLR] = useState<boolean>(false);
+  const [isLoadingLessonList, setIsLoadingLessonList] =
+    useState<boolean>(false);
+
+  //Session
   const { data: session } = useSession();
+
+  //Course State
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCongratulationDialog, setShowCongratulationDialog] =
+    useState(false);
   const [courseProgress, setCourseProgress] = useState<CourseProgress>();
   const [activeStudyPlan, setActiveStudyPlan] = useState<StudyPlan>();
-  const [availableStudyPlans, setAvailablesStudyPlans] = useState<StudyPlan[]>(
+  const [availablesStudyPlans, setAvailablesStudyPlans] = useState<StudyPlan[]>(
     [],
   );
-  const [currentLessons, setCurrentLessons] = useState<Lesson[]>([]);
+  const [lessonList, setLessonList] = useState<LessonList>();
+  const [loadedLessons, setLoadedLessons] = useState<Record<number, Lesson[]>>(
+    [],
+  );
+  const [previousPageToLoad, setPreviousPageToLoad] = useState<number>(
+    initialPage - 1,
+  );
+  const [nextPageToLoad, setNextPageToLoad] = useState<number>(initialPage + 1);
 
   const [currentContentType, setCurrentContentType] = useState<string>("");
   const [currentLessonResource, setCurrentLessonResource] =
@@ -55,20 +93,186 @@ export default function StudyModule() {
     Record<number, LessonResource[]>
   >({});
 
-  const fetchLessons = async (studyPlanId: number) => {
+  //Rating State
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [newRating, setNewRating] = useState<number>(0);
+  const [newReview, setNewReview] = useState<string>("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState<boolean>(false);
+  const [hasRated, setHasRated] = useState<boolean>(false);
+  const [existingRating, setExistingRating] = useState<CourseRating | null>(
+    null,
+  );
+
+  //Handle rating
+  const handleDeleteRating = async () => {
+    if (!session?.user?.token || !existingRating) return;
+
+    try {
+      await deleteCourseRating({
+        ratingId: existingRating.ratingId,
+        token: session.user.token,
+      });
+      setHasRated(false);
+      setExistingRating(null);
+      setNewRating(0);
+      setNewReview("");
+      await fetchStudentRating();
+      toast.success("Đánh giá đã được xóa thành công!");
+      closeRatingModal();
+    } catch (error) {
+      console.error("Lỗi khi xóa đánh giá:", error);
+      toast.error("Không thể xóa đánh giá. Vui lòng thử lại!");
+    }
+  };
+
+  const openRatingModal = () => {
+    if (!session?.user?.token) {
+      toast.error("Vui lòng đăng nhập để đánh giá khóa học!");
+
+      return;
+    }
+    if (!courseProgress) {
+      toast.error("Bạn cần đăng ký khóa học trước khi đánh giá!");
+
+      return;
+    }
+
+    if (hasRated && existingRating) {
+      setNewRating(existingRating.rating);
+      setNewReview(existingRating.review || "");
+    } else {
+      setNewRating(0);
+      setNewReview("");
+    }
+    setShowRatingModal(true);
+  };
+
+  const closeRatingModal = () => {
+    setShowRatingModal(false);
+    setNewRating(0);
+    setNewReview("");
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setNewRating(rating);
+  };
+
+  const submitRating = async () => {
+    if (!session?.user?.token) return;
+    if (newRating < 1 || newRating > 5) {
+      toast.error("Vui lòng chọn số sao từ 1 đến 5!");
+
+      return;
+    }
+    if (!newReview.trim()) {
+      toast.error("Vui lòng nhập nội dung đánh giá!");
+
+      return;
+    }
+
+    setIsSubmittingRating(true);
+    try {
+      let updatedRatingData: CourseRatingResponse;
+
+      if (hasRated && existingRating) {
+        updatedRatingData = await updateCourseRating({
+          ratingId: existingRating.ratingId,
+          courseId,
+          rating: newRating,
+          review: newReview,
+          token: session.user.token,
+        });
+        if (updatedRatingData.success) {
+          toast.success("Đánh giá của bạn đã được cập nhật!");
+        }
+      } else {
+        updatedRatingData = await createCourseRating({
+          courseId,
+          rating: newRating,
+          review: newReview,
+          token: session.user.token,
+        });
+        if (updatedRatingData.success) {
+          setHasRated(true);
+          toast.success("Đánh giá của bạn đã được gửi!");
+        }
+      }
+      await fetchStudentRating();
+      closeRatingModal();
+    } catch (error) {
+      console.error("Lỗi khi xử lý đánh giá:", error);
+      toast.error("Không thể xử lý đánh giá. Vui lòng thử lại!");
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
+  const fetchStudentRating = async () => {
+    if (session?.user?.token) {
+      try {
+        const studentRating = await getStudentCourseRating({
+          courseId,
+          token: session.user.token,
+        });
+
+        setHasRated(!!studentRating);
+        setExistingRating(studentRating);
+      } catch (error) {
+        console.error("Không tìm thấy đánh giá:", error);
+        setHasRated(false);
+        setExistingRating(null);
+      }
+    }
+  };
+
+  //Handle resource
+  const fetchLessons = async (
+    studyPlanId: number,
+    pageNo: number,
+    direction: "prev" | "next" | "init" = "init",
+  ) => {
+    setIsLoadingLessonList(true);
+    if (loadedLessons[pageNo]) {
+      return;
+    }
+
     try {
       const lessonResponse = await getLessonsByStudyPlan({
         token: session?.user.token as string,
         studyPlanId: studyPlanId,
-        pageNo: 0,
-        pageSize: 20,
+        pageNo: pageNo,
+        pageSize: 10,
         sortBy: "lessonOrder",
         sortDir: "asc",
       });
 
-      setCurrentLessons(lessonResponse.content);
+      setLoadedLessons((prevPages) => ({
+        ...prevPages,
+        [pageNo]: lessonResponse.content,
+      }));
+
+      if (direction === "init") {
+        setLessonList(lessonResponse);
+      } else {
+        setLessonList((prev) => {
+          const newContent =
+            direction === "next"
+              ? [...prev!.content, ...lessonResponse.content]
+              : [...lessonResponse.content, ...prev!.content];
+
+          return { ...lessonResponse, content: newContent };
+        });
+      }
+
+      if (direction === "next") {
+        setNextPageToLoad(pageNo + 1);
+      } else {
+        setPreviousPageToLoad(pageNo - 1);
+      }
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải bài học", error);
+    } finally {
+      setIsLoadingLessonList(false);
     }
   };
 
@@ -80,56 +284,42 @@ export default function StudyModule() {
     setCurrentLessonResource(learningResource);
   };
 
-  const fetchProgress = async () => {
+  const fetchCurrentLesson = async () => {
     try {
-      const response = await getAStudentCourseProgress(
-        Number(session?.user.studentId),
+      const resources = await getLessonResourceByLessonId(
         session?.user.token as string,
-        courseId,
+        Number(lessonId),
       );
 
-      console.log("progress", response);
+      console.log("current lesson:", resources);
 
-      setCourseProgress(response);
-      if (response.currentLesson) {
-        const resources = await getLessonResourceByLessonId(
-          session?.user.token as string,
-          response.currentLesson.lessonId,
-        );
+      setExpandedLessonId(Number(lessonId));
+      setLessonResources((prev) => ({
+        ...prev,
+        [Number(lessonId)]: resources,
+      }));
 
-        console.log("current lesson:", resources);
+      if (resources && resources.length > 0) {
+        let selectedLessonResource = resources
+          .filter((resource) => resource.progressCompleted)
+          .sort((a, b) => b.typeOrder - a.typeOrder)[0];
 
-        setExpandedLessonId(response.currentLesson.lessonId);
-        setLessonResources((prev) => ({
-          ...prev,
-          [response.currentLesson.lessonId]: resources,
-        }));
+        if (!selectedLessonResource) {
+          const resourceWithTypeOrder1 = resources.find(
+            (resource) => resource.typeOrder === 1,
+          );
 
-        if (resources && resources.length > 0) {
-          let selectedLessonResource = resources
-            .filter((resource) => resource.progressCompleted)
-            .sort((a, b) => b.typeOrder - a.typeOrder)[0];
-
-          if (!selectedLessonResource) {
-            const resourceWithTypeOrder1 = resources.find(
-              (resource) => resource.typeOrder === 1,
-            );
-
-            if (resourceWithTypeOrder1) {
-              selectedLessonResource = resourceWithTypeOrder1;
-            }
+          if (resourceWithTypeOrder1) {
+            selectedLessonResource = resourceWithTypeOrder1;
           }
-          if (selectedLessonResource) {
-            setCurrentLessonResource(selectedLessonResource);
-            setCurrentContentType(selectedLessonResource.type);
-          }
+        }
+        if (selectedLessonResource) {
+          setCurrentLessonResource(selectedLessonResource);
+          setCurrentContentType(selectedLessonResource.type);
         }
       }
     } catch (error) {
-      toast.error(
-        "Có lỗi xảy ra trong quá trình tải khóa học hoặc bạn chưa đăng ký khóa học này",
-      );
-      router.push("/course");
+      console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
     }
   };
 
@@ -151,7 +341,7 @@ export default function StudyModule() {
 
       if (activePlan) {
         setActiveStudyPlan(activePlan);
-        fetchLessons(activePlan.studyPlanId);
+        fetchLessons(activePlan.studyPlanId, initialPage, "init");
         console.log("activePlan", activePlan);
       }
       setAvailablesStudyPlans(response);
@@ -199,6 +389,7 @@ export default function StudyModule() {
     }
   };
 
+  //Handle progress
   const handleTrackLearningResource = async (resourceId: number) => {
     const response = await trackLearningResource(
       resourceId,
@@ -229,6 +420,31 @@ export default function StudyModule() {
     });
   };
 
+  const updateLessonProgressIfCompleted = (lessonId: number) => {
+    const resourcesOfCurrentLesson = lessonResources[lessonId];
+
+    if (
+      resourcesOfCurrentLesson &&
+      resourcesOfCurrentLesson.length > 0 &&
+      resourcesOfCurrentLesson.every((res) => res.progressCompleted)
+    ) {
+      setLessonList((prevList) => {
+        if (!prevList) return prevList;
+
+        const updatedContent = prevList.content.map((lesson) =>
+          lesson.lessonId === lessonId
+            ? { ...lesson, studentProgress: 100 }
+            : lesson,
+        );
+
+        return {
+          ...prevList,
+          content: updatedContent,
+        };
+      });
+    }
+  };
+
   const hanldeCompleteLessonResource = async (
     type: string,
     lessonReourceId: number,
@@ -236,12 +452,7 @@ export default function StudyModule() {
   ) => {
     try {
       hanldeUpdateCompletedStatus(lessonReourceId);
-      console.log(
-        "hanldeCompleteLessonResource:",
-        type,
-        lessonReourceId,
-        entityId,
-      );
+      updateLessonProgressIfCompleted(expandedLessonId!);
       if (type === "LearningResource") {
         await completeLearningResource(entityId, session?.user.token as string);
       }
@@ -254,6 +465,8 @@ export default function StudyModule() {
         session?.user.token as string,
         expandedLessonId!,
       );
+
+      fetchProgress();
     } catch (error) {
       console.error(
         "Có lỗi xảy ra trong quá trình hoàn thành tài nguyên học",
@@ -264,9 +477,54 @@ export default function StudyModule() {
 
   const fetchData = async () => {
     try {
-      await Promise.all([fetchProgress(), fetchAllAvailableStudyPlan()]);
+      await Promise.all([fetchProgress(), fetchWithSubscriptionCheck()]);
+      await Promise.all([fetchCurrentLesson(), fetchAllAvailableStudyPlan()]);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const progress = await getAStudentCourseProgress(
+        Number(session?.user.studentId),
+        session?.user.token as string,
+        courseId,
+      );
+
+      setCourseProgress(progress);
+      if (progress.completionPercentage === 100) {
+        setShowConfetti(true);
+        setShowCongratulationDialog(true);
+        setTimeout(() => {
+          setShowConfetti(false);
+        }, 5000);
+      }
+    } catch (error) {
+      console.log("Có lỗi xảy ra trong quá trình tiến trình", error);
+      toast.error(
+        "Có lỗi xảy ra trong quá trình tải khóa học hoặc bạn chưa đăng ký khóa học này",
+      );
+      router.push("/course");
+    }
+  };
+
+  const fetchWithSubscriptionCheck = async () => {
+    try {
+      const hasSubscription = await getCurrentSubscription(
+        session?.user.token as string,
+      );
+
+      if (!hasSubscription) {
+        toast.error("Bạn cần đăng ký gói để tiếp tục.");
+        router.push("/course");
+      }
+    } catch (error) {
+      console.log("Có lỗi xảy ra trong quá trình kiểm tra gói học", error);
+      toast.error("Bạn cần đăng ký gói để tiếp tục.");
+      router.push("/course");
     }
   };
 
@@ -274,40 +532,10 @@ export default function StudyModule() {
     if (!session?.user.studentId || !session?.user.token) {
       return;
     }
-    setIsloading(true);
+    setIsLoading(true);
     fetchData();
-
-    setIsloading(false);
-  }, [session?.user.token, session?.user.studentId, courseId]);
-
-  useEffect(() => {
-    const fetchWithSubscriptionCheck = async () => {
-      if (!session?.user.studentId || !session?.user.token) {
-        return;
-      }
-
-      setIsloading(true);
-
-      try {
-        const hasSubscription = await getCurrentSubscription(
-          session.user.token,
-        );
-
-        if (hasSubscription) {
-          await fetchData();
-        } else {
-          toast.error("Bạn chưa có gói học. Vui lòng đăng ký để tiếp tục.");
-        }
-      } catch (error) {
-        toast.error("Bạn cần đăng ký gói để tiếp tục");
-        router.push("/course");
-      } finally {
-        setIsloading(false);
-      }
-    };
-
-    fetchWithSubscriptionCheck();
-  }, [session?.user.token, session?.user.studentId, courseId]);
+    fetchStudentRating();
+  }, [session?.user.token, session?.user.studentId, courseId, lessonId]);
 
   if (isLoading) {
     return (
@@ -320,6 +548,25 @@ export default function StudyModule() {
   return (
     <div className="w-full flex flex-row space-x-6 min-full">
       <div className="resource flex-1 h-min-screen overflow-y-auto">
+        {showConfetti && (
+          <Confetti
+            colors={["#10B981", "#3B82F6", "#F59E0B", "#EF4444"]}
+            gravity={0.2}
+            height={window.innerHeight}
+            numberOfPieces={200}
+            recycle={false}
+            width={window.innerWidth}
+            onConfettiComplete={() => setShowConfetti(false)}
+          />
+        )}
+        <CongratulationDialog
+          isOpen={showCongratulationDialog}
+          onClose={() => setShowCongratulationDialog(false)}
+          onOpenRating={() => {
+            setShowCongratulationDialog(false);
+            openRatingModal();
+          }}
+        />
         {currentContentType === "LearningResource" && (
           <DynamicLearningResource
             handleTrackLearningResource={handleTrackLearningResource}
@@ -343,33 +590,90 @@ export default function StudyModule() {
           />
         )}
       </div>
-      <div className="lesson-list w-[450px] flex flex-col bg-white dark:bg-black p-4 space-y-6 sticky top-0 h-[calc(100vh-73px)]">
+      <div className="lesson-list w-[450px] flex flex-col bg-white dark:bg-black py-4 px-6 space-y-6 sticky top-0 h-[calc(100vh-73px)]">
         <div className="w-full flex flex-row justify-between items-center">
           <div className="font-bold text-lg text-primary">
             {activeStudyPlan?.title}
           </div>
-          {availableStudyPlans.length > 1 && activeStudyPlan && (
+          {availablesStudyPlans.length > 1 && activeStudyPlan && (
             <ChangeStudyPlanPopUp
               currentStudyPlanId={activeStudyPlan?.studyPlanId as number}
               fetchData={fetchData}
               studentId={Number(session?.user.studentId)}
-              studyPlans={availableStudyPlans}
+              studyPlans={availablesStudyPlans}
               token={session?.user.token as string}
             />
           )}
         </div>
+        <div className="w-full flex flex-row justify-between items-center space-x-2">
+          <Progress value={courseProgress?.completionPercentage} />
+          <span className="text-xs text-primary">
+            {courseProgress?.completionPercentage}%
+          </span>
+        </div>
+        {courseProgress?.completionPercentage === 100 && (
+          <>
+            <button
+              className="w-full hover:scale-105 duration-300 text-orange-500 border-[1px] border-orange-500 rounded-lg p-2 hover:border-orange-400 hover:text-orange-400"
+              onClick={openRatingModal}
+            >
+              {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"} ★
+            </button>
+            <RatingModal
+              hasRated={hasRated}
+              isOpen={showRatingModal}
+              isSubmitting={isSubmittingRating}
+              rating={newRating}
+              review={newReview}
+              onClose={closeRatingModal}
+              onDelete={handleDeleteRating}
+              onRatingChange={handleRatingChange}
+              onReviewChange={setNewReview}
+              onSubmit={submitRating}
+            />
+          </>
+        )}
         <div className="w-full flex flex-col space-y-1 overflow-y-auto">
-          {currentLessons.map((lesson) => (
-            <div key={lesson.lessonId} className="border-[1px] rounded-lg">
+          {previousPageToLoad > 0 && (
+            <div className="border-[1px] rounded-lg border-primary text-primary">
+              <button
+                className="w-full p-[10px]"
+                disabled={isLoadingLessonList}
+                onClick={() =>
+                  fetchLessons(
+                    activeStudyPlan?.studyPlanId as number,
+                    previousPageToLoad,
+                    "prev",
+                  )
+                }
+              >
+                {isLoadingLessonList ? (
+                  <Loader2 className="animate-spin mx-auto" />
+                ) : (
+                  "Tải các bài học trước"
+                )}
+              </button>
+            </div>
+          )}
+          {lessonList?.content.map((lesson) => (
+            <div key={lesson.lessonId} className={`border-[1px] rounded-lg `}>
               <button
                 className={`w-full p-[10px] flex flex-row justify-between`}
                 onClick={() => toggleLessonResource(lesson.lessonId)}
               >
-                <span
-                  className={`text-xs font-bold ${expandedLessonId === lesson.lessonId ? "text-primary" : ""}`}
-                >
-                  {lesson.title}
-                </span>
+                <div className="flex flex-row space-x-2">
+                  {lesson.studentProgress === 100 ? (
+                    <CircleCheck className="text-green-500" />
+                  ) : (
+                    <CircleCheck className="text-slate-500" />
+                  )}
+                  <span
+                    className={`text-xs font-bold ${lesson.lessonId === expandedLessonId ? "text-primary" : ""
+                      }`}
+                  >
+                    {lesson.title}
+                  </span>
+                </div>
                 {expandedLessonId === lesson.lessonId ? (
                   <ChevronDown size={16} />
                 ) : (
@@ -379,29 +683,53 @@ export default function StudyModule() {
               {expandedLessonId === lesson.lessonId && (
                 <>
                   <Separator />
-                  <div className="w-full">
-                    {isLoadingLR ? (
+
+                  {isLoadingLR ? (
+                    <div className="w-full flex py-1 justify-center items-center">
                       <Loader2 className="animate-spin mx-auto" />
-                    ) : (
-                      lessonResources[lesson.lessonId]?.map(
-                        (lessonResource) => (
-                          <LessonResourceItem
-                            key={lessonResource.lessonResourceId}
-                            handleChangeLR={handleChangeLR}
-                            handleTrackFlashcardSet={handleTrackFlashcardSet}
-                            handleTrackLearningResource={
-                              handleTrackLearningResource
-                            }
-                            lessonResource={lessonResource}
-                          />
-                        ),
-                      )
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    lessonResources[lesson.lessonId]?.map((lessonResource) => (
+                      <div
+                        key={lessonResource.lessonResourceId}
+                        className="w-full p-1"
+                      >
+                        <LessonResourceItem
+                          handleChangeLR={handleChangeLR}
+                          handleTrackFlashcardSet={handleTrackFlashcardSet}
+                          handleTrackLearningResource={
+                            handleTrackLearningResource
+                          }
+                          lessonResource={lessonResource}
+                        />
+                      </div>
+                    ))
+                  )}
                 </>
               )}
             </div>
           ))}
+          {!lessonList?.last && (
+            <div className="border-[1px] rounded-lg border-primary text-primary">
+              <button
+                className="w-full p-[10px]"
+                disabled={isLoadingLessonList}
+                onClick={() =>
+                  fetchLessons(
+                    activeStudyPlan?.studyPlanId as number,
+                    nextPageToLoad,
+                    "next",
+                  )
+                }
+              >
+                {isLoadingLessonList ? (
+                  <Loader2 className="animate-spin mx-auto" />
+                ) : (
+                  "Tải các bài học tiếp theo"
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

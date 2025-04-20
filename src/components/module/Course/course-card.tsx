@@ -159,7 +159,7 @@ const CourseCards: React.FC<CourseCardsProps> = ({
           ) : (
             <Link
               className="block w-full"
-              href={`/course/study/${course.courseId}`}
+              href={`/course/study/${course.courseId}?lessonId=${courseProgress.currentLesson.lessonId}&lessonOrder=${courseProgress.currentLesson.lessonOrder}`}
             >
               <Button className={continueButtonStyle}>
                 <Award size={16} />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, PlayCircle, X } from "lucide-react";
+import { Lock, PlayCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { useLessons } from "../lesson";
 import { useStudyPlans } from "../StudyPlan/useStudyPlans";
+
+import RatingModal from "./RatingModal";
 
 import { enrollCourse, checkEnrollStatus } from "@/app/api/lesson/lesson.api";
 import { Button } from "@/components/ui/button";
@@ -19,8 +21,8 @@ import {
   getStudentCourseRating,
   updateCourseRating,
   deleteCourseRating,
-  CourseRating,
 } from "@/app/api/course/course.api";
+import { CourseRating, CourseRatingResponse } from "@/types/course";
 
 interface LessonItem {
   title: string;
@@ -326,7 +328,7 @@ export default function CourseDetail({
 
     setIsSubmittingRating(true);
     try {
-      let updatedRatingData: CourseRating;
+      let updatedRatingData: CourseRatingResponse;
 
       if (hasRated && existingRating) {
         updatedRatingData = await updateCourseRating({
@@ -336,23 +338,25 @@ export default function CourseDetail({
           review: newReview,
           token: session.user.token,
         });
-        setAllRatings((prev) =>
-          prev.map((rating) =>
-            rating.ratingId === existingRating.ratingId
-              ? updatedRatingData
-              : rating,
-          ),
-        );
-        setDisplayedRatings((prev) =>
-          prev
-            .map((rating) =>
+        if (updatedRatingData.success) {
+          setAllRatings((prev) =>
+            prev.map((rating) =>
               rating.ratingId === existingRating.ratingId
-                ? updatedRatingData
+                ? updatedRatingData.data
                 : rating,
-            )
-            .slice(0, ratingsCount),
-        );
-        toast.success("Đánh giá của bạn đã được cập nhật!");
+            ),
+          );
+          setDisplayedRatings((prev) =>
+            prev
+              .map((rating) =>
+                rating.ratingId === existingRating.ratingId
+                  ? updatedRatingData.data
+                  : rating,
+              )
+              .slice(0, ratingsCount),
+          );
+          toast.success("Đánh giá của bạn đã được cập nhật!");
+        }
       } else {
         updatedRatingData = await createCourseRating({
           courseId,
@@ -360,12 +364,14 @@ export default function CourseDetail({
           review: newReview,
           token: session.user.token,
         });
-        setAllRatings((prev) => [updatedRatingData, ...prev]);
-        setDisplayedRatings((prev) =>
-          [updatedRatingData, ...prev].slice(0, ratingsCount),
-        );
-        setHasRated(true);
-        toast.success("Đánh giá của bạn đã được gửi!");
+        if (updatedRatingData.success) {
+          setAllRatings((prev) => [updatedRatingData.data, ...prev]);
+          setDisplayedRatings((prev) =>
+            [updatedRatingData.data, ...prev].slice(0, ratingsCount),
+          );
+          setHasRated(true);
+          toast.success("Đánh giá của bạn đã được gửi!");
+        }
       }
       await fetchStudentRating();
       const newAverage = await getAverageCourseRating(
@@ -470,11 +476,10 @@ export default function CourseDetail({
                 (chapter: Chapter, chapterIndex: number) => (
                   <div
                     key={chapterIndex}
-                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
-                      selectedChapter === chapterIndex
+                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${selectedChapter === chapterIndex
                         ? "bg-green-100"
                         : "bg-gray-100"
-                    }`}
+                      }`}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedChapter(chapterIndex)}
@@ -497,11 +502,10 @@ export default function CourseDetail({
                           (section: Section, sectionIndex: number) => (
                             <div
                               key={`${chapterIndex}-${sectionIndex}`}
-                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
-                                selectedSection === sectionIndex
+                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${selectedSection === sectionIndex
                                   ? "bg-green-200"
                                   : "bg-gray-50"
-                              }`}
+                                }`}
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {
@@ -600,7 +604,7 @@ export default function CourseDetail({
               </p>
 
               <div className="flex items-center justify-center mb-3">
-                <div className="flex text-orange-500 mr-2 relative">
+                <div className="flex text-orange-400 mr-2 relative">
                   {[...Array(5)].map((_, i) => {
                     const ratingValue = i + 1;
 
@@ -608,12 +612,12 @@ export default function CourseDetail({
                       <span key={i} className="relative inline-block">
                         <span className="text-gray-300">★</span>
                         {averageRating >= ratingValue ? (
-                          <span className="absolute top-0 left-0 text-orange-500">
+                          <span className="absolute top-0 left-0 text-orange-400">
                             ★
                           </span>
                         ) : averageRating > i && averageRating < ratingValue ? (
                           <span
-                            className="absolute top-0 left-0 text-orange-500 overflow-hidden"
+                            className="absolute top-0 left-0 text-orange-400 overflow-hidden"
                             style={{ width: `${(averageRating - i) * 100}%` }}
                           >
                             ★
@@ -662,14 +666,14 @@ export default function CourseDetail({
               </Button>
             )}
 
-            <div className="mt-4">
-              <Button
-                className="w-full hover:scale-105 duration-100 text-white"
+            {/* <div className="mt-4">
+              <button
+                className="w-full hover:scale-105 duration-300 text-orange-500 border-[1px] border-orange-500 rounded-full p-2 hover:border-orange-400 hover:text-orange-400"
                 onClick={openRatingModal}
               >
                 {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"}
-              </Button>
-            </div>
+              </button>
+            </div> */}
 
             <div className="mt-4">
               <h3 className="font-bold mb-3">Mục tiêu khóa học</h3>
@@ -754,86 +758,18 @@ export default function CourseDetail({
       </div>
 
       {/* Rating Modal */}
-      {showRatingModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-              onClick={closeRatingModal}
-            >
-              <X size={24} />
-            </button>
-            <h3 className="text-xl font-bold text-center mb-4 text-[#2B5F54]">
-              {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"}
-            </h3>
-            <div className="mb-4">
-              <label
-                className="block text-sm font-medium text-gray-700 mb-2"
-                htmlFor="rating-input"
-              >
-                Số sao
-              </label>
-              <input
-                readOnly
-                id="rating-input"
-                type="hidden"
-                value={newRating}
-              />
-              <div className="flex justify-center space-x-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    aria-label={`Chọn ${star} sao`}
-                    className={`text-2xl ${
-                      star <= newRating ? "text-orange-500" : "text-gray-300"
-                    } hover:text-orange-400 transition-colors`}
-                    onClick={() => handleRatingChange(star)}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <label
-                className="block text-sm font-medium text-gray-700 mb-2"
-                htmlFor="review-input"
-              >
-                Nhận xét
-              </label>
-              <textarea
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                id="review-input"
-                placeholder="Viết nhận xét của bạn..."
-                rows={4}
-                value={newReview}
-                onChange={(e) => setNewReview(e.target.value)}
-              />
-            </div>
-            <div className="flex justify-center gap-4">
-              <Button
-                className="hover:scale-105 duration-100"
-                disabled={isSubmittingRating}
-                onClick={submitRating}
-              >
-                {isSubmittingRating
-                  ? "Đang xử lý..."
-                  : hasRated
-                    ? "Cập nhật đánh giá"
-                    : "Gửi đánh giá"}
-              </Button>
-              {hasRated && (
-                <Button
-                  className="bg-red-500 hover:bg-red-600 hover:scale-105 duration-100 text-white"
-                  onClick={handleDeleteRating}
-                >
-                  Xóa đánh giá
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <RatingModal
+        hasRated={hasRated}
+        isOpen={showRatingModal}
+        isSubmitting={isSubmittingRating}
+        rating={newRating}
+        review={newReview}
+        onClose={closeRatingModal}
+        onDelete={handleDeleteRating}
+        onRatingChange={handleRatingChange}
+        onReviewChange={setNewReview}
+        onSubmit={submitRating}
+      />
 
       <ToastContainer
         autoClose={3000}

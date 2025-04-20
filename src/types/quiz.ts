@@ -90,11 +90,16 @@ export const convertApiQuestionToQuizQuestion = (
     .filter((option) => option.isCorrect)
     .map((option) => option.optionId);
 
+  // Shuffle the options array
+  const shuffledOptions = [...apiQuestion.options].sort(
+    () => Math.random() - 0.5,
+  );
+
   return {
     id: apiQuestion.questionId,
     type: apiQuestion.questionType === "Single_choice" ? "single" : "multiple",
     question: apiQuestion.questionText,
-    options: apiQuestion.options.map((option) => ({
+    options: shuffledOptions.map((option) => ({
       id: option.optionId,
       text: option.optionText,
     })),

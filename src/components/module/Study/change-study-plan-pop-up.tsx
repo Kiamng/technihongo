@@ -89,7 +89,7 @@ const ChangeStudyPlanPopUp = ({
 
     return (
         <Dialog>
-            <DialogTrigger className="text-sm text-primary font-bold p-2 border-[1px] border-primary rounded-full hover:scale-105 transition-all duration-300">
+            <DialogTrigger className="text-sm text-primary font-bold p-2 border-[1px] border-primary rounded-lg hover:scale-105 transition-all duration-300">
                 Thay đổi
             </DialogTrigger>
             <DialogContent>
@@ -128,7 +128,7 @@ const ChangeStudyPlanPopUp = ({
                 </div>
                 <DialogFooter>
                     <Button disabled={isPending} onClick={handleSaveChanges}>
-                        Save changes
+                        Lưu thay đổi
                     </Button>
                 </DialogFooter>
             </DialogContent>

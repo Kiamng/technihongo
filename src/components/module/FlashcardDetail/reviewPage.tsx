@@ -178,173 +178,245 @@ export default function ReviewGame({
 
   if (!currentQuestion && !isSetup && !showResults) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col items-center">
-        <p>Đang tải câu hỏi...</p>
+      <div className="min-h-screen bg-gradient-to-b from-[#1A2A44] to-[#0f1a2e] text-white p-6 flex flex-col items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+          <div className="animate-pulse mb-4">
+            <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full mx-auto animate-spin" />
+          </div>
+          <p className="text-xl font-medium">Đang tải câu hỏi...</p>
+        </div>
       </div>
     );
   }
 
   if (isSetup) {
     return (
-      <div className="min-h-screen bg-[#56D071] text-white p-6 flex flex-col items-center">
-        <h1 className="text-2xl font-bold mb-4">Chọn số câu để học</h1>
-        <div className="flex items-center mb-4">
-          <input
-            className="p-2 bg-gray-800 text-white rounded-lg w-32 mr-2"
-            disabled={isSystem}
-            max={flashcards.length}
-            min="1"
-            type="number"
-            value={socau}
-            onChange={(e) => {
-              const value = parseInt(e.target.value);
+      <div className="min-h-screen bg-gray-100 text-gray-800 p-6 flex flex-col items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+            {isSystem ? "Chế độ học flashcard" : "Chọn số câu để học"}
+          </h1>
 
-              if (!isNaN(value) && value > 0 && value <= flashcards.length) {
-                setSocau(value);
-              }
-            }}
-          />
-          <span> / {flashcards.length} câu</span>
+          {!isSystem ? (
+            <div className="flex flex-col items-center mb-6">
+              <div className="flex items-center mb-4 w-full">
+                <input
+                  className="p-3 bg-gray-50 text-gray-800 rounded-lg w-full mr-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#56D071] focus:border-transparent transition-all duration-300"
+                  disabled={isSystem}
+                  max={flashcards.length}
+                  min="1"
+                  type="number"
+                  value={socau}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+
+                    if (
+                      !isNaN(value) &&
+                      value > 0 &&
+                      value <= flashcards.length
+                    ) {
+                      setSocau(value);
+                    }
+                  }}
+                />
+                <span className="text-lg font-medium text-gray-700">
+                  / {flashcards.length} câu
+                </span>
+              </div>
+
+              <button
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg mb-4 hover:bg-gray-200 transition-all duration-300 w-full"
+                onClick={() => setSocau(flashcards.length)}
+              >
+                Chọn tất cả
+              </button>
+            </div>
+          ) : (
+            <h1 className="text-2xl font-bold mb-6 text-center text-gray-700">
+              Số thẻ trong bài: {flashcards.length}
+            </h1>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <button
+              className="px-6 py-3 bg-[#56D071] text-white font-bold rounded-lg hover:bg-[#56D071]/90 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              onClick={handleStartLearning}
+            >
+              Bắt đầu học
+            </button>
+
+            <button
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              onClick={onExit}
+            >
+              Thoát
+            </button>
+          </div>
         </div>
-        {!isSystem && (
-          <button
-            className="px-4 py-2 bg-gray-700 text-white rounded-lg mb-4 hover:bg-gray-600"
-            onClick={() => setSocau(flashcards.length)}
-          >
-            Chọn tất cả
-          </button>
-        )}
-        <button
-          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-          onClick={handleStartLearning}
-        >
-          Bắt đầu học
-        </button>
-        <button
-          className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-          onClick={onExit}
-        >
-          Thoát
-        </button>
       </div>
     );
   }
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-[#56D071] text-white p-6 flex flex-col items-center">
-        <h1 className="text-2xl font-bold mb-4">Kết quả</h1>
-        <p>
-          Số câu đã học: {isLearned.length}/{socau}
-        </p>
-        <p>Số lần sai: {isFalse.length}</p>
-        {isStudying.length > 0 ? (
-          <button
-            className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-            onClick={handleContinue}
-          >
-            Tiếp tục
-          </button>
-        ) : (
-          <p>Bạn đã hoàn thành ôn tập!</p>
-        )}
-        <button
-          className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-          onClick={onExit}
-        >
-          Thoát ôn tập
-        </button>
+      <div className="min-h-screen bg-gray-100 text-gray-800 p-6 flex flex-col items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+            Kết quả
+          </h1>
+
+          <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg text-gray-700">Số câu đã học:</span>
+              <span className="text-2xl font-bold text-gray-800">
+                {isLearned.length}/{socau}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-lg text-gray-700">Số lần sai:</span>
+              <span className="text-2xl font-bold text-red-500">
+                {isFalse.length}
+              </span>
+            </div>
+          </div>
+
+          {isStudying.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <button
+                className="px-6 py-3 bg-[#56D071] text-white font-bold rounded-lg hover:bg-[#56D071]/90 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                onClick={handleContinue}
+              >
+                Tiếp tục
+              </button>
+              <button
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                onClick={onExit}
+              >
+                Thoát ôn tập
+              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎉</div>
+              <p className="text-xl font-medium mb-6 text-gray-800">
+                Bạn đã hoàn thành ôn tập!
+              </p>
+              <button
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                onClick={onExit}
+              >
+                Thoát ôn tập
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   if (isStudying.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col items-center">
-        <p>Bạn đã hoàn thành ôn tập!</p>
-        <button
-          className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-          onClick={onExit}
-        >
-          Thoát ôn tập
-        </button>
+      <div className="min-h-screen bg-gradient-to-b from-[#1A2A44] to-[#0f1a2e] text-white p-6 flex flex-col items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+          <div className="text-4xl mb-4">🎉</div>
+          <p className="text-xl font-medium mb-6">Bạn đã hoàn thành ôn tập!</p>
+          <button
+            className="px-6 py-3 bg-red-500/80 text-white rounded-lg hover:bg-red-500 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            onClick={onExit}
+          >
+            Thoát ôn tập
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A2A44] text-white p-6 flex flex-col items-center">
-      <div className="flex items-center mb-6">
-        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center mr-2">
-          {isLearned.length + 1}
+    <div className="min-h-screen bg-gray-100 text-gray-800 p-6 flex flex-col items-center">
+      <div className="w-full max-w-2xl mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-[#56D071] text-white rounded-full flex items-center justify-center mr-3 font-bold shadow-md">
+              {isLearned.length + 1}
+            </div>
+            <span className="text-lg font-medium text-gray-700">Tiến độ</span>
+          </div>
+          <div className="w-10 h-10 bg-[#56D071] text-white rounded-full flex items-center justify-center font-bold shadow-md">
+            {socau}
+          </div>
         </div>
-        <div className="w-96 bg-gray-600 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
           <div
-            className="bg-green-500 h-2 rounded-full"
+            className="bg-[#56D071] h-3 rounded-full transition-all duration-500 ease-in-out"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center ml-2">
-          {socau}
-        </div>
       </div>
 
-      <div className="relative bg-[#2A3F5F] p-6 rounded-lg w-full max-w-2xl">
+      <div className="relative bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-200">
         <button
-          className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center"
+          className="absolute top-4 right-4 bg-gray-200 text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-300 transition-all duration-300 transform hover:scale-110 shadow-md"
           onClick={onExit}
         >
           ✕
         </button>
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Định nghĩa</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-800">Định nghĩa</h2>
         </div>
-        <p className="text-xl mb-6">{currentQuestion.japaneseDefinition}</p>
+        <p className="text-xl mb-8 bg-gray-50 p-4 rounded-xl text-gray-800 shadow-inner">
+          {currentQuestion.japaneseDefinition}
+        </p>
 
-        <h3 className="text-lg font-bold mb-4">Chọn thuật ngữ ứng dụng</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <h3 className="text-xl font-bold mb-4 text-gray-800">
+          Chọn thuật ngữ ứng dụng
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
-              className={`p-4 bg-[#4A2C3F] border-2 rounded-lg text-left transition-all duration-300 flex items-center justify-between ${showAnswer &&
+              className={`p-4 bg-gray-50 border-2 rounded-xl text-left transition-all duration-300 flex items-center justify-between shadow-sm ${showAnswer &&
                   option.vietEngTranslation === currentQuestion.vietEngTranslation
-                  ? "border-green-500"
+                  ? "border-[#56D071] bg-[#56D071]/10"
                   : selectedAnswer === option.vietEngTranslation
-                    ? "border-red-500"
-                    : "border-transparent hover:border-gray-400"
+                    ? "border-red-400 bg-red-50"
+                    : "border-transparent hover:border-gray-300 hover:bg-gray-100"
                 }`}
               disabled={showAnswer}
               onClick={() => handleAnswerSelect(option.vietEngTranslation)}
             >
-              <div>
-                <span className="mr-2">{index + 1}</span>
-                {option.vietEngTranslation}
+              <div className="flex items-center">
+                <span className="w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mr-3">
+                  {index + 1}
+                </span>
+                <span className="text-lg text-gray-800">
+                  {option.vietEngTranslation}
+                </span>
               </div>
               {showAnswer &&
                 (option.vietEngTranslation ===
                   currentQuestion.vietEngTranslation ? (
-                  <span className="text-green-500 font-bold">✔</span>
+                  <span className="text-[#56D071] text-2xl font-bold">✔</span>
                 ) : selectedAnswer === option.vietEngTranslation ? (
-                  <span className="text-red-500 font-bold">✕</span>
+                  <span className="text-red-400 text-2xl font-bold">✕</span>
                 ) : null)}
             </button>
           ))}
         </div>
 
         {showAnswer && (
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             {isCorrect ? (
-              <div className="text-green-500 font-bold text-xl mb-4">
-                Đúng rồi!
+              <div className="text-[#56D071] font-bold text-2xl mb-6 flex items-center justify-center">
+                <span className="mr-2">✔</span> Đúng rồi!
               </div>
             ) : (
-              <div className="text-red-500 font-bold text-xl mb-4">
-                Sai rồi! Cố gắng hơn nhé!
+              <div className="text-red-400 font-bold text-2xl mb-6 flex items-center justify-center">
+                <span className="mr-2">✕</span> Sai rồi! Cố gắng hơn nhé!
               </div>
             )}
             <button
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+              className="px-8 py-3 bg-[#56D071] text-white font-bold rounded-lg hover:bg-[#56D071]/90 transition-all duration-300 transform hover:scale-105 shadow-lg"
               onClick={handleNextQuestion}
             >
               Tiếp tục
