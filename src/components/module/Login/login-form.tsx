@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginStart }) => {
     const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
-      callbackUrl: "/home",
+      callbackUrl: "/course",
     });
 
     setIsPending(false);

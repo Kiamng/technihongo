@@ -26,6 +26,7 @@ export interface QuizData {
   };
   totalQuestions: number;
   passingScore: number;
+  timeLimit: number;
   createdAt: string;
   updatedAt: string | null;
   public: boolean;
@@ -103,3 +104,9 @@ export const convertApiQuestionToQuizQuestion = (
         : correctAnswers,
   };
 };
+
+export interface QuizAttemptStatusResponse {
+  consecutiveAttempts: number;
+  remainingWaitTime: number;
+  remainingAttempts: number;
+}

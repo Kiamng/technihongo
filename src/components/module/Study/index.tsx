@@ -97,6 +97,8 @@ export default function StudyModule() {
           response.currentLesson.lessonId,
         );
 
+        console.log("current lesson:", resources);
+
         setExpandedLessonId(response.currentLesson.lessonId);
         setLessonResources((prev) => ({
           ...prev,
@@ -124,7 +126,10 @@ export default function StudyModule() {
         }
       }
     } catch (error) {
-      console.log("Có lỗi xảy ra trong quá trình tải khóa học", error);
+      toast.error(
+        "Có lỗi xảy ra trong quá trình tải khóa học hoặc bạn chưa đăng ký khóa học này",
+      );
+      router.push("/course");
     }
   };
 
@@ -147,10 +152,10 @@ export default function StudyModule() {
       if (activePlan) {
         setActiveStudyPlan(activePlan);
         fetchLessons(activePlan.studyPlanId);
-        // console.log("activePlan", activePlan);
+        console.log("activePlan", activePlan);
       }
       setAvailablesStudyPlans(response);
-      // console.log("Available Study Plans", response);
+      console.log("Available Study Plans", response);
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải kế hoạch học", error);
     }

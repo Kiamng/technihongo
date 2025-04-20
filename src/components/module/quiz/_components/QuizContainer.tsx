@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 import { QuizCard } from "./QuizCard";
 import { Sidebar } from "./Sidebar";
 import { QuizResults } from "./QuizResults";
+import QuizInformation from "./QuizInformation";
 
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -15,13 +17,16 @@ import {
   StartAttemptResponse,
   convertApiQuestionToQuizQuestion,
   QuizQuestion,
+  QuizAttemptStatusResponse,
 } from "@/types/quiz";
 import {
   startQuizAttempt,
   getQuizQuestions,
   submitQuizAttempt,
+  getQuizAttemptStatus,
 } from "@/app/api/quiz/quiz.api";
 import { Button } from "@/components/ui/button";
+import { useQuiz } from "@/components/core/common/providers/quiz-provider";
 
 interface QuizContainerProps {
   quizData: QuizData;
@@ -41,8 +46,8 @@ export function QuizContainer({
   const { data: session } = useSession();
   const [selectedAnswers, setSelectedAnswers] = useState<Answers>({});
   const [answers, setAnswers] = useState<Answers>({});
-  const [isQuizStarted, setIsQuizStarted] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // const [isQuizStarted, setIsQuizStarted] = useState(false);
+  // const [isSubmitted, setIsSubmitted] = useState(false);
   const [attemptData, setAttemptData] = useState<
     StartAttemptResponse["data"] | null
   >(null);
@@ -51,6 +56,13 @@ export function QuizContainer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reviewAttemptId, setReviewAttemptId] = useState<number | null>(null);
+  const { isQuizStarted, setIsQuizStarted, isSubmitted, setIsSubmitted } =
+    useQuiz();
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeUsed, setTimeUsed] = useState<number>(0);
+  const navigate = useRouter();
+  const [quizAttemptStatus, setQuizAttemptStatus] =
+    useState<QuizAttemptStatusResponse>();
 
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -62,6 +74,7 @@ export function QuizContainer({
         convertApiQuestionToQuizQuestion(apiQuestion),
       );
 
+      console.log("formattedQuestions :", formattedQuestions);
       setQuestions(formattedQuestions);
       setIsLoading(false);
     } catch (error: any) {
@@ -74,7 +87,7 @@ export function QuizContainer({
 
   const handleStartQuiz = async () => {
     if (!session?.user?.token) {
-      toast("Vui lòng đăng nhập để bắt đầu quiz!", {
+      toast.message("Vui lòng đăng nhập để bắt đầu quiz!", {
         className: "bg-red-500 text-white",
       });
 
@@ -87,17 +100,16 @@ export function QuizContainer({
         quizData.quizId,
       );
 
+      console.log("start response :", response);
       if (response.success === false) {
-        toast.message(
-          "Bạn đã đạt mức 3 lần làm bài quiz rồi, hãy thử lại sau 7 phút",
-        );
+        toast.message("Đã có lỗi xảy ra trong quá trình tải bài kiểm tra");
 
         return;
+      } else {
+        setAttemptData(response.data);
+        await fetchQuizQuestions([session.user.token, quizData.quizId]);
+        setIsQuizStarted(true);
       }
-      setAttemptData(response.data);
-      await fetchQuizQuestions([session.user.token, quizData.quizId]);
-      setIsQuizStarted(true);
-      setIsLoading(false);
     } catch (error) {
     } finally {
       setIsLoading(false);
@@ -163,14 +175,17 @@ export function QuizContainer({
             : [selectedOption],
         }));
 
-      await submitQuizAttempt(
+      const submitResponse = await submitQuizAttempt(
         session.user.token,
         quizData.quizId,
         attemptData.attemptId,
         formattedAnswers,
       );
 
-      setReviewAttemptId(attemptData.attemptId);
+      fetchQuizAttemptStatus();
+      console.log("response :", submitResponse);
+      setTimeUsed(quizData.timeLimit * 60 - timeLeft);
+      setReviewAttemptId(submitResponse.data.attemptId);
       setIsSubmitted(true);
       setIsSubmitting(false);
       toast("Nộp bài thành công!", { className: "bg-green-500 text-white" });
@@ -233,27 +248,57 @@ export function QuizContainer({
     [questions, selectedAnswers, handleAnswerChange, handleClearAnswer],
   );
 
+  const fetchQuizAttemptStatus = async () => {
+    if (!session?.user?.token) return;
+    const status = await getQuizAttemptStatus(
+      session.user.token,
+      quizData.quizId,
+    );
+
+    console.log("Quiz attempt status:", status);
+    setQuizAttemptStatus(status);
+  };
+
+  useEffect(() => {
+    if (!isQuizStarted || isSubmitted) return; // Không bắt đầu đếm nếu quiz chưa bắt đầu hoặc đã submit
+
+    // Reset timeLeft khi quiz bắt đầu
+    setTimeLeft(quizData.timeLimit * 60); // Chuyển thời gian limit từ phút sang giây
+
+    // Tạo bộ đếm ngược
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 0) {
+          handleSubmit();
+          clearInterval(timer);
+
+          return 0;
+        }
+
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isQuizStarted, isSubmitted, quizData.timeLimit]);
+
+  useEffect(() => {
+    setIsQuizStarted(false);
+    setIsSubmitted(false);
+    fetchQuizAttemptStatus();
+  }, [session?.user?.token, quizData.quizId]);
+
   if (isLoading) {
     return <div>Đang tải dữ liệu...</div>;
   }
 
   if (!isQuizStarted) {
     return (
-      <div className="max-w-2xl mx-auto text-center p-6">
-        <h1 className="text-2xl font-bold mb-4">{quizData.title}</h1>
-        <p className="text-gray-600 mb-6">
-          Số câu hỏi: {quizData.totalQuestions} | Thời gian:{" "}
-          {attemptData?.remainingTimeInSeconds
-            ? `${Math.floor(attemptData.remainingTimeInSeconds / 60)} phút`
-            : "Đang tải..."}
-        </p>
-        <p className="text-gray-600 mb-6">
-          Điểm cần đạt : {quizData.passingScore * 10}
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button onClick={handleStartQuiz}>Bắt đầu làm quiz</Button>
-        </div>
-      </div>
+      <QuizInformation
+        handleStartQuiz={handleStartQuiz}
+        quizAttemptStatus={quizAttemptStatus as QuizAttemptStatusResponse}
+        quizData={quizData}
+      />
     );
   }
 
@@ -264,7 +309,9 @@ export function QuizContainer({
         hanldeCompleteLessonResource={hanldeCompleteLessonResource}
         lessonResourceId={lessonResourceId}
         questions={questions}
+        quizAttemptStatus={quizAttemptStatus as QuizAttemptStatusResponse}
         quizId={quizData.quizId}
+        timeUsed={timeUsed}
         onRetake={handleRetake}
       />
     );
@@ -272,6 +319,15 @@ export function QuizContainer({
 
   return (
     <>
+      {isQuizStarted && !isSubmitted && timeLeft !== null && (
+        <div className="w-full flex justify-center">
+          <div className="fixed bottom-4 bg-primary text-white text-xl px-4 py-2 rounded-lg z-50">
+            {Math.floor(timeLeft / 3600)}:
+            {String(Math.floor((timeLeft % 3600) / 60)).padStart(2, "0")}:
+            {String(timeLeft % 60).padStart(2, "0")}
+          </div>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto p-4">
         <Sidebar
           answers={selectedAnswers}

@@ -16,7 +16,7 @@ import {
   QuizReviewResponse,
   TopRecentQuizAttemptsResponse,
 } from "@/app/api/quiz/quiz.api";
-import { QuizQuestion } from "@/types/quiz";
+import { QuizAttemptStatusResponse, QuizQuestion } from "@/types/quiz";
 
 interface QuizResultsProps {
   attemptId: number;
@@ -29,6 +29,8 @@ interface QuizResultsProps {
     entityId: number,
   ) => Promise<void>;
   lessonResourceId: number;
+  timeUsed: number;
+  quizAttemptStatus: QuizAttemptStatusResponse;
 }
 
 export function QuizResults({
@@ -38,6 +40,8 @@ export function QuizResults({
   onRetake,
   hanldeCompleteLessonResource,
   lessonResourceId,
+  timeUsed,
+  quizAttemptStatus,
 }: QuizResultsProps) {
   const { data: session } = useSession();
   const [showConfetti, setShowConfetti] = useState(false);
@@ -86,6 +90,8 @@ export function QuizResults({
           session.user.token,
           attemptId,
         );
+
+        console.log("reviewResponse :", reviewResponse.data);
 
         setReviewData(reviewResponse.data);
 
@@ -215,7 +221,12 @@ export function QuizResults({
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row justify-center gap-3">
-                    <Button onClick={onRetake}>Làm lại</Button>
+                    <Button
+                      disabled={quizAttemptStatus.remainingAttempts === 0}
+                      onClick={onRetake}
+                    >
+                      Làm lại
+                    </Button>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -237,6 +248,33 @@ export function QuizResults({
                       {currentAttempt.score.toFixed(2)}
                     </span>
                   </p>
+                  <p className="text-xl">
+                    Thời gian:{" "}
+                    <span className="font-semibold">
+                      {Math.floor(timeUsed / 3600)}:
+                      {String(Math.floor((timeUsed % 3600) / 60)).padStart(
+                        2,
+                        "0",
+                      )}
+                      :{String(timeUsed % 60).padStart(2, "0")}
+                    </span>
+                  </p>
+                  <p
+                    className={`text-xl ${quizAttemptStatus.remainingAttempts === 0 && "text-red-500"}`}
+                  >
+                    Bạn còn:{" "}
+                    <span className="font-semibold">
+                      {quizAttemptStatus.remainingAttempts} lần
+                    </span>
+                  </p>
+                  {quizAttemptStatus.remainingWaitTime !== 0 && (
+                    <p
+                      className={`text-xl ${quizAttemptStatus.remainingAttempts === 0 && "text-red-500"}`}
+                    >
+                      Hãy quay lại sau {quizAttemptStatus.remainingWaitTime}{" "}
+                      phút
+                    </p>
+                  )}
                   <p
                     className={`text-xl font-semibold ${currentAttempt.isPassed
                         ? "text-green-500"

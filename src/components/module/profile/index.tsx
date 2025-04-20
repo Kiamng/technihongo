@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import { CalendarIcon, User2Icon, Camera } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -166,14 +165,14 @@ export default function UserProfilePage() {
           <div className="w-16 h-16 rounded-full bg-white p-1">
             <div className="w-full h-full rounded-full bg-[#56D071]/20 flex items-center justify-center overflow-hidden">
               {user.profileImg ? (
-                <Image
+                <img
                   alt="Profile avatar"
                   height={60}
                   src={user.profileImg}
                   width={60}
                 />
               ) : (
-                <Image
+                <img
                   alt="Profile avatar"
                   height={60}
                   src="/assets/images/logo.png"
