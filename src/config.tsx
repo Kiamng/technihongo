@@ -2,6 +2,7 @@
 "use client";
 
 import {
+  Badge,
   BadgeJapaneseYen,
   ChartNoAxesColumn,
   Copy,
@@ -73,6 +74,12 @@ export const NavItems = () => {
           href: "/translate",
           icon: <Languages size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/translate"),
+        },
+        {
+          name: "Achievement",
+          href: "/achievement",
+          icon: <Badge size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/achievement"),
         },
       ],
     },

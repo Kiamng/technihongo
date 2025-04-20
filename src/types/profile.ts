@@ -6,10 +6,19 @@ export interface UserProfile {
   dob: string | null;
   profileImg: string | null;
   bio: string;
-  occupation: string;
+  occupation:
+    | "STUDENT"
+    | "EMPLOYED"
+    | "UNEMPLOYED"
+    | "FREELANCER"
+    | "OTHER"
+    | null;
   reminderEnabled: boolean;
-  reminderTime: string | null;
+  reminderTime: string | null; // kiểu "HH:mm:ss"
+  dailyGoal: number | null;
+  difficultyLevel: "N5" | "N4" | "N3" | "N2" | "N1" | null;
 }
+
 export type UsertoStudent = {
   userId: number;
   userName: string;

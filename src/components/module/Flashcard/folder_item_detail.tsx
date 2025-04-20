@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { AddFlashcardSetModal } from "./add_folder_item";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getFlashcardSetById } from "@/app/api/studentflashcardset/stuflashcard.api";
 import { FolderItem } from "@/types/folderitem";
@@ -126,7 +125,7 @@ export default function FolderDetail({
   if (accessDenied) {
     return (
       <div className="text-center text-red-600 mt-10 font-semibold text-lg">
-        ❌ Bạn không có quyền truy cập vào folder này (Private)
+        Bạn không có quyền truy cập vào folder này (Private)
       </div>
     );
   }
@@ -181,15 +180,9 @@ export default function FolderDetail({
 
       {/* User Profile */}
       <div className="relative z-10 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Avatar className="border-2 border-[#7EE395] h-12 w-12">
-            <AvatarImage alt="User" src="https://via.placeholder.com/48" />
-            <AvatarFallback>HKD</AvatarFallback>
-          </Avatar>
-          <h2 className="font-medium text-gray-800">
-            Hoang Khanh Duy (K17 HCM)
-          </h2>
-        </div>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          {session?.user?.userName}
+        </h2>
 
         <div className="flex gap-2">
           <Button
@@ -199,20 +192,6 @@ export default function FolderDetail({
             onClick={() => setIsModalOpen(true)}
           >
             <span className="text-xl">✏️</span>
-          </Button>
-          <Button
-            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
-            size="icon"
-            variant="outline"
-          >
-            <span className="text-xl">📷</span>
-          </Button>
-          <Button
-            className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
-            size="icon"
-            variant="outline"
-          >
-            <span className="text-xl">🔔</span>
           </Button>
           <Button
             className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
