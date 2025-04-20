@@ -62,7 +62,7 @@ export const SubscriptionPlanModule = () => {
     };
 
     fetchPlans();
-  }, [session]);
+  }, [session?.user.token]);
 
   const activePlans = plans.filter((plan) => plan.active);
 

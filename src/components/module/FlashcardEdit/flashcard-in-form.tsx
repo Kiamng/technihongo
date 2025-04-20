@@ -18,7 +18,7 @@ interface FlashcardInFormProps {
   isSaving: boolean;
   addChangedFlashcard: (index: number) => void;
   handleDelete: (index: number) => void;
-  handleImageUpload: (index: number, imageUrl: string) => void;
+  handleImageSelect: (index: number, file: File) => void;
   handleDeleteImage: (index: number) => void;
 }
 const FlashcardInForm = ({
@@ -27,7 +27,7 @@ const FlashcardInForm = ({
   isSaving,
   addChangedFlashcard,
   handleDelete,
-  handleImageUpload,
+  handleImageSelect,
   handleDeleteImage,
 }: FlashcardInFormProps) => {
   return (
@@ -98,7 +98,7 @@ const FlashcardInForm = ({
         <FlashcardImageUpload
           field={field}
           handleDeleteImage={handleDeleteImage}
-          handleImageUpload={handleImageUpload}
+          handleImageSelect={handleImageSelect}
           index={index}
           isSaving={isSaving}
         />

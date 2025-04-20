@@ -39,6 +39,7 @@ import {
   updateStudentSet,
 } from "@/app/api/studentflashcardset/stuflashcard.api";
 import { FlashcardSet } from "@/types/stuflashcardset";
+import { uploadImageCloud } from "@/app/api/image/image-upload.api";
 
 type FlashcardInForm = z.infer<typeof FlashcardSchema>;
 
@@ -48,6 +49,8 @@ export default function FlashcardEditModule() {
   const { data: session } = useSession();
   const [isSaving, startTransition] = useTransition();
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
+  const [imageFiles, setImageFiles] = useState<(File | null)[]>([]);
+
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -197,6 +200,48 @@ export default function FlashcardEditModule() {
     }
   };
 
+  const uploadImagesIfNeeded = async (
+    flashcards: FlashcardInForm[],
+    imageFiles: (File | null)[],
+  ): Promise<FlashcardInForm[]> => {
+    const updatedFlashcards = [...flashcards];
+
+    for (let i = 0; i < flashcards.length; i++) {
+      const file = imageFiles[i];
+      const isTempPreview =
+        flashcards[i].imageUrl && !flashcards[i].imageUrl?.startsWith("http");
+
+      if (file && file instanceof File && isTempPreview) {
+        const formData = new FormData();
+
+        formData.append("file", file);
+        const uploadedUrl = await uploadImageCloud(formData);
+
+        if (uploadedUrl) {
+          updatedFlashcards[i].imageUrl = uploadedUrl;
+
+          const currentFormValue = [...form.getValues().flashcards];
+
+          currentFormValue[i].imageUrl = uploadedUrl;
+          form.setValue("flashcards", currentFormValue);
+        }
+      }
+    }
+
+    return updatedFlashcards;
+  };
+
+  const handleImageSelect = (index: number, file: File) => {
+    const newImageFiles = [...imageFiles];
+
+    newImageFiles[index] = file;
+    setImageFiles(newImageFiles);
+
+    const previewUrl = URL.createObjectURL(file);
+
+    handleImageUpload(index, previewUrl);
+  };
+
   const handleImageUpload = (index: number, imageUrl: string) => {
     const updatedImageUrls = [...imageUrls];
 
@@ -299,17 +344,9 @@ export default function FlashcardEditModule() {
     }
 
     const updatedFlashcards = data.flashcards;
-    const oldFlashcard = updatedFlashcards.filter(
-      (flashcard) => flashcard.flashcardId,
-    );
     const newFlashcards = updatedFlashcards.filter(
       (flashcard) => !flashcard.flashcardId,
     );
-    const formattedNewFlashcards = newFlashcards.map((flashcard) => ({
-      japaneseDefinition: flashcard.japaneseDefinition,
-      vietEngTranslation: flashcard.vietEngTranslation,
-      imageUrl: flashcard.imageUrl,
-    }));
 
     startTransition(async () => {
       const isSetChanged =
@@ -334,13 +371,21 @@ export default function FlashcardEditModule() {
           toast.error("Có lỗi xảy ra khi cập nhật bộ flashcard");
         }
       }
+      const updatedNewFlashcards = await uploadImagesIfNeeded(
+        newFlashcards,
+        imageFiles,
+      );
+      const updatedChangedFlashcards = await uploadImagesIfNeeded(
+        changedFlashcards,
+        imageFiles,
+      );
 
       if (newFlashcards.length > 0) {
         try {
           const repsonse = await createFlashcards(
             session?.user.token as string,
             initialData?.studentSetId as number,
-            formattedNewFlashcards,
+            updatedNewFlashcards,
           );
 
           console.log(repsonse);
@@ -349,9 +394,9 @@ export default function FlashcardEditModule() {
         }
       }
 
-      if (changedFlashcards.length > 0) {
+      if (updatedChangedFlashcards.length > 0) {
         try {
-          for (const flashcard of changedFlashcards) {
+          for (const flashcard of updatedChangedFlashcards) {
             if (flashcard?.flashcardId) {
               const updateResponse = await updateFlashard(
                 session?.user.token as string,
@@ -569,7 +614,7 @@ export default function FlashcardEditModule() {
                       field={field}
                       handleDelete={handleDelete}
                       handleDeleteImage={handleDeleteImage}
-                      handleImageUpload={handleImageUpload}
+                      handleImageSelect={handleImageSelect}
                       index={index}
                       isSaving={isSaving}
                     />

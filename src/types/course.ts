@@ -38,6 +38,7 @@ export type CourseProgress = {
   currentLesson: {
     lessonId: number;
     studyPlan: StudyPlan;
+    lessonOrder: number;
   };
   completedLessons: number;
   totalStudyDate: number;

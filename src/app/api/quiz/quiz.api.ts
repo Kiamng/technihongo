@@ -1,5 +1,6 @@
 import axiosClient from "@/lib/axiosClient";
 import {
+  QuizAttemptStatusResponse,
   QuizData,
   QuizQuestionsResponse,
   StartAttemptResponse,
@@ -31,6 +32,33 @@ export interface TopRecentQuizAttemptsResponse {
   }[];
 }
 
+export interface QuizAttemptResponse {
+  attemptId: number;
+  quizId: number;
+  quizTitle: string;
+  score: number;
+  isPassed: boolean;
+  timeTaken: string;
+  isCompleted: boolean;
+  attemptNumber: number;
+  dateTaken: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  unansweredQuestions: number;
+  answers: {
+    questionId: number;
+    questionType: "Single_choice" | "Multiple_choice";
+    questionText: string;
+    selectedOptions: {
+      optionId: number;
+      optionText: string;
+    }[];
+    isCorrect: boolean;
+    explanation: string;
+  }[];
+}
+
 export interface ApiResponse {
   success: boolean;
   message: string;
@@ -40,38 +68,24 @@ export interface ApiResponse {
 export interface SubmitQuizResponse {
   success: boolean;
   message: string;
-  data: any;
+  data: {
+    attemptId: number;
+    attemptNumber: number;
+    completed: boolean;
+    dateTaken: string;
+    passed: boolean;
+    quizId: number;
+    remainingAttempts: number;
+    remainingWaitTime: number;
+    score: number;
+    timeTaken: string;
+  };
 }
 
 export interface QuizReviewResponse {
   success: boolean;
   message: string;
-  data: {
-    attemptId: number;
-    quizId: number;
-    quizTitle: string;
-    score: number;
-    isPassed: boolean;
-    timeTaken: string;
-    isCompleted: boolean;
-    attemptNumber: number;
-    dateTaken: string;
-    totalQuestions: number;
-    correctAnswers: number;
-    incorrectAnswers: number;
-    unansweredQuestions: number;
-    answers: {
-      questionId: number;
-      questionType: "Single_choice" | "Multiple_choice";
-      questionText: string;
-      selectedOptions: {
-        optionId: number;
-        optionText: string;
-      }[];
-      isCorrect: boolean;
-      explanation: string;
-    }[];
-  };
+  data: QuizAttemptResponse;
 }
 
 const ENDPOINT = {
@@ -81,6 +95,7 @@ const ENDPOINT = {
   SUBMIT_ATTEMPT: "/student-quiz-attempt/attempt",
   REVIEW_ATTEMPT: "/student-quiz-attempt/review",
   TOP_RECENT_ATTEMPTS: "/student-quiz-attempt/top-recent",
+  GET_QUIZ_ATTEMPT_STATUS: "/student-quiz-attempt/attemptStatus",
 };
 
 export const getAllQuizzes = async (token: string): Promise<QuizData[]> => {
@@ -216,4 +231,16 @@ export const getTopRecentQuizAttempts = async (
     console.error("Error fetching top recent quiz attempts:", error);
     throw error;
   }
+};
+
+export const getQuizAttemptStatus = async (
+  token: string,
+  quizId: number,
+): Promise<QuizAttemptStatusResponse> => {
+  const response = await axiosClient.get(
+    `${ENDPOINT.GET_QUIZ_ATTEMPT_STATUS}/${quizId}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+
+  return response.data.data;
 };

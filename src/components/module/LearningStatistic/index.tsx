@@ -2178,11 +2178,10 @@ export default function DailyTracker() {
                     {day.shortName}
                   </div>
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                      day.isCurrentDay
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${day.isCurrentDay
                         ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
                         : ""
-                    } ${day.completed ? "bg-white text-[#57D061]" : "bg-white/30"}`}
+                      } ${day.completed ? "bg-white text-[#57D061]" : "bg-white/30"}`}
                   >
                     {day.completed && <CheckCircle2 className="h-5 w-5" />}
                   </div>
@@ -2596,15 +2595,14 @@ export default function DailyTracker() {
                       </div>
                     </div>
                     <Badge
-                      className={`${getIconContainerBgColor(log.activityType.toLowerCase()).replace("bg-", "bg-")} ${
-                        log.activityType.toLowerCase() === "lesson"
+                      className={`${getIconContainerBgColor(log.activityType.toLowerCase()).replace("bg-", "bg-")} ${log.activityType.toLowerCase() === "lesson"
                           ? "text-indigo-800"
                           : log.activityType.toLowerCase() === "complete"
                             ? "text-green-800"
                             : log.activityType.toLowerCase() === "login"
                               ? "text-cyan-800"
                               : "text-gray-800"
-                      }`}
+                        }`}
                     >
                       {log.activityType}
                     </Badge>
