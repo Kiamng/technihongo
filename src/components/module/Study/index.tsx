@@ -35,7 +35,10 @@ import {
   getCourseAvailableStudyPlan,
   getStudentActiveStudyPlan,
 } from "@/app/api/StudyPlan/study-plan.api";
-import { getLessonsByStudyPlan } from "@/app/api/lesson/lesson.api";
+import {
+  getLessonResourceById,
+  getLessonsByStudyPlan,
+} from "@/app/api/lesson/lesson.api";
 import {
   completeLearningResource,
   completeSystemSet,
@@ -54,9 +57,9 @@ export default function StudyModule() {
   const courseId = Number(params.courseId);
   const lessonOrderParam = searchParams.get("lessonOrder");
   const lessonOrder = lessonOrderParam ? parseInt(lessonOrderParam, 10) : 1;
-  const initialPage = Math.floor((lessonOrder - 1) / 10);
   const lessonId = searchParams.get("lessonId");
-
+  const lessonResourceId = searchParams.get("lessonResourceId");
+  const initialPage = lessonResourceId ? 0 : Math.floor((lessonOrder - 1) / 10);
   //Loading
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingLR, setIsLoadingLR] = useState<boolean>(false);
@@ -533,9 +536,48 @@ export default function StudyModule() {
       return;
     }
     setIsLoading(true);
-    fetchData();
-    fetchStudentRating();
-  }, [session?.user.token, session?.user.studentId, courseId, lessonId]);
+    const fetchByLessonId = async () => {
+      await fetchData();
+      await fetchStudentRating();
+    };
+    const fetchByLessonResourceId = async () => {
+      try {
+        await Promise.all([fetchProgress(), fetchWithSubscriptionCheck()]);
+        await fetchAllAvailableStudyPlan();
+
+        const resource = await getLessonResourceById(
+          Number(lessonResourceId),
+          session.user.token,
+        );
+
+        if (resource) {
+          setCurrentLessonResource(resource);
+          setCurrentContentType(resource.type);
+        } else {
+          toast.error("Không tìm thấy tài nguyên học.");
+        }
+
+        await fetchStudentRating();
+      } catch (error) {
+        console.error("Lỗi khi xử lý lessonResourceId", error);
+        toast.error("Đã xảy ra lỗi khi tải tài nguyên học.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (lessonResourceId) {
+      fetchByLessonResourceId();
+    } else {
+      fetchByLessonId();
+    }
+  }, [
+    session?.user.token,
+    session?.user.studentId,
+    courseId,
+    lessonId,
+    lessonResourceId,
+  ]);
 
   if (isLoading) {
     return (
@@ -695,6 +737,7 @@ export default function StudyModule() {
                         className="w-full p-1"
                       >
                         <LessonResourceItem
+                          currentLessonResource={currentLessonResource}
                           handleChangeLR={handleChangeLR}
                           handleTrackFlashcardSet={handleTrackFlashcardSet}
                           handleTrackLearningResource={

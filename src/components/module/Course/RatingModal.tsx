@@ -97,6 +97,7 @@ export default function RatingModal({
                     {hasRated && onDelete && (
                         <Button
                             className=" hover:scale-105 duration-100"
+                            disabled={isSubmitting}
                             variant="destructive"
                             onClick={onDelete}
                         >
