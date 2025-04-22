@@ -258,7 +258,7 @@ export function LineChartComponent({
               }}
               stroke={strokeColor}
               strokeWidth={2}
-              type="natural"
+              type="monotone"
             >
               <LabelList
                 className="fill-foreground"
