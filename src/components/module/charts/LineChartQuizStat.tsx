@@ -242,7 +242,7 @@ export function LineChartComponent({
               dot={(props) => {
                 const payload = props.payload as LineChartData;
 
-                console.log("Rendering dot for:", payload);
+                // console.log("Rendering dot for:", payload);
                 const fill = fillKey ? payload[fillKey] : strokeColor;
 
                 return (

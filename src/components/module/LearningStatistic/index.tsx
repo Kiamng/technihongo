@@ -210,11 +210,14 @@ export default function DailyTracker() {
             studentId,
           }),
           getActivityLog({ token: session.user.token as string }),
-          getStudentLearningStats(session.user.token as string),
+          getStudentLearningStats(session.user.token as string).catch((err) => {
+            console.warn("Failed to fetch learning stats:", err);
+
+            return { weeklyStats: [], monthlyStats: [], yearlyStats: [] }; // Fallback
+          }),
           getStudentQuizStats(session.user.token as string),
         ]);
 
-      console.log("quiz data", quizData);
       const sortedWeeklyStats = learningStats.weeklyStats
         .map(({ date, studyTime, dailyGoalAchieved }) => ({
           date,
@@ -261,15 +264,14 @@ export default function DailyTracker() {
     setCurrentPage(nextPage);
   };
 
-  // Tự động gọi API trackLearningLog để tạo DailyLog mới
   const initializeDailyLog = async () => {
     if (!session?.user?.token) return;
     try {
       await trackLearningLog({
         token: session.user.token as string,
-        studyTime: 0, // Giá trị mặc định, có thể bỏ nếu API không yêu cầu
+        studyTime: 0,
       });
-      await fetchData(true); // Làm mới dữ liệu sau khi tạo DailyLog
+      await fetchData(true);
     } catch (error: any) {
       console.error("Error initializing daily log:", error);
       setError(error.message || "Không thể khởi tạo bản ghi học tập");
@@ -278,7 +280,7 @@ export default function DailyTracker() {
 
   useEffect(() => {
     if (status === "authenticated" && !dataFetchedRef.current) {
-      initializeDailyLog(); // Gọi API để tạo DailyLog khi trang tải
+      initializeDailyLog();
     }
   }, [session, status]);
 
@@ -370,6 +372,9 @@ export default function DailyTracker() {
             />
           </svg>
           {error}
+          <Button className="ml-4" onClick={handleRefresh}>
+            Thử lại
+          </Button>
         </div>
       </div>
     );
@@ -563,7 +568,7 @@ export default function DailyTracker() {
             <div>
               <h3 className="font-medium mb-4 flex items-center px-3 py-2 bg-gray-50 rounded-lg border-l-4 border-[#57D061]">
                 <Calendar className="h-5 w-5 mr-2 text-[#57D061]" />
-                {learningData?.logDate || "Hôm nay"}
+                {learningData ? learningData.logDate : "Hôm nay"}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <Card className="border shadow-sm overflow-hidden">
@@ -589,22 +594,21 @@ export default function DailyTracker() {
                 </Card>
                 <Card className="border shadow-sm overflow-hidden">
                   <div className="flex">
-                    <div className="bg-indigo-600 px-4 flex items-center justify-center">
-                      <BookOpen className="h-6 w-6 text-white" />
+                    <div className="bg-blue-50 px-4 flex items-center justify-center">
+                      <BookOpenText className="h-6 w-6 text-blue-700" />
                     </div>
                     <CardContent className="py-4">
                       <div className="font-medium text-lg">
                         Bài học hoàn thành
                       </div>
                       <div className="flex items-center mt-1">
-                        <span className="text-xl font-bold text-indigo-600">
+                        <span className="text-xl font-bold text-blue-700">
                           {learningData?.completedLessons || 0}
                         </span>
-                        <Badge className="ml-2 bg-indigo-100 text-indigo-800 hover:bg-indigo-200">
+                        <Badge className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-200">
                           {learningData?.completedLessons
                             ? `+${learningData?.completedLessons}`
-                            : "0"}{" "}
-                          hôm nay
+                            : "0"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -612,20 +616,19 @@ export default function DailyTracker() {
                 </Card>
                 <Card className="border shadow-sm overflow-hidden">
                   <div className="flex">
-                    <div className="bg-green-600 px-4 flex items-center justify-center">
-                      <FileText className="h-6 w-6 text-white" />
+                    <div className="bg-[#FFB600] bg-opacity-10 px-4 flex items-center justify-center">
+                      <BookOpenCheck className="h-6 w-6 text-[#FFB600]" />
                     </div>
                     <CardContent className="py-4">
                       <div className="font-medium text-lg">Quiz hoàn thành</div>
                       <div className="flex items-center mt-1">
-                        <span className="text-xl font-bold text-green-600">
+                        <span className="text-xl font-bold text-[#FFB600]">
                           {learningData?.completedQuizzes || 0}
                         </span>
-                        <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-200">
+                        <Badge className="ml-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
                           {learningData?.completedQuizzes
                             ? `+${learningData?.completedQuizzes}`
-                            : "0"}{" "}
-                          hôm nay
+                            : "0"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -633,22 +636,21 @@ export default function DailyTracker() {
                 </Card>
                 <Card className="border shadow-sm overflow-hidden">
                   <div className="flex">
-                    <div className="bg-amber-600 px-4 flex items-center justify-center">
-                      <BookOpenCheck className="h-6 w-6 text-white" />
+                    <div className="bg-[#FD5673] bg-opacity-10 px-4 flex items-center justify-center">
+                      <Youtube className="h-6 w-6 text-[#FD5673]" />
                     </div>
                     <CardContent className="py-4">
                       <div className="font-medium text-lg">
                         Tài liệu hoàn thành
                       </div>
                       <div className="flex items-center mt-1">
-                        <span className="text-xl font-bold text-amber-600">
+                        <span className="text-xl font-bold text-[#FD5673]">
                           {learningData?.completedResources || 0}
                         </span>
-                        <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200">
+                        <Badge className="ml-2 bg-red-100 text-red-800 hover:bg-red-200">
                           {learningData?.completedResources
                             ? `+${learningData?.completedResources}`
-                            : "0"}{" "}
-                          hôm nay
+                            : "0"}
                         </Badge>
                       </div>
                     </CardContent>
@@ -656,27 +658,28 @@ export default function DailyTracker() {
                 </Card>
                 <Card className="border shadow-sm overflow-hidden">
                   <div className="flex">
-                    <div className="bg-purple-600 px-4 flex items-center justify-center">
-                      <BookOpenCheck className="h-6 w-6 text-white" />
+                    <div className="bg-[#3AC6C6] bg-opacity-10 px-4 flex items-center justify-center">
+                      <Copy className="h-6 w-6 text-[#3AC6C6]" />
                     </div>
                     <CardContent className="py-4">
                       <div className="font-medium text-lg">
                         Bộ flashcard hoàn thành
                       </div>
                       <div className="flex items-center mt-1">
-                        <span className="text-xl font-bold text-purple-600">
+                        <span className="text-xl font-bold text-[#3AC6C6]">
                           {learningData?.completedFlashcardSets || 0}
                         </span>
-                        <Badge className="ml-2 bg-purple-100 text-purple-800 hover:bg-purple-200">
+                        <Badge className="ml-2 bg-cyan-100 text-cyan-800 hover:bg-cyan-200">
                           {learningData?.completedFlashcardSets
                             ? `+${learningData?.completedFlashcardSets}`
-                            : "0"}{" "}
-                          hôm nay
+                            : "0"}
                         </Badge>
                       </div>
                     </CardContent>
                   </div>
                 </Card>
+              </div>
+              <div className="space-y-8 mt-8">
                 <WeeklyStatsChart
                   data={weeklyStats}
                   description="Thời gian học trong 7 ngày gần nhất"
