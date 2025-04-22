@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import ChatbotWidget from "../Chatbot/chatbot";
+
 import AddStuFolderPopup from "./addstufolderpopup";
 import UpdateStuFolderPopup from "./updatestufolder";
 import PublicFlashcardSetList from "./public-flashcard-set";
@@ -299,19 +301,6 @@ export default function FlashcardModule() {
 
   return (
     <div className="relative min-h-screen bg-transparent">
-      {/* Ảnh nền */}
-      <div
-        className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url("https://i.imgur.com/Q9omoFa.jpeg")' }}
-      />
-      <img
-        alt="preload"
-        src="https://i.imgur.com/Q9omoFa.jpeg"
-        style={{ display: "none" }}
-        onError={() => console.log("Failed to load background image")}
-        onLoad={() => console.log("Background image loaded successfully")}
-      />
-
       {/* Thanh tìm kiếm và overlay */}
       <div className="max-w-[1200px] mx-auto pt-5 px-5 relative z-10">
         <div ref={searchContainerRef}>
@@ -642,6 +631,10 @@ export default function FlashcardModule() {
           )}
         </div>
         <PublicFlashcardSetList />
+        {/* Chatbot */}
+        <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
+          <ChatbotWidget userId={session?.user?.id || ""} />
+        </div>
 
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}

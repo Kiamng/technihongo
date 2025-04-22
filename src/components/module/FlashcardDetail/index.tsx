@@ -67,6 +67,15 @@ export default function FlashcardDetailModule({
   const creatorName =
     session?.user?.userName || `Student ${flashcardSet.studentSetId}`;
 
+  if (isReview) {
+    return (
+      <ReviewGame
+        flashcards={flashcardSet.flashcards}
+        onExit={() => setIsReview(false)}
+      />
+    );
+  }
+
   return (
     <div className="w-full space-y-20 min-h-screen pt-6">
       <TextHighlighterWithTranslate />
@@ -95,33 +104,24 @@ export default function FlashcardDetailModule({
               </div>
             </div>
 
-            {isReview ? (
-              <ReviewGame
-                flashcards={flashcardSet.flashcards}
-                onExit={() => setIsReview(false)}
-              />
+            {flashcardSet.flashcards.length > 0 ? (
+              <FlashcardList FlashcardList={flashcardSet.flashcards} />
             ) : (
-              <>
-                {flashcardSet.flashcards.length > 0 ? (
-                  <FlashcardList FlashcardList={flashcardSet.flashcards} />
-                ) : (
-                  <p>No flashcards available</p>
-                )}
-                {flashcardSet.flashcards.length > 0 && (
-                  <button
-                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:scale-105 transition duration-200"
-                    onClick={() => setIsReview(true)}
-                  >
-                    Học
-                  </button>
-                )}
-              </>
+              <p>No flashcards available</p>
+            )}
+            {flashcardSet.flashcards.length > 0 && (
+              <button
+                className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:scale-105 transition duration-200"
+                onClick={() => setIsReview(true)}
+              >
+                Học
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {!isReview && flashcardSet.flashcards.length > 0 ? (
+      {flashcardSet.flashcards.length > 0 ? (
         <TermList FlashcardList={flashcardSet.flashcards} />
       ) : null}
     </div>

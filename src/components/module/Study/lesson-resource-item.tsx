@@ -1,6 +1,7 @@
 import { Youtube, BookOpenCheck, Copy, CircleCheck } from "lucide-react";
 
 import { LessonResource } from "@/types/lesson-resource";
+import { useQuiz } from "@/components/core/common/providers/quiz-provider";
 
 interface LessonResourceListProps {
   lessonResource: LessonResource;
@@ -18,23 +19,17 @@ const resourceTypeConfig = {
     color: "#FD5673",
     icon: Youtube,
     getTitle: (res: LessonResource) => res.learningResource?.title,
-    editLink: (res: LessonResource, studyPlanId: number) =>
-      `${studyPlanId}/edit-lesson-resource/learning-resource/${res.learningResource?.resourceId}`,
   },
   Quiz: {
     color: "#FFB600",
     icon: BookOpenCheck,
     getTitle: (res: LessonResource) => res.quiz?.title,
-    editLink: (res: LessonResource, studyPlanId: number) =>
-      `${studyPlanId}/edit-lesson-resource/quiz/${res.quiz?.quizId}`,
   },
 
   FlashcardSet: {
     color: "#3AC6C6",
     icon: Copy,
     getTitle: (res: LessonResource) => res.systemFlashCardSet?.title,
-    editLink: (res: LessonResource, studyPlanId: number) =>
-      `${studyPlanId}/edit-lesson-resource/flashcard-set/${res.systemFlashCardSet?.systemSetId}`,
   },
 };
 
@@ -45,6 +40,16 @@ const LessonResourceItem = ({
   handleTrackFlashcardSet,
 }: LessonResourceListProps) => {
   const resource = resourceTypeConfig[lessonResource.type];
+  const { isQuizStarted, isSubmitted } = useQuiz();
+
+  const handleLinkClick = () => {
+    if (isQuizStarted && !isSubmitted) {
+      alert("Hãy hoàn thành bài kiểm tra của mình !");
+    } else {
+      handleChangeLR(lessonResource.type, lessonResource);
+      handleTrack();
+    }
+  };
 
   const handleTrack = async () => {
     if (lessonResource.type === "LearningResource") {
@@ -70,31 +75,26 @@ const LessonResourceItem = ({
   const title = getTitle(lessonResource) || "Untitled";
 
   return (
-    <>
-      <button
-        className="p-2 flex justify-between items-center hover:bg-slate-50 rounded-2xl w-full"
-        onClick={() => {
-          handleChangeLR(lessonResource.type, lessonResource);
-          handleTrack();
-        }}
-      >
-        <div className="flex items-center space-x-3 text-sm font-bold">
-          <div
-            className="p-[4px] rounded-full"
-            style={{ backgroundColor: `${color}1A`, color }}
-          >
-            <Icon size={16} />
-          </div>
-          <span>{title}</span>
+    <button
+      className="p-2 flex justify-between items-center hover:bg-green-50 rounded-2xl w-full dark:hover:bg-secondary duration-300 hover:transform hover:translate-y-[-2px]"
+      onClick={handleLinkClick}
+    >
+      <div className="flex items-center space-x-3 text-sm font-bold">
+        <div
+          className="p-[4px] rounded-full"
+          style={{ backgroundColor: `${color}1A`, color }}
+        >
+          <Icon size={16} />
         </div>
+        <span>{title}</span>
+      </div>
 
-        {lessonResource.progressCompleted ? (
-          <CircleCheck className="text-green-500" />
-        ) : (
-          <CircleCheck className="text-slate-500" />
-        )}
-      </button>
-    </>
+      {lessonResource.progressCompleted ? (
+        <CircleCheck className="text-green-500" />
+      ) : (
+        <CircleCheck className="text-slate-500" />
+      )}
+    </button>
   );
 };
 

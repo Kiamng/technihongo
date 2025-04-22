@@ -184,6 +184,25 @@ const QuizInformation = ({
                                 </svg>
                                 <span>Bạn có thể quay lại các câu hỏi trước đó để sửa đổi</span>
                             </li>
+                            <li className="flex items-start">
+                                <svg
+                                    className="h-5 w-5 text-[#57D061] mr-2 mt-0.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M5 13l4 4L19 7"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                    />
+                                </svg>
+                                <span>
+                                    Nếu bạn thoát bài kiểm tra thì bài sẽ được tự động nộp
+                                </span>
+                            </li>
                         </ul>
                     </div>
                     {quizAttemptStatus && (

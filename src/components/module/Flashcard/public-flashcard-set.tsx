@@ -1,13 +1,29 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  MoreVertical,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPublicFlashcardSets } from "@/app/api/studentfolder/stufolder.api";
+import {
+  getUserByStudentId,
+  cloneFlashcardSet,
+} from "@/app/api/studentflashcardset/stuflashcard.api";
 import { FlashcardSet } from "@/types/stuflashcardset";
-import { getUserByStudentId } from "@/app/api/studentflashcardset/stuflashcard.api";
 
 export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
@@ -15,13 +31,13 @@ export default function PublicFlashcardSetList() {
   const [userNames, setUserNames] = useState<{ [key: number]: string }>({});
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cloneLoading, setCloneLoading] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSetsAndUsers = async () => {
-      if (status === "loading") {
-        return;
-      }
-
+      if (status === "loading") return;
       if (!token) {
         console.error("Token is undefined");
 
@@ -29,13 +45,11 @@ export default function PublicFlashcardSetList() {
       }
 
       try {
-        // Lấy danh sách flashcard sets
         const data = await getPublicFlashcardSets(token);
 
         setSets(data);
 
-        // Lấy userName cho từng studentId
-        const studentIds = [...new Set(data.map((set) => set.studentId))]; // Loại bỏ trùng lặp
+        const studentIds = [...new Set(data.map((set) => set.studentId))];
         const userPromises = studentIds.map((studentId) =>
           getUserByStudentId(token, studentId)
             .then((user) => ({ studentId, userName: user.userName }))
@@ -45,7 +59,7 @@ export default function PublicFlashcardSetList() {
                 err,
               );
 
-              return { studentId, userName: "Unknown" }; // Giá trị mặc định nếu lỗi
+              return { studentId, userName: "Unknown" };
             }),
         );
 
@@ -70,6 +84,33 @@ export default function PublicFlashcardSetList() {
     fetchSetsAndUsers();
   }, [token, status]);
 
+  // Xử lý clone flashcard set
+  const handleClone = async (studentSetId: number) => {
+    if (!token) {
+      setError("Please log in to clone this set.");
+
+      return;
+    }
+
+    setCloneLoading(studentSetId);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const clonedSet = await cloneFlashcardSet(studentSetId, token);
+
+      setSuccess(`Flashcard set "${clonedSet.title}" cloned successfully!`);
+      // Không thêm vào danh sách vì đây là public sets, set mới sẽ thuộc về user
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to clone flashcard set.";
+
+      setError(errorMessage);
+    } finally {
+      setCloneLoading(null);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
       {/* Tiêu đề */}
@@ -82,6 +123,20 @@ export default function PublicFlashcardSetList() {
           <span className="text-2xl font-semibold">Public Flashcard Set</span>
         </div>
       </div>
+
+      {/* Thông báo */}
+      {success && (
+        <Alert className="mb-4">
+          <AlertTitle>Success</AlertTitle>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+      {error && (
+        <Alert className="mb-4" variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Nội dung */}
       {loading ? (
@@ -110,15 +165,17 @@ export default function PublicFlashcardSetList() {
                   {sets.map((set) => (
                     <div
                       key={set.studentSetId}
-                      className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col"
+                      className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col relative"
                     >
-                      <Link
-                        className="flex-grow"
-                        href={`/flashcard/${set.studentSetId}?studentId=${set.studentId}`}
-                      >
-                        <h3 className="text-lg font-semibold text-green-600 truncate">
-                          {set.title}
-                        </h3>
+                      {/* Container cho tiêu đề và các thông tin khác */}
+                      <div className="flex-grow">
+                        <Link
+                          href={`/flashcard/${set.studentSetId}?studentId=${set.studentId}`}
+                        >
+                          <h3 className="text-lg font-semibold text-green-600 truncate">
+                            {set.title}
+                          </h3>
+                        </Link>
                         <p className="text-sm text-gray-600 mt-1">
                           {set.flashcards?.length || 0} thuật ngữ
                         </p>
@@ -126,21 +183,39 @@ export default function PublicFlashcardSetList() {
                           <Eye className="w-4 h-4 mr-1" />
                           {set.totalViews || 0} lượt xem
                         </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          Created by:{" "}
+                          <Link
+                            className="hover:text-primary"
+                            href={`/flashcard/userFolder/${set.studentId}`}
+                          >
+                            {userNames[set.studentId]}
+                          </Link>
+                        </div>
+                      </div>
 
-                        {/* {set.description && (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                            {set.description}
-                          </p>
-                        )} */}
-                      </Link>
-                      <div className="text-sm text-gray-600 mt-1">
-                        Created by:{" "}
-                        <Link
-                          className="hover:text-primary"
-                          href={`/flashcard/userFolder/${set.studentId}`}
-                        >
-                          {userNames[set.studentId]}
-                        </Link>
+                      {/* Nút ba chấm ở góc trên bên phải */}
+                      <div className="absolute top-2 right-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreVertical className="h-5 w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2"
+                              disabled={cloneLoading === set.studentSetId}
+                              onClick={() => handleClone(set.studentSetId)}
+                            >
+                              {cloneLoading === set.studentSetId ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Clone"
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))}

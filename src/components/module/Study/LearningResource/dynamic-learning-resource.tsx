@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { LoaderCircle } from "lucide-react";
 
@@ -32,6 +32,7 @@ const DynamicLearningResource = ({
 }: DynamicLearningResourceProps) => {
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isLoading, startTransition] = useTransition();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const checkSave = async () => {
@@ -108,6 +109,7 @@ const DynamicLearningResource = ({
         <div className="relative w-full h-0 pb-[56.25%] bg-black">
           {/* eslint-disable jsx-a11y/media-has-caption */}
           <video
+            ref={videoRef}
             controls
             className="absolute top-0 left-0 w-full h-full object-contain rounded-xl"
             onTimeUpdate={handleVideoTimeUpdate}

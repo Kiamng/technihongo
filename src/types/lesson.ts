@@ -8,6 +8,7 @@ export type Lesson = {
   lessonOrder: number;
   createdAt: string;
   updatedAt: string | null;
+  studentProgress: number | null;
 };
 
 export type LessonList = {

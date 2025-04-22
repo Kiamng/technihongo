@@ -45,3 +45,19 @@ export type CourseProgress = {
   completedDate: Date;
   createdAt: Date;
 };
+
+export type CourseRating = {
+  ratingId: number;
+  studentId: number;
+  userName: string;
+  profileImg: string | null;
+  courseId: number;
+  rating: number;
+  review?: string;
+};
+
+export type CourseRatingResponse = {
+  success: boolean;
+  message: string;
+  data: CourseRating;
+};

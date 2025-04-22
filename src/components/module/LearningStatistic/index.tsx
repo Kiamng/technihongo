@@ -17,6 +17,9 @@ import {
   TrendingUp,
   GraduationCap,
   BookOpenCheck,
+  Youtube,
+  Copy,
+  BookOpenText,
 } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
@@ -484,32 +487,41 @@ export default function DailyTracker() {
               </span>
             </div>
             <Progress className="h-2 mb-4" value={progress} />
-            <div className="grid grid-cols-3 gap-4 mt-2">
+            <div className="grid grid-cols-4 gap-4 mt-2">
               <div className="flex flex-col bg-blue-50 p-3 rounded-lg">
                 <div className="flex items-center text-blue-700 mb-1">
-                  <BookOpen className="h-4 w-4 mr-1" />
+                  <BookOpenText className="h-4 w-4 mr-1" />
                   <span className="text-xs font-medium">Bài học</span>
                 </div>
                 <span className="text-lg font-bold">
                   {learningData?.completedLessons || 0}
                 </span>
               </div>
-              <div className="flex flex-col bg-indigo-50 p-3 rounded-lg">
-                <div className="flex items-center text-indigo-700 mb-1">
-                  <FileText className="h-4 w-4 mr-1" />
+              <div className="flex flex-col bg-[#FFB600] bg-opacity-10 p-3 rounded-lg">
+                <div className="flex items-center text-[#FFB600] mb-1">
+                  <BookOpenCheck className="h-4 w-4 mr-1" />
                   <span className="text-xs font-medium">Quiz</span>
                 </div>
                 <span className="text-lg font-bold">
                   {learningData?.completedQuizzes || 0}
                 </span>
               </div>
-              <div className="flex flex-col bg-green-50 p-3 rounded-lg">
-                <div className="flex items-center text-green-700 mb-1">
-                  <BookOpenCheck className="h-4 w-4 mr-1" />
-                  <span className="text-xs font-medium">Tài liệu</span>
+              <div className="flex flex-col bg-[#FD5673] bg-opacity-10 p-3 rounded-lg">
+                <div className="flex items-center text-[#FD5673] mb-1">
+                  <Youtube className="h-4 w-4 mr-1" />
+                  <span className="text-xs font-medium">Bài giảng</span>
                 </div>
                 <span className="text-lg font-bold">
                   {learningData?.completedResources || 0}
+                </span>
+              </div>
+              <div className="flex flex-col bg-[#3AC6C6] bg-opacity-10 p-3 rounded-lg">
+                <div className="flex items-center text-[#3AC6C6] mb-1">
+                  <Copy className="h-4 w-4 mr-1" />
+                  <span className="text-xs font-medium">Bộ flashcard</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {learningData?.completedFlashcardSets || 0}
                 </span>
               </div>
             </div>
@@ -553,7 +565,7 @@ export default function DailyTracker() {
                 <Calendar className="h-5 w-5 mr-2 text-[#57D061]" />
                 {learningData?.logDate || "Hôm nay"}
               </h3>
-              <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
                 <Card className="border shadow-sm overflow-hidden">
                   <div className="flex">
                     <div className="bg-blue-600 px-4 flex items-center justify-center">

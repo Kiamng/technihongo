@@ -27,6 +27,7 @@ import {
 } from "@/app/api/quiz/quiz.api";
 import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/components/core/common/providers/quiz-provider";
+import { trackStudentStudyTime } from "@/app/api/lesson/lesson.api";
 
 interface QuizContainerProps {
   quizData: QuizData;
@@ -183,8 +184,14 @@ export function QuizContainer({
       );
 
       fetchQuizAttemptStatus();
-      console.log("response :", submitResponse);
-      setTimeUsed(quizData.timeLimit * 60 - timeLeft);
+      const timeUsedInSeconds = quizData.timeLimit * 60 - timeLeft;
+      const roundedMinutes =
+        timeUsedInSeconds % 60 >= 50
+          ? Math.floor(timeUsedInSeconds / 60) + 1
+          : Math.floor(timeUsedInSeconds / 60);
+
+      setTimeUsed(timeUsedInSeconds);
+      trackStudentStudyTime(roundedMinutes, session.user.token);
       setReviewAttemptId(submitResponse.data.attemptId);
       setIsSubmitted(true);
       setIsSubmitting(false);
@@ -285,8 +292,24 @@ export function QuizContainer({
   useEffect(() => {
     setIsQuizStarted(false);
     setIsSubmitted(false);
+    setSelectedAnswers({});
     fetchQuizAttemptStatus();
   }, [session?.user?.token, quizData.quizId]);
+
+  useEffect(() => {
+    const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+      if (isQuizStarted && !isSubmitted) {
+        toast.warning("Bài kiểm tra của bạn đang được nộp !");
+        handleSubmit();
+      }
+    };
+
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
+  }, [isQuizStarted, isSubmitted, attemptData]);
 
   if (isLoading) {
     return <div>Đang tải dữ liệu...</div>;

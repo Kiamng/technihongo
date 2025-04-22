@@ -27,6 +27,8 @@ const ENDPOINT = {
   GET_USER_FROM_STUDENT: (studentId: number) =>
     `/user/getUserByStudentId/${studentId}`,
   ADD_FLASHCARD_FROM_LEARNING_RESOURCE: "/student-flashcard-set/from-resource",
+  CLONE_FLASHCARD_SET: (setId: number) =>
+    `/student-flashcard-set/clone/${setId}`,
 };
 
 export interface UsertoStudent {
@@ -51,6 +53,34 @@ export interface FlashcardSet {
   flashcards: Flashcard[];
   createdAt: Date;
 }
+export const cloneFlashcardSet = async (
+  setId: number,
+  token: string,
+): Promise<FlashcardSet> => {
+  if (!setId) throw new Error("Invalid setId");
+  if (!token) throw new Error("Invalid token");
+
+  try {
+    const response = await axiosClient.post(
+      ENDPOINT.CLONE_FLASHCARD_SET(setId),
+      {}, // body rỗng nếu không cần gửi gì
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    // Giả sử BE trả về response.data.data chứa dữ liệu FlashcardSet
+    return response.data.data;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || error.message || "Something went wrong";
+
+    console.error("Error cloning flashcard set:", errorMessage);
+    throw new Error(errorMessage);
+  }
+};
 export const getFlashcardSetsByStudentId = async (
   studentId: number,
   token: string,

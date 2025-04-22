@@ -58,8 +58,22 @@ const DynamicFlashcardSet = ({
     );
   }
 
+  if (isReview) {
+    return (
+      <div className="w-full space-y-20 min-h-screen mt-6">
+        <ReviewGame
+          flashcards={flashcardSet?.flashcards as Flashcard[]}
+          hanldeCompleteLessonResource={hanldeCompleteLessonResource}
+          isSystem={true}
+          lessonResource={lessonResource}
+          onExit={() => setIsReview(false)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full space-y-20 min-h-screen">
+    <div className="w-full space-y-20 min-h-screen mt-6">
       <div>
         <div
           className="px-8 py-4 text-white dark:text-inherit text-2xl font-bold w-fit mx-auto rounded-tl-3xl rounded-tr-3xl min-w-[765px]"
@@ -69,38 +83,25 @@ const DynamicFlashcardSet = ({
         </div>
         <div className="w-full flex justify-center">
           <div className="flashcard-app flex flex-col space-y-6 bg-white dark:bg-black p-10 w-fit rounded-2xl shadow-md dark:shadow-none min-w-[800px]">
-            {isReview ? (
-              <ReviewGame
-                flashcards={flashcardSet?.flashcards as Flashcard[]}
-                hanldeCompleteLessonResource={hanldeCompleteLessonResource}
-                isSystem={true}
-                lessonResource={lessonResource}
-                onExit={() => setIsReview(false)}
-              />
+            {flashcardSet?.flashcards.length &&
+              flashcardSet?.flashcards.length > 0 ? (
+              <FlashcardList FlashcardList={flashcardSet.flashcards} />
             ) : (
-              <>
-                {flashcardSet?.flashcards.length &&
-                  flashcardSet?.flashcards.length > 0 ? (
-                  <FlashcardList FlashcardList={flashcardSet.flashcards} />
-                ) : (
-                  <p>No flashcards available</p>
-                )}
-                {(flashcardSet?.flashcards?.length ?? 0) > 0 && (
-                  <button
-                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:scale-105 transition duration-200"
-                    onClick={() => setIsReview(true)}
-                  >
-                    Học
-                  </button>
-                )}
-              </>
+              <p>No flashcards available</p>
+            )}
+            {(flashcardSet?.flashcards?.length ?? 0) > 0 && (
+              <button
+                className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:scale-105 transition duration-200"
+                onClick={() => setIsReview(true)}
+              >
+                Học
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {!isReview &&
-        flashcardSet?.flashcards.length &&
+      {flashcardSet?.flashcards.length &&
         flashcardSet?.flashcards.length > 0 ? (
         <TermList FlashcardList={flashcardSet?.flashcards} />
       ) : null}
