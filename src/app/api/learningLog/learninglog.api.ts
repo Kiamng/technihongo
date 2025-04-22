@@ -55,6 +55,7 @@ const ENDPOINT = {
   VIEW_LOG: "/learning-log/view",
   VIEW_STATISTICS: "/statistics/view",
   VIEW_ACTIVITY_LOG: "/activity-log/student",
+  TRACK_LOG: "/learning-log/track",
 };
 
 export const getLearningLog = async ({
@@ -154,6 +155,40 @@ export const getActivityLog = async ({
     throw new Error(responseData.message || "No activity log data returned");
   } catch (error: any) {
     console.error("Error fetching activity log:", error);
+    throw error;
+  }
+};
+
+export const trackLearningLog = async ({
+  token,
+  studyTime,
+}: {
+  token: string;
+  studyTime: number;
+}): Promise<void> => {
+  try {
+    const response = await axiosClient.post(
+      `${ENDPOINT.TRACK_LOG}?studyTime=${studyTime}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const responseData = response.data as {
+      success: boolean;
+      message: string;
+      data: null;
+    };
+
+    if (!responseData.success) {
+      throw new Error(responseData.message || "Failed to track learning log");
+    }
+  } catch (error: any) {
+    console.error("Error tracking learning log:", error);
     throw error;
   }
 };
