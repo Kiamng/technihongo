@@ -9,6 +9,12 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { addFlashcardFromLearningResourece } from "@/app/api/studentflashcardset/stuflashcard.api";
+import { isMostlyJapanese } from "@/lib/validation/japanese";
+import {
+  containsEmoji,
+  containsSpecialChar,
+  isVietnameseOrEnglish,
+} from "@/lib/validation/viet-eng";
 
 interface QuickAddPopupProps {
   learningResourceId: number;
@@ -19,9 +25,24 @@ const QuickAddPopup = ({ learningResourceId, token }: QuickAddPopupProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddFlashcards = async () => {
+    setIsLoading(true);
     const lines = inputText.split("\n").filter((line) => line.trim() !== "");
+    let hasError = false;
     const flashcards = lines.map((line) => {
       const [japaneseDefinition, vietEngTranslation] = line.split("\t");
+      const jp = japaneseDefinition?.trim() || "";
+      const vi = vietEngTranslation?.trim() || "";
+
+      if (
+        !jp ||
+        !isMostlyJapanese(jp) ||
+        !vi ||
+        containsEmoji(vi) ||
+        containsSpecialChar(vi) ||
+        !isVietnameseOrEnglish(vi)
+      ) {
+        hasError = true;
+      }
 
       return {
         japaneseDefinition: japaneseDefinition?.trim() || "",
@@ -30,9 +51,15 @@ const QuickAddPopup = ({ learningResourceId, token }: QuickAddPopupProps) => {
       };
     });
 
-    console.log(flashcards);
+    if (hasError) {
+      setIsLoading(false);
+      toast.error(
+        "Từ vựng phải là tiếng Nhật, định nghĩa phải là tiếng Việt hoặc tiếng Anh. Không được chứa icon hoặc ký tự đặc biệt.",
+        { duration: 6000 },
+      );
 
-    setIsLoading(true);
+      return;
+    }
 
     try {
       const response = await addFlashcardFromLearningResourece(

@@ -1,6 +1,7 @@
 // src/app/api/lesson/lesson.api.ts
 import axiosClient from "@/lib/axiosClient";
 import { LessonList } from "@/types/lesson";
+import { LessonResource } from "@/types/lesson-resource";
 
 interface EnrollResponse {
   success: boolean;
@@ -14,6 +15,7 @@ const ENDPOINT = {
   CHECK_ENROLL: "/course-progress/check-enroll",
   TRACK_STUDENT_LESSON_PROGRESS: "/lesson-progress/track",
   TRACK_STUDENT_STUDY_TIME: "/learning-log/track",
+  GET_LESSON_RESOURCE_BY_ID: "/lesson-resource",
 };
 
 // Hàm kiểm tra trạng thái đăng ký
@@ -120,4 +122,20 @@ export const trackStudentStudyTime = async (
   );
 
   return response.data;
+};
+
+export const getLessonResourceById = async (
+  lessonResourceId: number,
+  token: string,
+): Promise<LessonResource> => {
+  const response = await axiosClient.get(
+    `${ENDPOINT.GET_LESSON_RESOURCE_BY_ID}/${lessonResourceId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data.data;
 };

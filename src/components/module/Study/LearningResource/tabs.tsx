@@ -6,12 +6,12 @@ import EmptyStateComponent from "@/components/core/common/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 interface LearningResourceTabsProps {
-  pdfUrl: string;
+  pdfPublicId: string;
   resourceId: number;
   token: string;
 }
 const LearningResourceTabs = ({
-  pdfUrl,
+  pdfPublicId,
   resourceId,
   token,
 }: LearningResourceTabsProps) => {
@@ -48,10 +48,10 @@ const LearningResourceTabs = ({
         </TabsTrigger>
       </TabsList>
       <TabsContent className="w-full min-h-[400px]" value="document">
-        {pdfUrl ? (
+        {pdfPublicId ? (
           <iframe
             className="w-full h-screen border"
-            src={pdfUrl}
+            src={`/api/pdf?publicId=${encodeURIComponent(pdfPublicId)}`}
             title="pdf review"
           />
         ) : (

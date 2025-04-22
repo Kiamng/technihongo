@@ -11,6 +11,7 @@ interface LessonResourceListProps {
   ) => Promise<void>;
   handleTrackLearningResource: (resourceId: number) => Promise<void>;
   handleTrackFlashcardSet: (setId: number) => Promise<void>;
+  currentLessonResource: LessonResource | undefined;
 }
 
 // Mapping giữa type và thuộc tính tương ứng
@@ -38,6 +39,7 @@ const LessonResourceItem = ({
   handleChangeLR,
   handleTrackLearningResource,
   handleTrackFlashcardSet,
+  currentLessonResource,
 }: LessonResourceListProps) => {
   const resource = resourceTypeConfig[lessonResource.type];
   const { isQuizStarted, isSubmitted } = useQuiz();
@@ -86,7 +88,17 @@ const LessonResourceItem = ({
         >
           <Icon size={16} />
         </div>
-        <span>{title}</span>
+        <span
+          className={
+            currentLessonResource &&
+              currentLessonResource.lessonResourceId ===
+              lessonResource.lessonResourceId
+              ? "text-primary"
+              : ""
+          }
+        >
+          {title}
+        </span>
       </div>
 
       {lessonResource.progressCompleted ? (

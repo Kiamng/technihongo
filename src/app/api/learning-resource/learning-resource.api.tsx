@@ -1,20 +1,20 @@
 import axiosClient from "@/lib/axiosClient";
-import { LearningResourceList } from "@/types/learning-resource";
+import { LessonResourceList } from "@/types/lesson-resource";
 
 const ENDPOINT = {
-  SAVE_LEARNING_RESOURCE: "/favorite/save?learningResourceId",
-  UNSAVE_LEARNING_RESOURCE: "/favorite/remove?learningResourceId",
-  CHECK_SAVE_LEARNING_RESOURCE: "/favorite/check?learningResourceId",
+  SAVE_LEARNING_RESOURCE: "/favorite/save?lessonResourceId",
+  UNSAVE_LEARNING_RESOURCE: "/favorite/remove?lessonResourceId",
+  CHECK_SAVE_LEARNING_RESOURCE: "/favorite/check?lessonResourceId",
   ADD_NOTE: "/resource-progress/note?resourceId",
   GET_FAVORITE_LEARNING_RESOURCE: "/favorite/view",
 };
 
 export const saveLearningResource = async (
-  learningResourceId: number,
+  lessonResourceId: number,
   token: string,
 ) => {
   const response = await axiosClient.post(
-    `${ENDPOINT.SAVE_LEARNING_RESOURCE}=${learningResourceId}`,
+    `${ENDPOINT.SAVE_LEARNING_RESOURCE}=${lessonResourceId}`,
     {},
     {
       headers: {
@@ -28,11 +28,11 @@ export const saveLearningResource = async (
 };
 
 export const unSaveLearningResource = async (
-  learningResourceId: number,
+  lessonResourceId: number,
   token: string,
 ) => {
   const response = await axiosClient.delete(
-    `${ENDPOINT.UNSAVE_LEARNING_RESOURCE}=${learningResourceId}`,
+    `${ENDPOINT.UNSAVE_LEARNING_RESOURCE}=${lessonResourceId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -45,11 +45,11 @@ export const unSaveLearningResource = async (
 };
 
 export const checkSaveLearningResource = async (
-  learningResourceId: number,
+  lessonResourceId: number,
   token: string,
 ): Promise<boolean> => {
   const response = await axiosClient.get(
-    `${ENDPOINT.CHECK_SAVE_LEARNING_RESOURCE}=${learningResourceId}`,
+    `${ENDPOINT.CHECK_SAVE_LEARNING_RESOURCE}=${lessonResourceId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ export const getFavoriteLearningResource = async ({
   pageSize?: number;
   sortBy?: string;
   sortDir?: string;
-}): Promise<LearningResourceList> => {
+}): Promise<LessonResourceList> => {
   const params = new URLSearchParams();
 
   if (pageNo) params.append("pageNo", pageNo.toString());

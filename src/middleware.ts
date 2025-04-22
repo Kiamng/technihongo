@@ -15,6 +15,7 @@ const authRoutes = [
   "/saved-content",
   "/transactions",
   "/subscription-history",
+  "/achievement",
 ];
 
 export default async function middleware(req: NextRequest) {
@@ -36,9 +37,13 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/Login", req.url));
   }
 
+  if (!isPublicRoute && !isAuthRoute) {
+    return NextResponse.redirect(new URL("/not_found", req.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|static|favicon.ico).*)"], // Loại trừ các route không cần middleware xử lý
+  matcher: ["/((?!api|_next|static|favicon.ico|not_found).*)"], // Loại trừ các route không cần middleware xử lý
 };

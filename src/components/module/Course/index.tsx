@@ -191,11 +191,11 @@ export default function CourseModule() {
           </div>
         </>
       )}
-      <h2 className="text-2xl font-bold">Khóa học gợi ý</h2>
+      <h2 className="text-2xl font-bold">Khóa học của TechNihongo</h2>
       <div className="w-full flex flex-row justify-between">
         <Input
           className="w-[300px]"
-          placeholder="Search name"
+          placeholder="Tìm tên"
           value={searchValue}
           onChange={handleSearchChange}
         />
@@ -203,13 +203,11 @@ export default function CourseModule() {
           <Select disabled={loading} onValueChange={handleDomainChange}>
             <SelectTrigger className="w-[300px]">
               <SelectValue
-                placeholder={
-                  loading ? "Loading domains ..." : "Select a domain"
-                }
+                placeholder={loading ? "Đang tải ..." : "Chọn lĩnh vực"}
               />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="None">None</SelectItem>
+              <SelectItem value="None">Trống</SelectItem>
               {memoizedDomains?.content.map((domain) => (
                 <SelectItem
                   key={domain.domainId}
@@ -223,11 +221,11 @@ export default function CourseModule() {
           <Select disabled={loading} onValueChange={handleLevelChange}>
             <SelectTrigger className="w-[300px]">
               <SelectValue
-                placeholder={loading ? "Loading level ..." : "Select a level"}
+                placeholder={loading ? "Đang tải ..." : "Chọn độ khó"}
               />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="None">None</SelectItem>
+              <SelectItem value="None">Trống</SelectItem>
               {memoizedDifficultyLevels.map((level) => (
                 <SelectItem
                   key={level.levelId}
