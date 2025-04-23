@@ -16,6 +16,8 @@ const authRoutes = [
   "/transactions",
   // "/subscription-history",
   "/achievement",
+  "/meeting",
+  "/translate",
 ];
 
 export default async function middleware(req: NextRequest) {
