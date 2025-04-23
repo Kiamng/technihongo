@@ -52,7 +52,6 @@ const dialogue: Script[] = [
             "特にありませんが、もし何か問題が発生した場合は、すぐに報告します。",
     },
 ];
-const SpeechSynthesis = window.speechSynthesis;
 
 export default function MeetingModule() {
     const [currentOrder, setCurrentOrder] = useState(0);
@@ -66,22 +65,25 @@ export default function MeetingModule() {
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedVoice, setSelectedVoice] =
         useState<SpeechSynthesisVoice | null>(null);
+    const [speechSynthesis, setSpeechSynthesis] =
+        useState<SpeechSynthesis | null>(null);
 
     // Lấy danh sách giọng nói khi nó đã được tải đầy đủ
     useEffect(() => {
-        const getVoices = () => {
-            const availableVoices = speechSynthesis.getVoices();
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+            setSpeechSynthesis(window.speechSynthesis); // Đặt speechSynthesis
+            const availableVoices = window.speechSynthesis.getVoices();
 
             setVoices(availableVoices);
             setIsLoading(false);
-        };
 
-        getVoices(); // Lấy giọng nói ngay khi bắt đầu
+            // Cập nhật giọng nói khi có sự thay đổi
+            window.speechSynthesis.onvoiceschanged = () => {
+                const updatedVoices = window.speechSynthesis.getVoices();
 
-        // Lắng nghe sự kiện khi giọng nói được tải hoàn tất
-        speechSynthesis.onvoiceschanged = () => {
-            getVoices(); // Cập nhật giọng nói khi có sự thay đổi
-        };
+                setVoices(updatedVoices);
+            };
+        }
     }, []);
 
     const selectRandomVoice = () => {
@@ -93,7 +95,7 @@ export default function MeetingModule() {
     };
 
     const handleSpeakQuestion = () => {
-        if (selectedVoice) {
+        if (selectedVoice && speechSynthesis) {
             speechSynthesis.cancel();
             speakQuestion(currentQuestion, selectedVoice);
         }
@@ -110,7 +112,7 @@ export default function MeetingModule() {
             utterance.voice = voice; // Thiết lập giọng nói cho câu hỏi
         }
         utterance.lang = "ja-JP"; // Đặt ngôn ngữ là tiếng Nhật
-        SpeechSynthesis.speak(utterance); // Phát âm câu hỏi
+        speechSynthesis?.speak(utterance); // Phát âm câu hỏi
     };
 
     useEffect(() => {
