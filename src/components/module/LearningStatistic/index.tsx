@@ -43,52 +43,6 @@ import {
   getStudentQuizStats,
 } from "@/app/api/dashboard/dashboard.api";
 
-interface LearningLog {
-  logId: number;
-  student: Student;
-  logDate: string;
-  studyTime: number;
-  completedLessons: number;
-  completedQuizzes: number;
-  completedResources: number;
-  completedFlashcardSets: number;
-  dailyGoalAchieved: boolean;
-  streak: number;
-  createdAt: string;
-}
-
-interface LearningStatistics {
-  learningStatId: number;
-  student: Student;
-  totalStudyTime: number;
-  totalCompletedCourses: number;
-  totalCompletedLessons: number;
-  totalCompletedQuizzes: number;
-  activeDaysCount: number;
-  maxDaysStreak: number;
-  totalAchievementsUnlocked: number;
-  lastStudyDate: string;
-  updatedAt: string;
-}
-
-interface Student {
-  studentId: number;
-  bio: string | null;
-  dailyGoal: number;
-  occupation: string;
-  reminderEnabled: boolean;
-  reminderTime: string | null;
-  difficultyLevel: string | null;
-  updatedAt: string;
-}
-
-interface ActivityLog {
-  logId: number;
-  description: string;
-  activityType: string;
-  createdAt: string;
-}
-
 interface WeeklyStat {
   date: string;
   studyTime: number;
@@ -267,14 +221,29 @@ export default function DailyTracker() {
   const initializeDailyLog = async () => {
     if (!session?.user?.token) return;
     try {
-      await trackLearningLog({
-        token: session.user.token as string,
-        studyTime: 0,
-      });
-      await fetchData(true);
+      // Kiểm tra xem bản ghi học tập đã tồn tại chưa
+      const currentDate = new Date().toISOString().split("T")[0];
+
+      try {
+        await getLearningLog({
+          token: session.user.token as string,
+          date: currentDate,
+        });
+        // Nếu bản ghi đã tồn tại, chuyển sang fetchData
+        await fetchData(true);
+      } catch (err) {
+        // Nếu bản ghi chưa tồn tại, gọi trackLearningLog trước
+        await trackLearningLog({
+          token: session.user.token as string,
+          studyTime: 0,
+        });
+        // Sau khi trackLearningLog hoàn tất, gọi fetchData
+        await fetchData(true);
+      }
     } catch (error: any) {
       console.error("Error initializing daily log:", error);
       setError(error.message || "Không thể khởi tạo bản ghi học tập");
+      setLoading(false);
     }
   };
 
