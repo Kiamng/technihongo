@@ -13,10 +13,11 @@ import {
 const ENDPOINT = {
   GET_ALL_FLASHCARD_SETS: `/student-flashcard-set/all`,
   GET_FLASHCARD_SET_BY_ID: (setId: number) =>
-    `/student-flashcard-set/getUserFlashcard/${setId}`,
+    `/student-flashcard-set/getAllFlashcardOfSet/${setId}`,
   GET_FLASHCARD_SETS_BY_STUDENT_ID: (studentId: number) =>
     `/student-flashcard-set/getStudentFlashcardSet/${studentId}`,
-  GET_STUDENT_FLASHCARD_SET_BY_ID: "/student-flashcard-set/getUserFlashcard",
+  GET_STUDENT_FLASHCARD_SET_BY_ID:
+    "/student-flashcard-set/getAllFlashcardOfSet",
   UPDATE_FLASHCARD_ORDER: "/student-flashcard-set/updateOrder",
   DELETE_FLASHCARD: "/flashcard/delete",
   CREATE_FLASHCARDS: "/flashcard",

@@ -2,7 +2,6 @@
 "use client";
 
 import {
-  Badge,
   BadgeJapaneseYen,
   ChartNoAxesColumn,
   Copy,
@@ -10,6 +9,7 @@ import {
   GraduationCap,
   Heart,
   Languages,
+  Mic,
   PackageOpenIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -75,11 +75,17 @@ export const NavItems = () => {
           icon: <Languages size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/translate"),
         },
+        // {
+        //   name: "Achievement",
+        //   href: "/achievement",
+        //   icon: <Badge size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/achievement"),
+        // },
         {
-          name: "Achievement",
-          href: "/achievement",
-          icon: <Badge size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/achievement"),
+          name: "Luyện tập hội thoại",
+          href: "/meeting",
+          icon: <Mic size={iconSize} strokeWidth={iconStroke} />,
+          active: isNavItemActive(pathname, "/meeting"),
         },
       ],
     },

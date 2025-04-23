@@ -20,6 +20,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
 
   // Hàm đọc nội dung mặt trước (tiếng Nhật)
   const SpeechQuestion = () => {
+    speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(japaneseDefinition);
 
     utterance.lang = "ja-JP";
