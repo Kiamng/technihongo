@@ -593,6 +593,7 @@ export const getCurrentSubscription = async (
       "Fetching current subscription from URL:",
       `${axiosClient.defaults.baseURL}${ENDPOINT.GET_CURRENT_PLAN}`,
     );
+
     const response = await axiosClient.get(ENDPOINT.GET_CURRENT_PLAN, {
       headers: {
         "Content-Type": "application/json",
@@ -607,16 +608,25 @@ export const getCurrentSubscription = async (
     if (responseData.success) {
       return responseData.data;
     }
+
     throw new Error(
       responseData.message || "Không thể lấy thông tin gói hiện tại",
     );
   } catch (error: any) {
+    // If it's a 404, silently handle it without console.error
+    if (error.response?.status === 404) {
+      console.log(
+        "No active subscription found - this is expected for new users",
+      );
+
+      return null;
+    }
+
+    // Only log errors that aren't 404
     console.error("Error fetching current subscription:", error);
-    if (error.response?.status === 404) return null;
     throw error;
   }
 };
-
 export const renewSubscription = async (
   subPlanId: number,
   token: string,

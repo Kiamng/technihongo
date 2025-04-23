@@ -45,9 +45,10 @@ export const SubscriptionPlanModule = () => {
         setPlans(subscriptionPlans);
 
         if (session?.user?.token) {
+          // Don't wrap this in try/catch as we're handling 404 inside getCurrentSubscription
           const currentSub = await getCurrentSubscription(session.user.token);
 
-          setCurrentSubscription(currentSub);
+          setCurrentSubscription(currentSub); // This can be null, which is fine
         }
       } catch (err: any) {
         console.error("Failed to fetch plans:", err);
@@ -63,7 +64,6 @@ export const SubscriptionPlanModule = () => {
 
     fetchPlans();
   }, [session?.user.token]);
-
   const activePlans = plans.filter((plan) => plan.active);
 
   const formatPrice = (price: number) => {
