@@ -99,17 +99,17 @@ export const NavItems = () => {
         //   active: isNavItemActive(pathname, "/abc"),
         // },
         {
-          name: "Lịch sử giao dịch",
+          name: "Giao dịch và gói hoạt động",
           href: "/transactions",
           icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/transactions"),
         },
-        {
-          name: "Các gói đang hoạt động",
-          href: "/subscription-history",
-          icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/subscription-history"),
-        },
+        // {
+        //   name: "Các gói đang hoạt động",
+        //   href: "/subscription-history",
+        //   icon: <FileChartPie size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/subscription-history"),
+        // },
       ],
     },
   ];

@@ -14,7 +14,7 @@ const authRoutes = [
   "/profile",
   "/saved-content",
   "/transactions",
-  "/subscription-history",
+  // "/subscription-history",
   "/achievement",
 ];
 

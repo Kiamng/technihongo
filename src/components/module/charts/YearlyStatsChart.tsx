@@ -36,19 +36,32 @@ interface YearlyStatsChartProps {
   title?: string;
   description?: string;
 }
-
+// const chartConfig: ChartConfig = {
+//   completedQuizzes: {
+//     label: "Quizzes",
+//     color: "#f97316", // Xanh dương nổi bật
+//   },
+//   completedResources: {
+//     label: "Resources",
+//     color: "#facc15", // Vàng sáng
+//   },
+//   completedFlashcardSets: {
+//     label: "Flashcardset",
+//     color: "#ef4444", // Đỏ rực
+//   },
+// };
 const chartConfig: ChartConfig = {
   completedQuizzes: {
     label: "Quizzes",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-1))", // Xanh dương nổi bật
   },
   completedResources: {
     label: "Resources",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-2))", // Vàng sáng
   },
   completedFlashcardSets: {
     label: "Flashcardset",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(var(--chart-3))", // Đỏ rực
   },
 };
 

@@ -43,3 +43,23 @@ interface ActivityLogResponse {
   message: string;
   data: ActivityLog[];
 }
+
+interface LearningStatistics {
+  learningStatId: number;
+  student: Student;
+  totalStudyTime: number;
+  totalCompletedCourses: number;
+  totalCompletedLessons: number;
+  totalCompletedQuizzes: number;
+  activeDaysCount: number;
+  maxDaysStreak: number;
+  totalAchievementsUnlocked: number;
+  lastStudyDate: string;
+  updatedAt: string;
+}
+
+interface LearningStatisticsResponse {
+  success: boolean;
+  message: string;
+  data: LearningStatistics;
+}
