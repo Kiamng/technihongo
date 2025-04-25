@@ -2,7 +2,7 @@
 
 export default function LoadingAnimation() {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
+    <div className="flex flex-col items-center justify-center w-full min-h-screen">
       <div className="flex items-center space-x-2 mb-4">
         <div
           className="w-3 h-3 bg-primary rounded-full animate-bounce"

@@ -20,28 +20,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { StudentTransactionList, Transaction } from "@/types/transaction";
 import { getStudentTransactions } from "@/app/api/transactions/transactions.api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Subscription } from "@/types/supbscription";
 import { getSubscriptionHistory } from "@/app/api/subscription/subscription.api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
-// Component Loading Animation
-const LoadingAnimation = () => {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 h-96">
-      <DotLottieReact
-        autoplay
-        loop
-        className="w-64 h-64"
-        src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-      />
-      <p className="text-gray-500 animate-pulse text-lg font-medium">
-        Đang tải dữ liệu...
-      </p>
-    </div>
-  );
-};
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export function TransactionHistory() {
   const { data: session, status } = useSession();
@@ -436,11 +420,7 @@ export function TransactionHistory() {
     (isLoadingTransactions && transactions.length === 0) ||
     (isLoadingSubscriptions && subscriptions.length === 0)
   ) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <LoadingAnimation />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (errorTransactions || errorSubscriptions) {
@@ -574,11 +554,10 @@ export function TransactionHistory() {
                       >
                         <div className="flex-shrink-0">
                           <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                              transaction.transactionAmount >= 0
+                            className={`w-12 h-12 rounded-full flex items-center justify-center ${transaction.transactionAmount >= 0
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
-                            }`}
+                              }`}
                           >
                             {transaction.transactionAmount >= 0 ? (
                               <ArrowDown className="w-6 h-6" />
@@ -607,11 +586,10 @@ export function TransactionHistory() {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <p
-                            className={`text-lg font-bold ${
-                              transaction.transactionAmount < 0
+                            className={`text-lg font-bold ${transaction.transactionAmount < 0
                                 ? "text-red-600"
                                 : "text-green-600"
-                            }`}
+                              }`}
                           >
                             {transaction.transactionAmount < 0 ? "" : "+"}
                             {formatAmount(transaction.transactionAmount)}

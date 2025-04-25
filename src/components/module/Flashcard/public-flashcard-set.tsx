@@ -27,6 +27,7 @@ import {
 import { FlashcardSet } from "@/types/stuflashcardset";
 import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import EmptyStateComponent from "@/components/core/common/empty-state";
 
 export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
@@ -154,14 +155,11 @@ export default function PublicFlashcardSetList() {
       ) : (
         <div className="mt-5 relative">
           {sets.length === 0 ? (
-            <div className="text-gray-500 text-center w-full py-5 bg-gray-50 bg-opacity-50 dark:bg-gray-700 rounded-lg border border-dashed flex flex-col items-center justify-center">
-              <img
-                alt="Empty public sets"
-                className="w-24 h-24 object-contain mb-3 opacity-70"
-                src="https://i.imgur.com/H82IgpA.jpeg"
-              />
-              <p>Không có bộ flashcard công khai nào</p>
-            </div>
+            <EmptyStateComponent
+              imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
+              message={"Hiện chưa có bộ flashcard nào trên hệ thống"}
+              size={100}
+            />
           ) : (
             <>
               <div className="relative overflow-hidden">

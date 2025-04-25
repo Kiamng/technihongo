@@ -212,7 +212,7 @@ const AchievementPage = () => {
     };
 
     fetchData();
-  }, [session, status, router]);
+  }, [session?.user.token, status, router]);
 
   useEffect(() => {
     if (newAchievement) {
@@ -337,11 +337,10 @@ const AchievementPage = () => {
                     <div
                       key={ach.achievementId}
                       aria-label={`Xem chi tiết ${ach.badgeName}`}
-                      className={`text-center p-2 rounded-lg transition-all cursor-pointer ${
-                        ach.achievedAt
+                      className={`text-center p-2 rounded-lg transition-all cursor-pointer ${ach.achievedAt
                           ? "bg-[#56D071]/20 border border-[#56D071]"
                           : "bg-gray-200 opacity-70"
-                      }`}
+                        }`}
                       role="button"
                       tabIndex={0}
                       onClick={() => openPopup(ach)}
@@ -448,7 +447,7 @@ const AchievementPage = () => {
                       sizes="100vw"
                       src={
                         isValidImageUrl(selectedAchievement.imageURL) &&
-                        selectedAchievement.imageURL
+                          selectedAchievement.imageURL
                           ? selectedAchievement.imageURL
                           : DEFAULT_ACHIEVEMENT_IMAGE
                       }

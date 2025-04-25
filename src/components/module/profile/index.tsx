@@ -12,6 +12,7 @@ import {
   updateUserNameFunction,
   updateUserProfile,
 } from "@/app/api/profile/profile.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export default function UserProfilePage() {
   const { data: session } = useSession();
@@ -123,11 +124,11 @@ export default function UserProfilePage() {
           "OTHER",
         ].includes(editableOccupation)
           ? (editableOccupation as
-              | "STUDENT"
-              | "EMPLOYED"
-              | "UNEMPLOYED"
-              | "FREELANCER"
-              | "OTHER")
+            | "STUDENT"
+            | "EMPLOYED"
+            | "UNEMPLOYED"
+            | "FREELANCER"
+            | "OTHER")
           : undefined,
         reminderEnabled: editableReminder,
         reminderTime: formattedReminderTime,
@@ -143,7 +144,7 @@ export default function UserProfilePage() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
+  if (loading) return <LoadingAnimation />;
   if (!user)
     return (
       <p className="text-center mt-10">Không tìm thấy dữ liệu người dùng.</p>
@@ -347,11 +348,10 @@ export default function UserProfilePage() {
         </div>
         {saveMessage && (
           <p
-            className={`mt-4 text-sm ${
-              saveMessage.includes("thành công")
+            className={`mt-4 text-sm ${saveMessage.includes("thành công")
                 ? "text-green-600"
                 : "text-red-500"
-            }`}
+              }`}
           >
             {saveMessage}
           </p>

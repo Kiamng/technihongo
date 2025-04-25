@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 import CourseCards from "./course-card";
 
@@ -23,17 +22,7 @@ import {
 } from "@/app/api/course/course.api";
 import { getAllDifficultyLevel } from "@/app/api/difficulty-level/difficulty-level.api";
 import { getChildrenDomain } from "@/app/api/domain/system.api";
-
-const LoadingAnimation = () => {
-  return (
-    <DotLottieReact
-      autoplay
-      loop
-      className="w-64 h-64"
-      src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-    />
-  );
-};
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export default function CourseModule() {
   const { data: session } = useSession();
@@ -174,6 +163,10 @@ export default function CourseModule() {
 
   const loading =
     isLoading || !memoizedDomains || !memoizedDifficultyLevels.length;
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
 
   return (
     <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
