@@ -39,7 +39,6 @@ import {
   deleteStuFolder,
 } from "@/app/api/studentfolder/stufolder.api"; // Import getStuFolder
 import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
-import { Separator } from "@/components/ui/separator";
 import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
@@ -115,6 +114,7 @@ export default function FlashcardModule() {
   >([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState<boolean>(true);
   const [loadingFlashcardSets, setLoadingFlashcardSets] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [updatingFolder, setUpdatingFolder] = useState<{
@@ -284,7 +284,7 @@ export default function FlashcardModule() {
   }, []);
 
   const handleLoading = useCallback((isLoading: boolean) => {
-    setLoading(isLoading);
+    setIsSearching(isLoading);
   }, []);
 
   const handleSearchStart = useCallback((isSearching: boolean) => {
@@ -314,13 +314,7 @@ export default function FlashcardModule() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="w-full">
-        <div className="flex justify-center items-center min-h-screen">
-          <LoadingAnimation />
-        </div>
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   return (
@@ -342,7 +336,7 @@ export default function FlashcardModule() {
         {/* Overlay kết quả tìm kiếm - Đặt bên dưới SearchFlashcardSets */}
         {isSearchActive && (
           <div className="relative mt-4 bg-white dark:bg-black rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
-            {loading ? (
+            {isSearching ? (
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500 mr-2" />
                 Đang tải...
@@ -353,7 +347,7 @@ export default function FlashcardModule() {
                   <>
                     <Link
                       key={set.studentSetId}
-                      className="block p-2 hover:bg-gray-100 dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300"
+                      className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
                       href={`/flashcard/${set.studentSetId}`}
                     >
                       <div className="flex items-center justify-between">
@@ -391,7 +385,6 @@ export default function FlashcardModule() {
                         </div>
                       </div>
                     </Link>
-                    <Separator />
                   </>
                 ))}
               </div>
@@ -543,7 +536,7 @@ export default function FlashcardModule() {
               ) : (
                 <EmptyStateComponent
                   imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
-                  message={"Bạn chưa có thư mực nào"}
+                  message={"Bạn chưa có thư mục nào"}
                   size={100}
                 />
               )}

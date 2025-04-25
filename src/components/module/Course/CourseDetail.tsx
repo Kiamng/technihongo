@@ -24,6 +24,7 @@ import {
 } from "@/app/api/course/course.api";
 import { CourseRating, CourseRatingResponse } from "@/types/course";
 import ReportPopup from "@/components/core/common/report-popup";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface LessonItem {
   title: string;
@@ -257,6 +258,7 @@ export default function CourseDetail({
 
       if (result.success) {
         toast.success("Đăng ký khóa học thành công!");
+        router.push(`/course/study/${courseId}`);
         setIsEnrolled(true);
       } else {
         toast.error(
@@ -434,7 +436,7 @@ export default function CourseDetail({
   };
 
   if (isLoadingPlans || (isLoadingLessons && pageNo === 0)) {
-    return <div className="container mx-auto p-6">Đang tải...</div>;
+    return <LoadingAnimation />;
   }
 
   if (errorPlans || errorLessons) {
