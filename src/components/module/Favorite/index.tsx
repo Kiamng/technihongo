@@ -79,7 +79,7 @@ export default function FavoriteModule() {
     if (isLoading) {
         return (
             <div className="w-full">
-                <div className="flex justify-center items-center h-64">
+                <div className="flex justify-center items-center min-h-screen">
                     <LoadingAnimation />
                 </div>
             </div>

@@ -9,6 +9,7 @@ import {
   CreateStudentFlashcardSetResponse,
   StudentFlashcardSet,
 } from "@/types/student-flashcard-set";
+import { UsertoStudent } from "@/types/profile";
 
 const ENDPOINT = {
   GET_ALL_FLASHCARD_SETS: `/student-flashcard-set/all`,
@@ -30,13 +31,9 @@ const ENDPOINT = {
   ADD_FLASHCARD_FROM_LEARNING_RESOURCE: "/student-flashcard-set/from-resource",
   CLONE_FLASHCARD_SET: (setId: number) =>
     `/student-flashcard-set/clone/${setId}`,
+  DELETE_STUDENT_SET: "/student-flashcard-set/delete",
 };
 
-export interface UsertoStudent {
-  userId: number;
-  userName: string;
-  email: string;
-}
 export interface Flashcard {
   flashcardId: number;
   japaneseDefinition: string;
@@ -47,6 +44,8 @@ export interface Flashcard {
 export interface FlashcardSet {
   studentId: number;
   studentSetId: number;
+  userName: string;
+  profileImg: string;
   title: string;
   description: string;
   totalViews: number;
@@ -357,6 +356,19 @@ export const addFlashcardFromLearningResourece = async (
       isPublic: false,
       flashcards: flashcards,
     },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const deleteStudentSet = async (token: string, setId: number) => {
+  const response = await axiosClient.delete(
+    `${ENDPOINT.DELETE_STUDENT_SET}/${setId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

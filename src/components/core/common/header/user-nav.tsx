@@ -31,7 +31,7 @@ export function UserNav(): JSX.Element | null {
           <Avatar className="h-8 w-8">
             <AvatarImage
               alt={session.user?.name ?? ""}
-              src={session.user?.image ?? ""}
+              src={session.user?.profileImg ?? ""}
             />
             <AvatarFallback>{session.user?.name?.[0]}</AvatarFallback>
           </Avatar>

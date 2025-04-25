@@ -58,6 +58,7 @@ const authOptions: NextAuthOptions = {
         token.studentId = user.studentId;
         token.userName = user.userName;
         token.email = user.email;
+        token.profileImg = user.profileImg;
         token.role = user.role;
         token.token = user.token;
       }
@@ -70,6 +71,7 @@ const authOptions: NextAuthOptions = {
         studentId: token.studentId,
         userName: token.userName,
         email: token.email,
+        profileImg: token.profileImg,
         role: token.role,
         token: token.token,
       };

@@ -40,7 +40,7 @@ const Navigation = () => {
   if (!isMounted) return null;
 
   return (
-    <div className="pr-4">
+    <div className="">
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",

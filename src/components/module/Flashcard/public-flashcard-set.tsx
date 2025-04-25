@@ -7,6 +7,7 @@ import {
   Eye,
   MoreVertical,
   Loader2,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,11 +25,15 @@ import {
   cloneFlashcardSet,
 } from "@/app/api/studentflashcardset/stuflashcard.api";
 import { FlashcardSet } from "@/types/stuflashcardset";
+import { UsertoStudent } from "@/types/profile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
   const token = session?.user?.token;
-  const [userNames, setUserNames] = useState<{ [key: number]: string }>({});
+  const [userNames, setUserNames] = useState<{ [key: number]: UsertoStudent }>(
+    {},
+  );
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [cloneLoading, setCloneLoading] = useState<number | null>(null);
@@ -52,25 +57,33 @@ export default function PublicFlashcardSetList() {
         const studentIds = [...new Set(data.map((set) => set.studentId))];
         const userPromises = studentIds.map((studentId) =>
           getUserByStudentId(token, studentId)
-            .then((user) => ({ studentId, userName: user.userName }))
+            .then((user) => ({ studentId, user })) // Lưu toàn bộ đối tượng người dùng
             .catch((err) => {
               console.error(
                 `Failed to fetch user for studentId ${studentId}`,
                 err,
               );
 
-              return { studentId, userName: "Unknown" };
+              return {
+                studentId,
+                user: {
+                  userId: 0,
+                  userName: "Unknown",
+                  email: "",
+                  profileImg: "",
+                },
+              }; // fallback
             }),
         );
 
         const userResults = await Promise.all(userPromises);
         const userMap = userResults.reduce(
-          (acc, { studentId, userName }) => {
-            acc[studentId] = userName;
+          (acc, { studentId, user }) => {
+            acc[studentId] = user;
 
             return acc;
           },
-          {} as { [key: number]: string },
+          {} as { [key: number]: UsertoStudent },
         );
 
         setUserNames(userMap);
@@ -112,17 +125,11 @@ export default function PublicFlashcardSetList() {
   };
 
   return (
-    <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
+    <div className="flex flex-col space-y-6 justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-black relative">
       {/* Tiêu đề */}
-      <div className="flex justify-between items-start">
-        <div
-          className="absolute top-[-20px] left-0 px-6 py-3 
-          bg-green-500 text-white rounded-t-2xl 
-          shadow-lg border border-green-700"
-        >
-          <span className="text-2xl font-semibold">Public Flashcard Set</span>
-        </div>
-      </div>
+      <span className="text-2xl font-semibold text-primary">
+        Các bộ flashcard trên hệ thống
+      </span>
 
       {/* Thông báo */}
       {success && (
@@ -165,32 +172,24 @@ export default function PublicFlashcardSetList() {
                   {sets.map((set) => (
                     <div
                       key={set.studentSetId}
-                      className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col relative"
+                      className="flex-shrink-0 w-[calc(33.33%-1rem)] h-40 p-4 border-[1px] border-primary rounded-lg bg-white dark:bg-secondary hover:shadow-md flex flex-col relative transform transition-all duration-300 hover:-translate-y-1"
                     >
                       {/* Container cho tiêu đề và các thông tin khác */}
                       <div className="flex-grow">
-                        <Link
-                          href={`/flashcard/${set.studentSetId}?studentId=${set.studentId}`}
-                        >
-                          <h3 className="text-lg font-semibold text-green-600 truncate">
+                        <Link href={`/flashcard/${set.studentSetId}`}>
+                          <h3 className="text-lg font-semibold truncate">
                             {set.title}
                           </h3>
                         </Link>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {set.flashcards?.length || 0} thuật ngữ
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500 mt-1">
-                          <Eye className="w-4 h-4 mr-1" />
-                          {set.totalViews || 0} lượt xem
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          Created by:{" "}
-                          <Link
-                            className="hover:text-primary"
-                            href={`/flashcard/userFolder/${set.studentId}`}
-                          >
-                            {userNames[set.studentId]}
-                          </Link>
+                        <div className="flex flex-row space-x-2 mt-2">
+                          <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.flashcards?.length || 0}</span>{" "}
+                            <Copy className="w-4 h-4" />
+                          </div>
+                          <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.totalViews || 0}</span>
+                            <Eye className="w-4 h-4" />
+                          </div>
                         </div>
                       </div>
 
@@ -217,12 +216,32 @@ export default function PublicFlashcardSetList() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
+
+                      <div className="mt-auto flex flex-row space-x-2 items-center">
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage
+                            alt="@shadcn"
+                            src={
+                              userNames[set.studentId]?.profileImg || "Unknown"
+                            }
+                          />
+                          <AvatarFallback>
+                            {userNames[set.studentId].userName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <Link
+                          className="hover:text-primary text-sm dark:text-white font-bold"
+                          href={`/flashcard/userFolder/${set.studentId}`}
+                        >
+                          {userNames[set.studentId]?.userName || "Unknown"}
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {sets.length > 4 && (
+              {sets.length > 3 && (
                 <div className="flex justify-center space-x-4 mt-4">
                   <Button
                     size="icon"
@@ -232,7 +251,11 @@ export default function PublicFlashcardSetList() {
                         "public-sets-carousel",
                       );
 
-                      if (carousel) carousel.scrollLeft -= 300;
+                      if (carousel) {
+                        const setWidth = carousel.offsetWidth / 3;
+
+                        carousel.scrollLeft -= setWidth;
+                      }
                     }}
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -245,7 +268,11 @@ export default function PublicFlashcardSetList() {
                         "public-sets-carousel",
                       );
 
-                      if (carousel) carousel.scrollLeft += 300;
+                      if (carousel) {
+                        const setWidth = carousel.offsetWidth / 3;
+
+                        carousel.scrollLeft += setWidth;
+                      }
                     }}
                   >
                     <ChevronRight className="h-4 w-4" />
