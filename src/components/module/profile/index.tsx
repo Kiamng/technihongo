@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { CalendarIcon, User2Icon, Camera } from "lucide-react";
+import { CalendarIcon, User2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
+
+import UpdateImageComponent from "./update-img";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +15,12 @@ import {
   updateUserProfile,
 } from "@/app/api/profile/profile.api";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
+import { useUser } from "@/components/core/common/providers/user-provider";
 
 export default function UserProfilePage() {
   const { data: session } = useSession();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { setUserName } = useUser();
+  const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false); // Thêm trạng thái lưu
 
@@ -73,7 +77,7 @@ export default function UserProfilePage() {
       const data = response.data;
 
       console.log("User data from API:", data);
-      setUser(data);
+      setUserData(data);
       setEditableUserName(data.userName);
       setEditableBio(data.student?.bio || "");
       setEditableDob(data.dob || "");
@@ -96,7 +100,7 @@ export default function UserProfilePage() {
   }, [session, fetchUserData]);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!userData) return;
     if (!validateUserName(editableUserName)) return;
 
     setIsSaving(true);
@@ -105,15 +109,15 @@ export default function UserProfilePage() {
     try {
       const token = session?.user.token as string;
 
-      if (editableUserName !== user.userName) {
-        await updateUserNameFunction(token, user.userId, editableUserName);
+      if (editableUserName !== userData.userName) {
+        await updateUserNameFunction(token, userData.userId, editableUserName);
       }
 
       const formattedReminderTime = editableReminder
         ? `${editableReminderTime}:00`
         : null;
 
-      await updateUserProfile(token, user.userId, {
+      await updateUserProfile(token, userData.userId, {
         bio: editableBio,
         dob: editableDob,
         occupation: [
@@ -134,6 +138,8 @@ export default function UserProfilePage() {
         reminderTime: formattedReminderTime,
       });
 
+      setUserName(editableUserName);
+
       await fetchUserData(); // Cập nhật dữ liệu mà không reload
       setSaveMessage("Cập nhật thông tin thành công!");
     } catch (error) {
@@ -145,7 +151,7 @@ export default function UserProfilePage() {
   };
 
   if (loading) return <LoadingAnimation />;
-  if (!user)
+  if (!userData)
     return (
       <p className="text-center mt-10">Không tìm thấy dữ liệu người dùng.</p>
     );
@@ -161,33 +167,14 @@ export default function UserProfilePage() {
             </p>
           </div>
         </div>
-
-        <div className="relative mt-4 inline-block">
-          <div className="w-16 h-16 rounded-full bg-white p-1">
-            <div className="w-full h-full rounded-full bg-[#56D071]/20 flex items-center justify-center overflow-hidden">
-              {user.profileImg ? (
-                <img
-                  alt="Profile avatar"
-                  height={60}
-                  src={user.profileImg}
-                  width={60}
-                />
-              ) : (
-                <img
-                  alt="Profile avatar"
-                  height={60}
-                  src="/assets/images/logo.png"
-                  width={60}
-                />
-              )}
-            </div>
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-[#56D071]">
-            <Camera className="w-4 h-4" />
-          </div>
-        </div>
+        <UpdateImageComponent user={userData} />
       </div>
-
+      <img
+        alt="hello"
+        height={100}
+        src={session?.user.profileImg}
+        width={100}
+      />
       <div className="border-b">
         <div className="flex">
           <div className="px-6 py-3 border-b-2 border-[#56D071] text-[#56D071] font-medium">
@@ -237,7 +224,7 @@ export default function UserProfilePage() {
               className="bg-gray-100"
               id="email"
               type="email"
-              value={user.email}
+              value={userData.email}
             />
           </div>
 
