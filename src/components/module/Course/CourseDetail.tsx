@@ -75,7 +75,12 @@ export default function CourseDetail({
     error: errorPlans,
   } = useStudyPlans(courseId, session?.user?.token);
 
-  const selectedStudyPlanId = studyPlans?.[0]?.studyPlanId || 5;
+  // Chỉ chọn selectedStudyPlanId khi studyPlans đã được tải
+  const selectedStudyPlanId = studyPlans?.[0]?.studyPlanId;
+
+  console.log("courseId:", courseId);
+  console.log("studyPlans:", studyPlans);
+  console.log("selectedStudyPlanId:", selectedStudyPlanId);
 
   const [pageNo, setPageNo] = useState(0);
   const pageSize = 3;
@@ -102,6 +107,7 @@ export default function CourseDetail({
     null,
   );
 
+  // Gọi useLessons vô điều kiện
   const {
     lessons,
     isLoading: isLoadingLessons,
@@ -110,6 +116,8 @@ export default function CourseDetail({
     pageNo,
     pageSize,
   });
+
+  console.log("lessons:", lessons);
 
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
   const [selectedSection, setSelectedSection] = useState<number>(0);
@@ -142,6 +150,14 @@ export default function CourseDetail({
       }
     }
   };
+
+  // Reset allLessons khi selectedStudyPlanId thay đổi
+  useEffect(() => {
+    setAllLessons([]); // Làm mới danh sách bài học
+    setDisplayedLessons([]); // Làm mới danh sách hiển thị
+    setPageNo(0); // Reset pageNo để bắt đầu lại từ trang đầu
+    setHasMore(true); // Đặt lại hasMore để cho phép tải thêm
+  }, [selectedStudyPlanId]);
 
   useEffect(() => {
     const checkEnrollment = async () => {
@@ -197,7 +213,7 @@ export default function CourseDetail({
     fetchAverageRating();
     fetchCourseRatings();
     fetchStudentRating();
-  }, [courseId, session?.user?.token]);
+  }, [courseId, session?.user?.token, ratingsPageSize]);
 
   useEffect(() => {
     if (lessons?.content) {
@@ -207,15 +223,17 @@ export default function CourseDetail({
         isLocked: !studyPlans?.[0]?.active,
       }));
 
+      console.log("newLessons:", newLessons);
+
       setAllLessons((prev) => {
-        // Lọc bài học trùng lặp dựa trên tiêu đề
         const existingTitles = new Set(prev.map((lesson) => lesson.title));
         const uniqueNewLessons = newLessons.filter(
           (lesson) => !existingTitles.has(lesson.title),
         );
         const updatedLessons = [...prev, ...uniqueNewLessons];
 
-        // Cập nhật displayedLessons với số bài học cần hiển thị
+        console.log("updatedLessons:", updatedLessons);
+
         const totalDisplay = (pageNo + 1) * pageSize;
 
         setDisplayedLessons(updatedLessons.slice(0, totalDisplay));
@@ -223,7 +241,6 @@ export default function CourseDetail({
         return updatedLessons;
       });
 
-      // Kiểm tra hasMore
       const totalPages =
         lessons.totalPages || Math.ceil(lessons.totalElements / pageSize) || 1;
 
@@ -489,10 +506,11 @@ export default function CourseDetail({
                 (chapter: Chapter, chapterIndex: number) => (
                   <div
                     key={chapterIndex}
-                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${selectedChapter === chapterIndex
+                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
+                      selectedChapter === chapterIndex
                         ? "bg-green-100"
                         : "bg-gray-100"
-                      }`}
+                    }`}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedChapter(chapterIndex)}
@@ -515,10 +533,11 @@ export default function CourseDetail({
                           (section: Section, sectionIndex: number) => (
                             <div
                               key={`${chapterIndex}-${sectionIndex}`}
-                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${selectedSection === sectionIndex
+                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
+                                selectedSection === sectionIndex
                                   ? "bg-green-200"
                                   : "bg-gray-50"
-                                }`}
+                              }`}
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {
@@ -591,14 +610,6 @@ export default function CourseDetail({
                   onClick={handleLoadMore}
                 >
                   {isLoadingLessons ? "Đang tải..." : "Tải thêm"}
-                </Button>
-              )}
-              {displayedLessons.length > pageSize && (
-                <Button
-                  className="hover:scale-105 duration-100"
-                  onClick={handleCollapse}
-                >
-                  Thu gọn
                 </Button>
               )}
             </div>
@@ -679,15 +690,6 @@ export default function CourseDetail({
               </Button>
             )}
 
-            {/* <div className="mt-4">
-              <button
-                className="w-full hover:scale-105 duration-300 text-orange-500 border-[1px] border-orange-500 rounded-full p-2 hover:border-orange-400 hover:text-orange-400"
-                onClick={openRatingModal}
-              >
-                {hasRated ? "Chỉnh sửa đánh giá" : "Đánh giá khóa học"}
-              </button>
-            </div> */}
-
             <div className="mt-4">
               <h3 className="font-bold mb-3">Mục tiêu khóa học</h3>
               <div className="space-y-2">
@@ -753,13 +755,13 @@ export default function CourseDetail({
                         </div>
                         {rating.studentId !==
                           Number(session?.user.studentId) && (
-                            <button
-                              className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
-                              onClick={() => handleReportRating(rating)}
-                            >
-                              <Flag size={20} strokeWidth={1} />
-                            </button>
-                          )}
+                          <button
+                            className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
+                            onClick={() => handleReportRating(rating)}
+                          >
+                            <Flag size={20} strokeWidth={1} />
+                          </button>
+                        )}
                       </div>
                       <p className="text-gray-600">{rating.review}</p>
                     </div>
