@@ -2,12 +2,6 @@ import { LandPlot } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-} from "@/components/ui/card";
 import { LearningPath } from "@/types/learningpath";
 
 interface LearningPathCardProps {
@@ -15,21 +9,24 @@ interface LearningPathCardProps {
 }
 const LearningPathCard = ({ learningPath }: LearningPathCardProps) => {
     return (
-        <Card className=" h-[220px] flex flex-col p-5 bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-2">
-            <CardHeader className="p-0 flex-1">
-                <CardTitle className="text-primary font-bold text-xl line-clamp-1">
+        <div className=" flex flex-col p-5 bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 space-y-2">
+            <div className="p-0 flex-1">
+                <h1 className="text-primary font-bold text-xl line-clamp-1">
                     {learningPath.title}
-                </CardTitle>
-                <CardDescription className="text-gray-600 text-sm mt-2 line-clamp-2">
+                </h1>
+                <span className="text-gray-600 text-sm mt-2 line-clamp-2">
                     {learningPath.description}
-                </CardDescription>
-            </CardHeader>
-            <div className="flex items-center gap-2 text-sm text-gray-500 mt-3">
-                <LandPlot className="w-5 h-5 text-primary" />
-                <span>{learningPath.totalCourses} khóa học</span>
+                </span>
             </div>
-            <div className="mt-2 text-gray-500 text-xs">
-                {new Date(learningPath.createdAt).toLocaleDateString()}
+
+            <div className="w-full flex flex-row justify-between items-center">
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-3">
+                    <LandPlot className="w-5 h-5 text-primary" />
+                    <span>{learningPath.totalCourses} khóa học</span>
+                </div>
+                <span className="bg-[#f0f8f3] font-medium px-3 py-1 rounded-full text-[#459a58] text-xs w-fit">
+                    {learningPath.domain.name}
+                </span>
             </div>
             <Link href={`/learning-path/${learningPath.pathId}`}>
                 <Button
@@ -40,7 +37,7 @@ const LearningPathCard = ({ learningPath }: LearningPathCardProps) => {
                     Xem chi tiết
                 </Button>
             </Link>
-        </Card>
+        </div>
     );
 };
 
