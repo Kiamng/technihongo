@@ -146,6 +146,7 @@ const DynamicLearningResource = ({
             disablePictureInPicture
             className="absolute top-0 left-0 w-full h-full object-contain rounded-xl"
             controlsList="nodownload"
+            preload="auto"
             onEnded={handleVideoEnded}
             onTimeUpdate={handleVideoTimeUpdate}
           >
@@ -153,6 +154,10 @@ const DynamicLearningResource = ({
               src={`/api/video?publicId=${encodeURIComponent(videoPublicId as string)}`}
               type="video/mp4"
             />
+            {/* <source
+              src={lessonResource.learningResource.videoUrl}
+              type="video/mp4"
+            /> */}
           </video>
           {/* eslint-disable jsx-a11y/media-has-caption */}
         </div>

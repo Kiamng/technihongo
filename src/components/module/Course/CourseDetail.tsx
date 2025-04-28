@@ -751,12 +751,15 @@ export default function CourseDetail({
                             ))}
                           </div>
                         </div>
-                        <button
-                          className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
-                          onClick={() => handleReportRating(rating)}
-                        >
-                          <Flag size={20} strokeWidth={1} />
-                        </button>
+                        {rating.studentId !==
+                          Number(session?.user.studentId) && (
+                            <button
+                              className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
+                              onClick={() => handleReportRating(rating)}
+                            >
+                              <Flag size={20} strokeWidth={1} />
+                            </button>
+                          )}
                       </div>
                       <p className="text-gray-600">{rating.review}</p>
                     </div>
