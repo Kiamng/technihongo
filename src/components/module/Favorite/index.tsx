@@ -77,13 +77,7 @@ export default function FavoriteModule() {
     }, [session?.user.token]);
 
     if (isLoading) {
-        return (
-            <div className="w-full">
-                <div className="flex justify-center items-center h-64">
-                    <LoadingAnimation />
-                </div>
-            </div>
-        );
+        return <LoadingAnimation />;
     }
 
     return (

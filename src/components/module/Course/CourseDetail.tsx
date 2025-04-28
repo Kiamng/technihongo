@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, PlayCircle } from "lucide-react";
+import { Flag, Lock, PlayCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
@@ -23,6 +23,7 @@ import {
   deleteCourseRating,
 } from "@/app/api/course/course.api";
 import { CourseRating, CourseRatingResponse } from "@/types/course";
+import ReportPopup from "@/components/core/common/report-popup";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface LessonItem {
@@ -120,6 +121,16 @@ export default function CourseDetail({
 
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
   const [selectedSection, setSelectedSection] = useState<number>(0);
+
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState<boolean>(false);
+  const [selectedRating, setSelectedRating] = useState<CourseRating | null>(
+    null,
+  );
+
+  const handleReportRating = (rating: CourseRating) => {
+    setSelectedRating(rating);
+    setIsFlagModalOpen(true);
+  };
 
   // Hàm lấy đánh giá của người dùng
   const fetchStudentRating = async () => {
@@ -264,6 +275,7 @@ export default function CourseDetail({
 
       if (result.success) {
         toast.success("Đăng ký khóa học thành công!");
+        router.push(`/course/study/${courseId}`);
         setIsEnrolled(true);
       } else {
         toast.error(
@@ -721,24 +733,35 @@ export default function CourseDetail({
                       key={rating.ratingId}
                       className="border border-gray-200 rounded-lg p-4"
                     >
-                      <div className="flex items-center mb-2">
-                        <span className="font-semibold mr-2">
-                          {rating.userName}
-                        </span>
-                        <div className="flex text-orange-500">
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={
-                                i < rating.rating
-                                  ? "text-orange-500"
-                                  : "text-gray-300"
-                              }
-                            >
-                              ★
-                            </span>
-                          ))}
+                      <div className="w-full flex justify-between">
+                        <div className="flex items-center mb-2">
+                          <span className="font-semibold mr-2">
+                            {rating.userName}
+                          </span>
+                          <div className="flex text-orange-500">
+                            {[...Array(5)].map((_, i) => (
+                              <span
+                                key={i}
+                                className={
+                                  i < rating.rating
+                                    ? "text-orange-500"
+                                    : "text-gray-300"
+                                }
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
                         </div>
+                        {rating.studentId !==
+                          Number(session?.user.studentId) && (
+                          <button
+                            className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
+                            onClick={() => handleReportRating(rating)}
+                          >
+                            <Flag size={20} strokeWidth={1} />
+                          </button>
+                        )}
                       </div>
                       <p className="text-gray-600">{rating.review}</p>
                     </div>
@@ -759,6 +782,17 @@ export default function CourseDetail({
           </div>
         </div>
       </div>
+
+      {isFlagModalOpen && selectedRating && (
+        <ReportPopup
+          contentId={selectedRating.ratingId}
+          rating={selectedRating}
+          token={session?.user?.token || ""}
+          type="Rating"
+          onClose={setIsFlagModalOpen}
+          onOpen={isFlagModalOpen}
+        />
+      )}
 
       {/* Rating Modal */}
       <RatingModal

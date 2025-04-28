@@ -951,7 +951,6 @@ import {
   Copy,
   BookOpenText,
 } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 import { WeeklyStatsChart } from "../charts/WeeklyStatsChart";
 import { YearlyStatsChart } from "../charts/YearlyStatsChart";
@@ -972,6 +971,7 @@ import {
   getStudentLearningStats,
   getStudentQuizStats,
 } from "@/app/api/dashboard/dashboard.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface WeeklyStat {
   date: string;
@@ -998,20 +998,6 @@ interface LearningStats {
   monthlyStats: any[];
   yearlyStats: YearlyStat[];
 }
-
-const LoadingAnimation = () => {
-  return (
-    <div className="flex flex-col items-center">
-      <DotLottieReact
-        autoplay
-        loop
-        className="w-40 h-40"
-        src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-      />
-      <p className="text-gray-500 mt-2 animate-pulse">Đang tải dữ liệu...</p>
-    </div>
-  );
-};
 
 const quizChartConfig = {
   averageScore: {
@@ -1262,11 +1248,7 @@ export default function DailyTracker() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingAnimation />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (error) {
@@ -1367,11 +1349,10 @@ export default function DailyTracker() {
                     {day.shortName}
                   </div>
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
-                      day.isCurrentDay
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${day.isCurrentDay
                         ? "ring-2 ring-white ring-offset-2 ring-offset-transparent"
                         : ""
-                    } ${day.completed ? "bg-white text-[#57D061]" : "bg-white/30"}`}
+                      } ${day.completed ? "bg-white text-[#57D061]" : "bg-white/30"}`}
                   >
                     {day.completed && <CheckCircle2 className="h-5 w-5" />}
                   </div>
@@ -1798,15 +1779,14 @@ export default function DailyTracker() {
                     <Badge
                       className={`${getIconContainerBgColor(
                         log.activityType.toLowerCase(),
-                      ).replace("bg-", "bg-")} ${
-                        log.activityType.toLowerCase() === "lesson"
+                      ).replace("bg-", "bg-")} ${log.activityType.toLowerCase() === "lesson"
                           ? "text-indigo-800"
                           : log.activityType.toLowerCase() === "complete"
                             ? "text-green-800"
                             : log.activityType.toLowerCase() === "login"
                               ? "text-cyan-800"
                               : "text-gray-800"
-                      }`}
+                        }`}
                     >
                       {log.activityType}
                     </Badge>

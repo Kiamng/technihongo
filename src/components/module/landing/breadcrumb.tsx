@@ -187,7 +187,7 @@ const Breadcrumb = () => {
           テック日本語でITの未来を切り開く
         </motion.div>
         <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
-          <Link href="/Login">
+          <Link href="/course">
             <motion.div
               whileHover={{
                 scale: 1.05,
@@ -203,7 +203,7 @@ const Breadcrumb = () => {
               </Button>
             </motion.div>
           </Link>
-          <Link href="/Login">
+          <Link href="/course">
             <motion.div
               whileHover={{
                 scale: 1.05,

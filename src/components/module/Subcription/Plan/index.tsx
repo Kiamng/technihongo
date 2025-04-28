@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Bell, DollarSign, MessageSquareQuote } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,20 +11,7 @@ import {
   getAllSubscriptionPlans,
   getCurrentSubscription,
 } from "@/app/api/subscription-plan/subscription-plan.api";
-
-const LoadingAnimation = () => {
-  return (
-    <div className="flex flex-col items-center">
-      <DotLottieReact
-        autoplay
-        loop
-        className="w-40 h-40"
-        src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-      />
-      <p className="text-gray-500 mt-2 animate-pulse">Đang tải dữ liệu...</p>
-    </div>
-  );
-};
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export const SubscriptionPlanModule = () => {
   const router = useRouter();
@@ -84,11 +70,7 @@ export const SubscriptionPlanModule = () => {
   };
 
   if (loading || status === "loading") {
-    return (
-      <div className="flex justify-center items-center h-screen bg-white text-gray-800">
-        <LoadingAnimation />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (error) {
@@ -123,7 +105,7 @@ export const SubscriptionPlanModule = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header section */}
         <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          <h2 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-green-100 to-green-700">
             TECHNIHONGO
           </h2>
           <p className="text-xl mt-2 max-w-2xl mx-auto">

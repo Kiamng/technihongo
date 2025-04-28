@@ -4,7 +4,7 @@ import type { PathCourse } from "@/types/pathcourse";
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
@@ -23,12 +23,9 @@ import {
 } from "@/components/ui/card";
 import { getPathCourseListByLearningPathId } from "@/app/api/pathcourse/pathcourse.api";
 
-interface LearningPathIdProps {
-  pathId: string;
-}
-
-export default function LearningPathRoadmap({ pathId }: LearningPathIdProps) {
+export default function LearningPathRoadmap() {
   const { data: session, status } = useSession();
+  const { learningpathId } = useParams();
   const router = useRouter();
   const [pathCourses, setPathCourses] = useState<PathCourse[]>([]);
   const [learningPathName, setLearningPathName] = useState<string | null>(null);
@@ -36,7 +33,7 @@ export default function LearningPathRoadmap({ pathId }: LearningPathIdProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!pathId) {
+    if (!learningpathId) {
       setError(" Không tìm thấy ID lộ trình.");
       setLoading(false);
 
@@ -48,7 +45,7 @@ export default function LearningPathRoadmap({ pathId }: LearningPathIdProps) {
 
       try {
         const response = await getPathCourseListByLearningPathId({
-          pathId: Number.parseInt(pathId),
+          pathId: Number.parseInt(learningpathId as string),
           token: session.user.token,
           pageNo: 0,
           pageSize: 100,
@@ -74,7 +71,7 @@ export default function LearningPathRoadmap({ pathId }: LearningPathIdProps) {
     };
 
     fetchPathCourses();
-  }, [session, status, pathId]);
+  }, [session?.user.token, status, learningpathId]);
 
   const getDifficultyColor = (level: string) => {
     switch (level.toLowerCase()) {

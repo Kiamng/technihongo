@@ -23,4 +23,5 @@ export type UsertoStudent = {
   userId: number;
   userName: string;
   email: string;
+  profileImg: string;
 };

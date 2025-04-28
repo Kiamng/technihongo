@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import CourseCards from "./course-card";
+import LearningPathCard from "./learning-path-card";
 
 import {
   Select,
@@ -23,22 +24,17 @@ import {
 } from "@/app/api/course/course.api";
 import { getAllDifficultyLevel } from "@/app/api/difficulty-level/difficulty-level.api";
 import { getChildrenDomain } from "@/app/api/domain/system.api";
-
-const LoadingAnimation = () => {
-  return (
-    <DotLottieReact
-      autoplay
-      loop
-      className="w-64 h-64"
-      src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-    />
-  );
-};
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
+import { LearningPath } from "@/types/learningpath";
+import { getAllLearningPaths } from "@/app/api/learningpath/learningpath.api";
+import { Button } from "@/components/ui/button";
 
 export default function CourseModule() {
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [isLoading, setIsloading] = useState<boolean>(false);
+
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
   const [coursesList, setCoursesList] = useState<CourseList>();
   const [courseProgress, setCourseProgress] = useState<CourseProgress[]>([]);
   const [domains, setDomains] = useState<DomainList>();
@@ -64,6 +60,16 @@ export default function CourseModule() {
     );
 
     setCourseProgress(response);
+  };
+
+  const fetchLearningPaths = async () => {
+    try {
+      const data = await getAllLearningPaths(session?.user.token as string);
+
+      setLearningPaths(data);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách lộ trình học:", error);
+    }
   };
 
   const fetchCourses = async () => {
@@ -151,6 +157,7 @@ export default function CourseModule() {
       try {
         await fetchCourses();
         await Promise.all([
+          fetchLearningPaths(),
           fetchDomain(),
           fetchDifficultyLevel(),
           fetchCoursesProgress(),
@@ -175,19 +182,132 @@ export default function CourseModule() {
   const loading =
     isLoading || !memoizedDomains || !memoizedDifficultyLevels.length;
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
-      {courseProgress && (
+      {learningPaths && learningPaths.length > 0 && (
+        <>
+          <h2 className="text-2xl font-bold">Lộ trình học tập gợi ý</h2>
+          <div className="relative">
+            <div className="relative overflow-hidden">
+              <div
+                className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
+                id="learning-paths-carousel"
+              >
+                {learningPaths.map((path) => (
+                  <div
+                    key={path.pathId}
+                    className="flex-shrink-0 w-[calc(33.33%-1rem)]"
+                  >
+                    <LearningPathCard learningPath={path} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {learningPaths.length > 3 && (
+              <div className="flex justify-center space-x-4 mt-4">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    const carousel = document.getElementById(
+                      "learning-paths-carousel",
+                    );
+
+                    if (carousel) {
+                      const setWidth = carousel.offsetWidth / 3;
+
+                      carousel.scrollLeft -= setWidth;
+                    }
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    const carousel = document.getElementById(
+                      "learning-paths-carousel",
+                    );
+
+                    if (carousel) {
+                      const setWidth = carousel.offsetWidth / 3;
+
+                      carousel.scrollLeft += setWidth;
+                    }
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      {courseProgress && courseProgress.length > 0 && (
         <>
           <h2 className="text-2xl font-bold">Khóa học của tôi</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {courseProgress?.map((courseProgress) => (
-              <CourseCards
-                key={courseProgress.progressId}
-                course={courseProgress.course}
-                courseProgress={courseProgress}
-              />
-            ))}
+          <div className="relative">
+            <div className="relative overflow-hidden">
+              <div
+                className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
+                id="course-progress-carousel"
+              >
+                {courseProgress?.map((courseProgress) => (
+                  <div
+                    key={courseProgress.progressId}
+                    className="flex-shrink-0 w-[calc(33.33%-1rem)]"
+                  >
+                    <CourseCards
+                      course={courseProgress.course}
+                      courseProgress={courseProgress}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {courseProgress.length > 3 && (
+              <div className="flex justify-center space-x-4 mt-4">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    const carousel = document.getElementById(
+                      "course-progress-carousel",
+                    );
+
+                    if (carousel) {
+                      const setWidth = carousel.offsetWidth / 3;
+
+                      carousel.scrollLeft -= setWidth;
+                    }
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    const carousel = document.getElementById(
+                      "course-progress-carousel",
+                    );
+
+                    if (carousel) {
+                      const setWidth = carousel.offsetWidth / 3;
+
+                      carousel.scrollLeft += setWidth;
+                    }
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -238,10 +358,56 @@ export default function CourseModule() {
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {coursesList?.content.map((course) => (
-          <CourseCards key={course.courseId} course={course} />
-        ))}
+      <div className="relative">
+        <div className="relative overflow-hidden">
+          <div
+            className="flex space-x-4 overflow-hidden scroll-smooth py-2 px-1"
+            id="courses-carousel"
+          >
+            {coursesList?.content.map((course) => (
+              <div
+                key={course.courseId}
+                className="flex-shrink-0 w-[calc(33.33%-1rem)]"
+              >
+                <CourseCards course={course} />
+              </div>
+            ))}
+          </div>
+        </div>
+        {coursesList?.content && coursesList.content.length > 3 && (
+          <div className="flex justify-center space-x-4 mt-4">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                const carousel = document.getElementById("courses-carousel");
+
+                if (carousel) {
+                  const setWidth = carousel.offsetWidth / 3;
+
+                  carousel.scrollLeft -= setWidth;
+                }
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                const carousel = document.getElementById("courses-carousel");
+
+                if (carousel) {
+                  const setWidth = carousel.offsetWidth / 3;
+
+                  carousel.scrollLeft += setWidth;
+                }
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

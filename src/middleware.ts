@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const publicRoutes = ["/sign-in", "/Login", "/", "/verify"];
+const publicRoutes = ["/sign-in", "/Login", "/verify"];
 const authRoutes = [
   "/home",
   "/flashcard",
@@ -37,6 +37,10 @@ export default async function middleware(req: NextRequest) {
   // Nếu user chưa đăng nhập và cố vào trang yêu cầu auth -> chuyển hướng về /login
   if (!token && isAuthRoute && pathname !== "/Login") {
     return NextResponse.redirect(new URL("/Login", req.url));
+  }
+
+  if (pathname === "/") {
+    return NextResponse.next();
   }
 
   if (!isPublicRoute && !isAuthRoute) {

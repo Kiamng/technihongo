@@ -1,233 +1,207 @@
 "use client";
+
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import MeetingCard from "./meeting-card";
 
-type Script = {
-    order: number;
-    question: string;
-    answer: string;
-};
-
-const dialogue: Script[] = [
-    {
-        order: 1,
-        question: "おはようございます。今日の進捗はどうですか？",
-        answer:
-            "おはようございます。現在の進捗は、タスクAが完了し、タスクBはまだ進行中です。",
-    },
-    {
-        order: 2,
-        question: "タスクBの進捗に何か問題はありますか？",
-        answer: "はい、タスクBに関して、サーバーの接続に問題があり、遅れています。",
-    },
-    {
-        order: 3,
-        question: "その問題を解決するために何かできますか？",
-        answer:
-            "現在、チームメンバーがサーバー側の問題を調査しています。おそらく、明日には解決できると思います。",
-    },
-    {
-        order: 4,
-        question: "今週の目標は何ですか？",
-        answer: "今週の目標は、タスクBを完了し、タスクCの開始です。",
-    },
-    {
-        order: 5,
-        question: "タスクCについて何か準備が必要ですか？",
-        answer:
-            "タスクCは、新しいフレームワークを使用するので、ドキュメントの確認とチームメンバーへの簡単なトレーニングが必要です。",
-    },
-    {
-        order: 6,
-        question: "そのトレーニングはいつ行う予定ですか？",
-        answer:
-            "トレーニングは金曜日の午後に予定しています。全員が参加できるように調整しています。",
-    },
-    {
-        order: 7,
-        question: "何か他に報告することはありますか？",
-        answer:
-            "特にありませんが、もし何か問題が発生した場合は、すぐに報告します。",
-    },
-];
+import { getAllMeeting } from "@/app/api/meeting/meeting.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
+import { MeetingList } from "@/types/meeting";
+import { useUser } from "@/components/core/common/providers/user-provider";
+import EmptyStateComponent from "@/components/core/common/empty-state";
 
 export default function MeetingModule() {
-    const [currentOrder, setCurrentOrder] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [isCorrect, setIsCorrect] = useState(false);
-    const [isRecording, setIsRecording] = useState(false);
-    const [currentQuestion, setCurrentQuestion] = useState<string>(
-        dialogue[currentOrder].question,
-    );
-    const [isLoading, setIsLoading] = useState(true);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoice, setSelectedVoice] =
-        useState<SpeechSynthesisVoice | null>(null);
-    const [speechSynthesis, setSpeechSynthesis] =
-        useState<SpeechSynthesis | null>(null);
+    const { data: session } = useSession();
+    const { userName } = useUser();
+    const [meetingListData, setMeetingListData] = useState<MeetingList>();
+    const [sortDir, setSortDir] = useState<string>("desc");
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    // Lấy danh sách giọng nói khi nó đã được tải đầy đủ
-    useEffect(() => {
-        if (typeof window !== "undefined" && window.speechSynthesis) {
-            setSpeechSynthesis(window.speechSynthesis); // Đặt speechSynthesis
-            const availableVoices = window.speechSynthesis.getVoices();
+    const getNewMeetings = (meetings: MeetingList) => {
+        const oneWeekAgo = new Date();
 
-            setVoices(availableVoices);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        return {
+            ...meetings,
+            content: meetings.content.filter(
+                (meeting) => new Date(meeting.createdAt) > oneWeekAgo,
+            ),
+        };
+    };
+
+    const getAllMeetings = (meetings: MeetingList) => {
+        return meetings;
+    };
+
+    const fetchMeetingList = async () => {
+        try {
+            if (!session?.user.token) {
+                throw new Error("No token found");
+            }
+            const meeting = await getAllMeeting({
+                token: session?.user.token,
+                sortBy: "createdAt",
+                sortDir: sortDir,
+            });
+
+            setMeetingListData(meeting);
+        } catch (error) {
+            console.error(`Đã có lỗi trong quá trình tải các hội thoại:`, error);
+            toast.error(`Tải các cuộc hội thoại thất bại`);
+        } finally {
             setIsLoading(false);
-
-            // Cập nhật giọng nói khi có sự thay đổi
-            window.speechSynthesis.onvoiceschanged = () => {
-                const updatedVoices = window.speechSynthesis.getVoices();
-
-                setVoices(updatedVoices);
-            };
         }
-    }, []);
-
-    const selectRandomVoice = () => {
-        // Chọn ngẫu nhiên 1 giọng từ danh sách
-        const randomIndex = Math.floor(Math.random() * voices.length);
-        const voice = voices[randomIndex];
-
-        setSelectedVoice(voice);
-    };
-
-    const handleSpeakQuestion = () => {
-        if (selectedVoice && speechSynthesis) {
-            speechSynthesis.cancel();
-            speakQuestion(currentQuestion, selectedVoice);
-        }
-    };
-
-    // Phát âm câu hỏi (Text to Speech)
-    const speakQuestion = (
-        question: string,
-        voice: SpeechSynthesisVoice | null,
-    ) => {
-        const utterance = new SpeechSynthesisUtterance(question);
-
-        if (voice) {
-            utterance.voice = voice; // Thiết lập giọng nói cho câu hỏi
-        }
-        utterance.lang = "ja-JP"; // Đặt ngôn ngữ là tiếng Nhật
-        speechSynthesis?.speak(utterance); // Phát âm câu hỏi
     };
 
     useEffect(() => {
-        if (voices.length > 0) {
-            selectRandomVoice(); // Chọn giọng ngẫu nhiên mỗi khi câu hỏi thay đổi
-        }
-    }, [currentQuestion, voices]);
+        fetchMeetingList();
+    }, [session?.user.token, sortDir]);
 
-    const handleReset = () => {
-        setCurrentOrder(0); // Quay lại câu đầu tiên
-        setSelectedAnswer(null); // Reset câu trả lời
-        setIsCorrect(false); // Reset trạng thái đúng/sai
-        setIsRecording(false); // Reset trạng thái ghi âm
-    };
-
-    const handleAnswerSelect = (answer: string) => {
-        setSelectedAnswer(answer);
-        if (answer === dialogue[currentOrder].answer) {
-            setIsCorrect(true);
-        } else {
-            setIsCorrect(false);
-        }
-    };
-
-    const handleNextQuestion = () => {
-        if (isCorrect) {
-            setCurrentOrder(currentOrder + 1); // Chuyển sang câu tiếp theo
-            setCurrentQuestion(dialogue[currentOrder + 1].question);
-            setSelectedAnswer(null); // Reset lại lựa chọn
-            setIsCorrect(false); // Reset lại trạng thái đúng/sai
-        } else {
-            alert("Hãy chọn đáp án đúng!");
-        }
-    };
-
-    const handleRecordPronunciation = () => {
-        setIsRecording(true);
-        // Sử dụng Web Speech API để ghi âm và chấm điểm phát âm ở đây
-        // Sau khi ghi âm xong, nếu phát âm đúng 70% thì cho phép chuyển tiếp
-        setTimeout(() => {
-            setIsRecording(false);
-            alert("Phát âm đúng, chuyển sang câu tiếp theo!");
-            handleNextQuestion();
-        }, 3000); // Giả sử ghi âm mất 3 giây
-    };
-
-    const currentScript = dialogue[currentOrder];
-    // Lấy 3 đáp án ngẫu nhiên từ các câu còn lại
-    const otherAnswers = dialogue
-        .filter((item) => item.order !== currentScript.order) // Lọc bỏ câu hiện tại
-        .map((item) => item.answer);
-
-    // Lấy 3 đáp án ngẫu nhiên từ các đáp án còn lại
-    const randomAnswers = otherAnswers
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
-
-    // Tạo options bao gồm đáp án đúng và 3 đáp án ngẫu nhiên
-    const options = [currentScript.answer, ...randomAnswers];
-
-    // Xáo trộn các đáp án ngẫu nhiên
-    const shuffledOptions = options.sort(() => Math.random() - 0.5);
+    if (isLoading) {
+        return <LoadingAnimation />;
+    }
 
     return (
-        <div className="w-full flex flex-col space-y-4">
-            {isLoading ? (
-                <div>Đang tải giọng nói...</div> // Hiển thị màn hình loading khi voices chưa tải
-            ) : (
-                <>
-                    <h1>Câu hỏi: </h1>
-                    <h2>{currentScript.question}</h2>
-                    <Button onClick={handleSpeakQuestion}>Đọc câu hỏi</Button>
-                    <div>
-                        <Label>Chọn giọng nói: </Label>
-                        <select
-                            onChange={(e) => {
-                                const selectedVoice = voices.find(
-                                    (voice) => voice.name === e.target.value,
-                                );
+        <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black space-y-8 p-8">
+            <div className="bg-gradient-to-r from-primary to-primary/80 p-6 rounded-2xl flex flex-row space-x-6 items-center shadow-lg">
+                <img
+                    alt="img"
+                    className="rounded-xl shadow-md"
+                    height={180}
+                    src={"https://media-public.canva.com/fTcwI/MAF-OXfTcwI/1/t.png"}
+                    width={180}
+                />
+                <div className="w-full flex flex-col space-y-2">
+                    <h1 className="text-3xl text-white font-bold">
+                        Xin chào {userName},
+                    </h1>
+                    <h1 className="text-2xl text-white/90 font-semibold">
+                        Chọn một cuộc hội thoại và bắt đầu luyện tập nào
+                    </h1>
+                </div>
+            </div>
 
-                                setSelectedVoice(selectedVoice || null);
-                            }}
-                        >
-                            {voices.map((voice, index) => (
-                                <option key={index} value={voice.name}>
-                                    {voice.name} ({voice.lang})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <h1>Các đáp án: </h1>
-                    {shuffledOptions.map((answer, index) => (
-                        <button key={index} onClick={() => handleAnswerSelect(answer)}>
-                            {index + 1}-{answer}
-                        </button>
-                    ))}
-                    <div>
-                        {isCorrect && !isRecording && (
-                            <>
-                                <p>Đúng rồi!</p>
-                                <Button onClick={handleRecordPronunciation}>
-                                    Ghi âm phát âm của bạn
-                                </Button>
-                            </>
+            {meetingListData &&
+                getNewMeetings(meetingListData).content.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            Mới
+                        </h2>
+                        <div className="relative overflow-hidden">
+                            <div
+                                className="flex space-x-6 overflow-hidden scroll-smooth py-2 px-1"
+                                id="new-meetings-carousel"
+                            >
+                                {getNewMeetings(meetingListData).content.map((meeting) => (
+                                    <MeetingCard key={meeting.meetingId} meeting={meeting} />
+                                ))}
+                            </div>
+                        </div>
+                        {getNewMeetings(meetingListData).content.length > 3 && (
+                            <div className="flex justify-center space-x-4 mt-4">
+                                <button
+                                    className="p-2 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                    onClick={() => {
+                                        const carousel = document.getElementById(
+                                            "new-meetings-carousel",
+                                        );
+
+                                        if (carousel) {
+                                            const setWidth = carousel.offsetWidth / 3;
+
+                                            carousel.scrollLeft -= setWidth;
+                                        }
+                                    }}
+                                >
+                                    <ChevronLeft className="h-5 w-5" />
+                                </button>
+                                <button
+                                    className="p-2 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                    onClick={() => {
+                                        const carousel = document.getElementById(
+                                            "new-meetings-carousel",
+                                        );
+
+                                        if (carousel) {
+                                            const setWidth = carousel.offsetWidth / 3;
+
+                                            carousel.scrollLeft += setWidth;
+                                        }
+                                    }}
+                                >
+                                    <ChevronRight className="h-5 w-5" />
+                                </button>
+                            </div>
                         )}
                     </div>
-                    <Button
-                        disabled={!isCorrect || isRecording}
-                        onClick={handleNextQuestion}
+                )}
+
+            <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Tất cả cuộc hội thoại
+                </h2>
+                <div className="relative overflow-hidden">
+                    <div
+                        className="flex space-x-6 overflow-hidden scroll-smooth py-2 px-1"
+                        id="all-meetings-carousel"
                     >
-                        Tiếp theo
-                    </Button>
-                    <Button onClick={handleReset}>Reset lại</Button>
-                </>
-            )}
+                        {meetingListData ? (
+                            getAllMeetings(meetingListData).content.map((meeting) => (
+                                <MeetingCard key={meeting.meetingId} meeting={meeting} />
+                            ))
+                        ) : (
+                            <div className="col-span-full">
+                                <EmptyStateComponent
+                                    imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
+                                    message={"Chưa có cuộc hội thoại nào, vui lòng quay lại sau!"}
+                                    size={300}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+                {meetingListData &&
+                    getAllMeetings(meetingListData).content.length > 3 && (
+                        <div className="flex justify-center space-x-4 mt-4">
+                            <button
+                                className="p-2 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                onClick={() => {
+                                    const carousel = document.getElementById(
+                                        "all-meetings-carousel",
+                                    );
+
+                                    if (carousel) {
+                                        const setWidth = carousel.offsetWidth / 3;
+
+                                        carousel.scrollLeft -= setWidth;
+                                    }
+                                }}
+                            >
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <button
+                                className="p-2 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                onClick={() => {
+                                    const carousel = document.getElementById(
+                                        "all-meetings-carousel",
+                                    );
+
+                                    if (carousel) {
+                                        const setWidth = carousel.offsetWidth / 3;
+
+                                        carousel.scrollLeft += setWidth;
+                                    }
+                                }}
+                            >
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        </div>
+                    )}
+            </div>
         </div>
     );
 }
