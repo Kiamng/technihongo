@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useEffect, useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { DropResult } from "@hello-pangea/dnd";
 
 import { handleFlashcardFileUpload } from "../FlashcardCreate/spreadsheet-import";
@@ -44,6 +44,7 @@ import { uploadImageCloud } from "@/app/api/image/image-upload.api";
 type FlashcardInForm = z.infer<typeof FlashcardSchema>;
 
 export default function FlashcardEditModule() {
+  const router = useRouter();
   const params = useParams();
   const { studentSetId } = params;
   const { data: session } = useSession();
@@ -426,6 +427,13 @@ export default function FlashcardEditModule() {
         Number(studentSetId),
         session?.user.token as string,
       );
+
+      if (data.studentId !== Number(session?.user.studentId)) {
+        toast.warning(`Bạn không có quyền làm hành động này`);
+        router.push(`/flashcard`);
+
+        return;
+      }
 
       setInitialData(data);
       form.setValue("StudentFlashcardSetSchema", {

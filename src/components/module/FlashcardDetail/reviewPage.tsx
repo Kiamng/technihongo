@@ -191,17 +191,17 @@ export default function ReviewGame({
 
   if (isSetup) {
     return (
-      <div className="min-h-screen bg-gray-100 text-gray-800 p-6 flex flex-col items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+      <div className="min-h-screen bg-white dark:bg-secondary text-gray-800 p-6 flex flex-col items-center justify-center">
+        <div className="bg-white dark:bg-black p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200 dark:border-primary">
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-primary">
             {isSystem ? "Chế độ học flashcard" : "Chọn số câu để học"}
           </h1>
 
           {!isSystem ? (
             <div className="flex flex-col items-center mb-6">
-              <div className="flex items-center mb-4 w-full">
+              <div className="flex items-center mb-4 w-full flex-row">
                 <input
-                  className="p-3 bg-gray-50 text-gray-800 rounded-lg w-full mr-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#56D071] focus:border-transparent transition-all duration-300"
+                  className="p-3 rounded-lg w-full mr-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#56D071] focus:border-transparent transition-all duration-300"
                   disabled={isSystem}
                   max={flashcards.length}
                   min="1"
@@ -219,8 +219,8 @@ export default function ReviewGame({
                     }
                   }}
                 />
-                <span className="text-lg font-medium text-gray-700">
-                  / {flashcards.length} câu
+                <span className="text-lg font-medium">
+                  / {flashcards.length}
                 </span>
               </div>
 
@@ -332,14 +332,16 @@ export default function ReviewGame({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 p-6 flex flex-col items-center">
+    <div className="min-h-screen bg-white dark:bg-secondary text-gray-800 p-6 flex flex-col items-center">
       <div className="w-full max-w-2xl mb-6">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-[#56D071] text-white rounded-full flex items-center justify-center mr-3 font-bold shadow-md">
               {isLearned.length + 1}
             </div>
-            <span className="text-lg font-medium text-gray-700">Tiến độ</span>
+            <span className="text-lg font-medium text-gray-700 dark:text-primary">
+              Tiến độ
+            </span>
           </div>
           <div className="w-10 h-10 bg-[#56D071] text-white rounded-full flex items-center justify-center font-bold shadow-md">
             {socau}
@@ -353,7 +355,7 @@ export default function ReviewGame({
         </div>
       </div>
 
-      <div className="relative bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-200">
+      <div className="relative bg-white dark:bg-black dark:border-primary p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-200">
         <button
           className="absolute top-4 right-4 bg-gray-200 text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-300 transition-all duration-300 transform hover:scale-110 shadow-md"
           onClick={onExit}
@@ -362,20 +364,22 @@ export default function ReviewGame({
         </button>
 
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Định nghĩa</h2>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-primary">
+            Định nghĩa
+          </h2>
         </div>
-        <p className="text-xl mb-8 bg-gray-50 p-4 rounded-xl text-gray-800 shadow-inner">
+        <p className="text-xl mb-8 bg-gray-50 dark:bg-secondary dark:text-white p-4 rounded-xl text-gray-800 shadow-inner">
           {currentQuestion.japaneseDefinition}
         </p>
 
-        <h3 className="text-xl font-bold mb-4 text-gray-800">
+        <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-primary">
           Chọn thuật ngữ ứng dụng
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {currentOptions.map((option, index) => (
             <button
               key={option.flashcardId}
-              className={`p-4 bg-gray-50 border-2 rounded-xl text-left transition-all duration-300 flex items-center justify-between shadow-sm ${showAnswer &&
+              className={`p-4 bg-gray-50 dark:bg-secondary border-2 rounded-xl text-left transition-all duration-300 flex items-center justify-between shadow-sm ${showAnswer &&
                   option.vietEngTranslation === currentQuestion.vietEngTranslation
                   ? "border-[#56D071] bg-[#56D071]/10"
                   : selectedAnswer === option.vietEngTranslation
@@ -389,7 +393,7 @@ export default function ReviewGame({
                 <span className="w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mr-3">
                   {index + 1}
                 </span>
-                <span className="text-lg text-gray-800">
+                <span className="text-lg text-gray-800 dark:text-white">
                   {option.vietEngTranslation}
                 </span>
               </div>

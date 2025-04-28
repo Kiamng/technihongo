@@ -10,7 +10,6 @@ import {
   Heart,
   Languages,
   Mic,
-  PackageOpenIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -39,12 +38,12 @@ export const NavItems = () => {
           icon: <ChartNoAxesColumn size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/learning-statistic"),
         },
-        {
-          name: "Lộ trình học tập gợi ý",
-          href: "/learning-path",
-          icon: <PackageOpenIcon size={iconSize} strokeWidth={iconStroke} />,
-          active: isNavItemActive(pathname, "/learning-path"),
-        },
+        // {
+        //   name: "Lộ trình học tập",
+        //   href: "/learning-path",
+        //   icon: <LandPlot size={iconSize} strokeWidth={iconStroke} />,
+        //   active: isNavItemActive(pathname, "/course"),
+        // },
         {
           name: "Khóa học",
           href: "/course",

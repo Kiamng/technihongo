@@ -53,6 +53,8 @@ export default function SearchFlashcardSets({
         onLoading?.(true);
         const data = await searchFlashcardSets(token, debouncedKeyword);
 
+        console.log("search data:", data);
+
         if (data.length === 0) {
           onSearchResults([]);
           setNoResults(true);
@@ -81,37 +83,40 @@ export default function SearchFlashcardSets({
   }, []);
 
   return (
-    <div className="bg-[rgba(86,208,113,0.5)] rounded-3xl p-6 w-full">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+    <div className="bg-primary rounded-3xl p-8 w-full shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-8">
         {/* Phần bên trái: Ảnh */}
-        <div className="relative flex-shrink-0 w-48 h-48">
+        <div className="relative flex-shrink-0 w-48 h-48 transform transition-transform duration-300 hover:scale-105">
           <img
             alt="Mascot character"
-            className=" w-full h-full object-contain"
-            src="https://i.imgur.com/Pqan0w4.png"
+            className="w-full h-full object-contain"
+            src="https://cdn-icons-png.freepik.com/512/6654/6654540.png"
           />
         </div>
 
         {/* Phần bên phải: Text và Search */}
         <div className="flex-1 flex flex-col items-start">
           {/* Text */}
-          <div className="text-teal-700">
-            <div className="flex items-center justify-start">
-              <p className="text-xl font-medium">Xin chào {userName} 👋</p>
-            </div>
-            <div className="flex items-center justify-start mt-2">
-              <p className="text-lg">Cấp độ hiện tại của bạn: N3 </p>
-              <span className="ml-2">📝</span>
+          <div className="text-[#57D061]">
+            <div className="flex flex-col justify-start">
+              <p className="text-2xl font-semibold text-white bg-clip-text text-transparent">
+                Xin chào {userName} 👋
+              </p>
+              <p className="text-2xl font-semibold text-white bg-clip-text text-transparent">
+                Hôm nay bạn muốn học gì ?
+              </p>
             </div>
           </div>
 
           {/* Thanh tìm kiếm */}
-          <div className="relative w-full max-w-xl mt-4">
+          <div className="relative w-full max-w-xl mt-6">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-[#57D061]" />
             </div>
             <Input
-              className="pl-10 bg-white border-0 rounded-full h-12 w-full"
+              className="pl-10 bg-white border-2 border-[#57D061]/20 rounded-full h-14 w-full 
+                focus:border-[#57D061] focus:ring-2 focus:ring-[#57D061]/20 transition-all duration-300
+                placeholder:text-[#57D061]/60 text-[#57D061]"
               placeholder="Tìm kiếm bài học, thư mục..."
               type="text"
               value={keyword}

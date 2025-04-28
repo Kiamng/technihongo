@@ -8,7 +8,7 @@ const Header = () => {
       className="w-full flex flex-row justify-between items-center px-6 md:px-10 py-4 border-b bg-primary"
       suppressHydrationWarning={true}
     >
-      <div className="flex items-center space-x-2 transition-transform hover:scale-105">
+      <div className="flex items-center space-x-2">
         <span className="text-2xl font-bold text-white">TechNihongo</span>
       </div>
 

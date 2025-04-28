@@ -9,14 +9,13 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Star,
   Eye,
   Copy,
+  Users,
+  Lock,
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
-
-import ChatbotWidget from "../Chatbot/chatbot";
 
 import AddStuFolderPopup from "./addstufolderpopup";
 import UpdateStuFolderPopup from "./updatestufolder";
@@ -40,6 +39,10 @@ import {
   deleteStuFolder,
 } from "@/app/api/studentfolder/stufolder.api"; // Import getStuFolder
 import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
+import { UsertoStudent } from "@/types/profile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
+import EmptyStateComponent from "@/components/core/common/empty-state";
 
 interface FlashcardProps {
   flashcardId: string;
@@ -111,6 +114,7 @@ export default function FlashcardModule() {
   >([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState<boolean>(true);
   const [loadingFlashcardSets, setLoadingFlashcardSets] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [updatingFolder, setUpdatingFolder] = useState<{
@@ -124,7 +128,9 @@ export default function FlashcardModule() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [searchResults, setSearchResults] = useState<any>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [userNames, setUserNames] = useState<{ [key: number]: string }>({});
+  const [userNames, setUserNames] = useState<{ [key: number]: UsertoStudent }>(
+    {},
+  );
 
   const fetchUserFolders = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.token) {
@@ -169,25 +175,33 @@ export default function FlashcardModule() {
       const studentIds = [...new Set(sets.map((set) => set.studentId))];
       const userPromises = studentIds.map((studentId) =>
         getUserByStudentId(session.user.token, studentId)
-          .then((user) => ({ studentId, userName: user.userName }))
+          .then((user) => ({ studentId, user })) // Lưu toàn bộ đối tượng người dùng
           .catch((err) => {
             console.error(
               `Failed to fetch user for studentId ${studentId}`,
               err,
             );
 
-            return { studentId, userName: "Unknown" };
+            return {
+              studentId,
+              user: {
+                userId: 0,
+                userName: "Unknown",
+                email: "",
+                profileImg: "",
+              },
+            }; // fallback
           }),
       );
 
       const userResults = await Promise.all(userPromises);
       const userMap = userResults.reduce(
-        (acc, { studentId, userName }) => {
-          acc[studentId] = userName;
+        (acc, { studentId, user }) => {
+          acc[studentId] = user;
 
           return acc;
         },
-        {} as { [key: number]: string },
+        {} as { [key: number]: UsertoStudent },
       );
 
       setUserNames(userMap);
@@ -270,7 +284,7 @@ export default function FlashcardModule() {
   }, []);
 
   const handleLoading = useCallback((isLoading: boolean) => {
-    setLoading(isLoading);
+    setIsSearching(isLoading);
   }, []);
 
   const handleSearchStart = useCallback((isSearching: boolean) => {
@@ -299,8 +313,12 @@ export default function FlashcardModule() {
     };
   }, []);
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
-    <div className="relative min-h-screen bg-transparent">
+    <div className="relative min-h-screen ">
       {/* Thanh tìm kiếm và overlay */}
       <div className="max-w-[1200px] mx-auto pt-5 px-5 relative z-10">
         <div ref={searchContainerRef}>
@@ -317,43 +335,57 @@ export default function FlashcardModule() {
 
         {/* Overlay kết quả tìm kiếm - Đặt bên dưới SearchFlashcardSets */}
         {isSearchActive && (
-          <div className="relative mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
-            {loading ? (
+          <div className="relative mt-4 bg-white dark:bg-black rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
+            {isSearching ? (
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500 mr-2" />
                 Đang tải...
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="p-4">
+              <div className="p-4 flex flex-col space-y-4">
                 {searchResults.map((set: any) => (
-                  <Link
-                    key={set.studentSetId}
-                    className="block p-3 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    href={`/flashcard/${set.studentSetId}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-base font-semibold text-primary">
-                          {set.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {set.flashcards?.length || 0} thuật ngữ
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Created by: {userNames[set.studentId]}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center text-yellow-500">
-                          <Star fill="currentColor" size={16} />
-                          <span className="ml-1 text-sm">4.7</span>
+                  <>
+                    <Link
+                      key={set.studentSetId}
+                      className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
+                      href={`/flashcard/${set.studentSetId}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-semibold">
+                            {set.title}
+                          </h3>
+                          <div className="flex flex-row space-x-2 mt-1">
+                            <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                              <span>{set.flashcards?.length || 0}</span>{" "}
+                              <Copy className="w-4 h-4" />
+                            </div>
+                            <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                              <span>{set.totalViews || 0}</span>
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Người tạo: {set.creator || "N/A"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className="mt-auto flex flex-row space-x-2 items-center">
+                            <Avatar className="w-6 h-6">
+                              <AvatarImage
+                                alt="@shadcn"
+                                src={
+                                  userNames[set.studentId]?.profileImg ||
+                                  "Unknown"
+                                }
+                              />
+                              <AvatarFallback>STU</AvatarFallback>
+                            </Avatar>
+                            <div className="hover:text-primary text-sm dark:text-white font-bold">
+                              {userNames[set.studentId]?.userName || "Unknown"}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </>
                 ))}
               </div>
             ) : (
@@ -391,19 +423,13 @@ export default function FlashcardModule() {
         </div> */}
 
         {/* MY FOLDER */}
-        <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
-          <div className="flex justify-between items-start">
-            <div
-              className="absolute top-[-20px] left-0 px-6 py-3 
-           bg-green-500 text-white rounded-t-2xl 
-           shadow-lg border border-green-700"
-            >
-              <span className="text-2xl font-semibold">My Folder</span>
-            </div>
+        <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-black relative">
+          <div className="flex flex-row justify-between items-center">
+            <span className="text-2xl font-semibold text-primary">
+              Thư mục của tôi
+            </span>
             <Button
-              className="absolute top-[-20px] right-0 px-4 py-3 
-           bg-green-500 text-white rounded-t-2xl 
-           shadow-lg border border-green-700 hover:bg-green-600 transition-colors"
+              className=" hover:scale-105 duration-300 transition-all"
               onClick={() => setIsPopupOpen(true)}
             >
               <FolderPlus className="inline-block mr-2" size={24} />
@@ -428,17 +454,17 @@ export default function FlashcardModule() {
                       {folders.map((folder) => (
                         <div
                           key={folder.folderId}
-                          className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col"
+                          className="flex-shrink-0 w-[calc(33.33%-1rem)] h-40 p-4 border-[1px] border-primary rounded-lg bg-white dark:bg-secondary hover:shadow-md flex flex-col relative transform transition-all duration-300 hover:-translate-y-1"
                         >
                           <div className="flex items-center justify-between">
                             <Link
                               className="flex-grow"
                               href={`/flashcard/folder/${folder.folderId}`}
                             >
-                              <h3 className="text-lg font-semibold text-green-600 truncate">
+                              <h3 className="text-lg font-semibold truncate">
                                 {folder.name}
                               </h3>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-3">
                                 {folder.description}
                               </p>
                             </Link>
@@ -479,7 +505,11 @@ export default function FlashcardModule() {
                           const carousel =
                             document.getElementById("folder-carousel");
 
-                          if (carousel) carousel.scrollLeft -= 300;
+                          if (carousel) {
+                            const setWidth = carousel.offsetWidth / 3;
+
+                            carousel.scrollLeft -= setWidth;
+                          }
                         }}
                       >
                         <ChevronLeft className="h-4 w-4" />
@@ -491,7 +521,11 @@ export default function FlashcardModule() {
                           const carousel =
                             document.getElementById("folder-carousel");
 
-                          if (carousel) carousel.scrollLeft += 300;
+                          if (carousel) {
+                            const setWidth = carousel.offsetWidth / 3;
+
+                            carousel.scrollLeft += setWidth;
+                          }
                         }}
                       >
                         <ChevronRight className="h-4 w-4" />
@@ -500,39 +534,25 @@ export default function FlashcardModule() {
                   )}
                 </>
               ) : (
-                <div className="text-gray-500 text-center w-full py-5 bg-gray-50 bg-opacity-50 dark:bg-gray-700 rounded-lg border border-dashed flex flex-col items-center justify-center">
-                  <img
-                    alt="Empty folder"
-                    className="w-24 h-24 object-contain mb-3 opacity-70"
-                    src="https://i.imgur.com/H82IgpA.jpeg"
-                  />
-                  <p>Không có thư mục nào</p>
-                </div>
+                <EmptyStateComponent
+                  imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
+                  message={"Bạn chưa có thư mục nào"}
+                  size={100}
+                />
               )}
             </div>
           )}
         </div>
 
-        {/* Đã xem gần đây (Recently Viewed) */}
-        <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50 relative">
-          <div className="flex justify-between items-start">
-            <div
-              className="absolute top-[-20px] left-0 px-6 py-3 
-           bg-green-500 text-white rounded-t-2xl 
-           shadow-lg border border-green-700"
-            >
-              <span className="text-2xl font-semibold">
-                Các bài học của tôi
-              </span>
-            </div>
+        <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-black relative">
+          <div className="flex flex-row justify-between items-center">
+            <span className="text-2xl font-semibold text-primary">
+              Các bộ flashcard của tôi
+            </span>
             <Link href={"/flashcard/create"}>
-              <Button
-                className="absolute top-[-20px] right-0 px-4 py-3 
-           bg-green-500 text-white rounded-t-2xl 
-           shadow-lg border border-green-700 hover:bg-green-600 transition-colors"
-              >
+              <Button className="hover:scale-105 duration-300 transition-all">
                 <Copy className="inline-block mr-2" size={24} />
-                Thêm mới bài học
+                Thêm mới bộ flashcard
               </Button>
             </Link>
           </div>
@@ -554,31 +574,39 @@ export default function FlashcardModule() {
                       {flashcardSets.map((set) => (
                         <div
                           key={set.studentSetId}
-                          className="flex-shrink-0 w-64 h-40 p-4 border rounded-lg bg-gray-100 bg-opacity-50 dark:bg-gray-700 hover:shadow-md transition-shadow flex flex-col"
+                          className="flex-shrink-0 w-[calc(33.33%-1rem)] h-40 p-4 border-[1px] border-primary rounded-lg bg-white dark:bg-secondary hover:shadow-md flex flex-col relative transform transition-all duration-300 hover:-translate-y-1"
                         >
                           <Link
                             className="flex-grow"
                             href={`/flashcard/${set.studentSetId}`}
                           >
-                            <h3 className="text-lg font-semibold text-green-600 truncate">
-                              {set.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {set.flashcards?.length || 0} thuật ngữ
-                            </p>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Eye className="w-4 h-4 mr-1" />
-                              {set.totalViews || 0} lượt xem
+                            <div className="w-full flex flex-row justify-between">
+                              <h3 className="text-lg font-semibold truncate">
+                                {set.title}
+                              </h3>
+                              {set.isPublic ? (
+                                <Users strokeWidth={1} />
+                              ) : (
+                                <Lock strokeWidth={1} />
+                              )}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Created by: {userNames[set.studentId]}
-                            </p>
+                            <div className="flex flex-row space-x-2 mt-2">
+                              <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                                <span>{set.flashcards?.length || 0}</span>{" "}
+                                <Copy className="w-4 h-4" />
+                              </div>
+                              <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                                <span>{set.totalViews || 0}</span>
+                                <Eye className="w-4 h-4" />
+                              </div>
+                            </div>
                           </Link>
-                          <div className="w-full flex justify-end">
-                            <Link href={`/flashcard/edit/${set.studentSetId}`}>
-                              <Button size="icon" variant="ghost">
-                                <Pencil />
-                              </Button>
+                          <div className="mt-auto w-full flex justify-end">
+                            <Link
+                              className=""
+                              href={`/flashcard/edit/${set.studentId}`}
+                            >
+                              <Pencil size={20} strokeWidth={1} />
                             </Link>
                           </div>
                         </div>
@@ -586,7 +614,7 @@ export default function FlashcardModule() {
                     </div>
                   </div>
 
-                  {flashcardSets.length > 4 && (
+                  {flashcardSets.length > 3 && (
                     <div className="flex justify-center space-x-4 mt-4">
                       <Button
                         size="icon"
@@ -596,7 +624,11 @@ export default function FlashcardModule() {
                             "recently-viewed-carousel",
                           );
 
-                          if (carousel) carousel.scrollLeft -= 300;
+                          if (carousel) {
+                            const setWidth = carousel.offsetWidth / 3;
+
+                            carousel.scrollLeft -= setWidth;
+                          }
                         }}
                       >
                         <ChevronLeft className="h-4 w-4" />
@@ -609,7 +641,11 @@ export default function FlashcardModule() {
                             "recently-viewed-carousel",
                           );
 
-                          if (carousel) carousel.scrollLeft += 300;
+                          if (carousel) {
+                            const setWidth = carousel.offsetWidth / 3;
+
+                            carousel.scrollLeft += setWidth;
+                          }
                         }}
                       >
                         <ChevronRight className="h-4 w-4" />
@@ -618,23 +654,20 @@ export default function FlashcardModule() {
                   )}
                 </>
               ) : (
-                <div className="text-gray-500 text-center w-full py-5 bg-gray-50 bg-opacity-50 dark:bg-gray-700 rounded-lg border border-dashed flex flex-col items-center justify-center">
-                  <img
-                    alt="Empty flashcard sets"
-                    className="w-24 h-24 object-contain mb-3 opacity-70"
-                    src="https://i.imgur.com/H82IgpA.jpeg"
-                  />
-                  <p>Không có bộ flashcard nào đã xem gần đây</p>
-                </div>
+                <EmptyStateComponent
+                  imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
+                  message={"Bạn chưa có bộ flashcard nào"}
+                  size={100}
+                />
               )}
             </div>
           )}
         </div>
         <PublicFlashcardSetList />
         {/* Chatbot */}
-        <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
+        {/* <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
           <ChatbotWidget userId={session?.user?.id || ""} />
-        </div>
+        </div> */}
 
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}

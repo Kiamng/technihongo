@@ -3,24 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import Link from "next/link";
 
 import { TransactionDetail } from "@/types/transaction";
 import { getTransactionDetail } from "@/app/api/transactions/transactions.api";
 import { Button } from "@/components/ui/button";
-
-// Component Loading Animation
-const LoadingAnimation = () => {
-  return (
-    <DotLottieReact
-      autoplay
-      loop
-      className="w-64 h-64"
-      src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-    />
-  );
-};
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface TransactionDetailPageProps {
   transactionId: number;
@@ -133,15 +121,7 @@ export function TransactionDetailPage({
   };
 
   if (status === "loading" || isLoading) {
-    return (
-      <div className="flex flex-col justify-center items-center h-96 bg-white/80 backdrop-blur-sm rounded-xl">
-        Container
-        <LoadingAnimation />
-        <p className="text-gray-600 font-medium mt-4">
-          Đang tải thông tin giao dịch...
-        </p>
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (error) {

@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSession } from "next-auth/react";
+
+import { useUser } from "../providers/user-provider";
 
 import { SideNavItem } from "./navigation-items";
 
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const navItems = NavItems();
-  const { data: session } = useSession();
+  const { userName } = useUser();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -40,7 +41,7 @@ const Navigation = () => {
   if (!isMounted) return null;
 
   return (
-    <div className="pr-4">
+    <div className="">
       <div
         className={cn(
           isSidebarExpanded ? "w-[288px]" : "w-[80px]",
@@ -50,7 +51,7 @@ const Navigation = () => {
         <aside className="flex flex-col w-full break-words px-5 overflow-x-hidden columns-1 gap-y-5 min-h-screen">
           <div className="relative py-6 flex flex-row items-center justify-between duration-100 border-b-[1px]">
             <div className="font-semibold text-base ">
-              {isSidebarExpanded ? session?.user.userName : ""}
+              {isSidebarExpanded ? `Xin chào ${userName}` : ""}
             </div>
             <Button
               className="rounded-full"
