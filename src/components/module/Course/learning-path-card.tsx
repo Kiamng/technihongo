@@ -28,7 +28,7 @@ const LearningPathCard = ({ learningPath }: LearningPathCardProps) => {
                     {learningPath.domain.name}
                 </span>
             </div>
-            <Link href={`/learning-path/${learningPath.pathId}`}>
+            <Link href={`/course/learning-path/${learningPath.pathId}`}>
                 <Button
                     className="mt-4 w-full bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors duration-200"
                     size="sm"
