@@ -105,7 +105,7 @@ export const SubscriptionPlanModule = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header section */}
         <div className="mb-16">
-          <h2 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          <h2 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-green-100 to-green-700">
             TECHNIHONGO
           </h2>
           <p className="text-xl mt-2 max-w-2xl mx-auto">

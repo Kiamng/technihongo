@@ -670,7 +670,7 @@ export function TransactionHistory() {
                     </svg>
                     Đang hoạt động ({sortedActiveSubscriptions.length})
                   </h2>
-                  <div className="space-y-6">
+                  <div className="space-y-6 px-6">
                     {sortedActiveSubscriptions.map((subscription) => {
                       const statusDetails = getSubscriptionStatusDetails(
                         subscription.groupStatus,
@@ -763,7 +763,7 @@ export function TransactionHistory() {
                     </svg>
                     Sắp mở ({sortedUpcomingSubscriptions.length})
                   </h2>
-                  <div className="space-y-6">
+                  <div className="space-y-6 px-6">
                     {sortedUpcomingSubscriptions.map((subscription) => {
                       const statusDetails = getSubscriptionStatusDetails(
                         subscription.groupStatus,

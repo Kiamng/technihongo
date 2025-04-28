@@ -169,12 +169,6 @@ export default function UserProfilePage() {
         </div>
         <UpdateImageComponent user={userData} />
       </div>
-      <img
-        alt="hello"
-        height={100}
-        src={session?.user.profileImg}
-        width={100}
-      />
       <div className="border-b">
         <div className="flex">
           <div className="px-6 py-3 border-b-2 border-[#56D071] text-[#56D071] font-medium">

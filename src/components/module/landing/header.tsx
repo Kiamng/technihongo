@@ -3,8 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
+import { UserNav } from "@/components/core/common/header/user-nav";
 
 // Animation variants for the logo
 const logoVariants = {
@@ -70,6 +72,7 @@ const buttonVariants = {
 };
 
 const LandingHeader = () => {
+  const { data: session } = useSession();
   const menuItems = [
     { label: "Trang chủ", href: "#" },
     { label: "Về chúng tôi", href: "#" },
@@ -122,20 +125,24 @@ const LandingHeader = () => {
           </div>
 
           {/* Button with animation */}
-          <motion.div
-            animate="visible"
-            className="flex justify-end w-[200px]"
-            initial="hidden"
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Link href="/Login">
-              <Button className="bg-gradient-to-r from-[#56D071] to-[#48BA63] hover:from-[#48BA63] hover:to-[#3DA554] text-white px-6 py-2 rounded-full">
-                ĐĂNG NHẬP
-              </Button>
-            </Link>
-          </motion.div>
+          {session ? (
+            <UserNav />
+          ) : (
+            <motion.div
+              animate="visible"
+              className="flex justify-end w-[200px]"
+              initial="hidden"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Link href="/Login">
+                <Button className="bg-gradient-to-r from-[#56D071] to-[#48BA63] hover:from-[#48BA63] hover:to-[#3DA554] text-white px-6 py-2 rounded-full">
+                  ĐĂNG NHẬP
+                </Button>
+              </Link>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
