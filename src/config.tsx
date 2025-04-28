@@ -8,9 +8,9 @@ import {
   FileChartPie,
   GraduationCap,
   Heart,
+  LandPlot,
   Languages,
   Mic,
-  PackageOpenIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -40,9 +40,9 @@ export const NavItems = () => {
           active: isNavItemActive(pathname, "/learning-statistic"),
         },
         {
-          name: "Lộ trình học tập gợi ý",
+          name: "Lộ trình học tập",
           href: "/learning-path",
-          icon: <PackageOpenIcon size={iconSize} strokeWidth={iconStroke} />,
+          icon: <LandPlot size={iconSize} strokeWidth={iconStroke} />,
           active: isNavItemActive(pathname, "/learning-path"),
         },
         {

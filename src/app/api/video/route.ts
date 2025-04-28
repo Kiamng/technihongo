@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": "video/mp4",
         "Cache-Control": "no-store",
+        "Accept-Ranges": "bytes",
       },
     });
   } catch (error) {
