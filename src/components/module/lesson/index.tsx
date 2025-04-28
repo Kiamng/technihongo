@@ -1,4 +1,3 @@
-// src/hooks/useLessons.ts
 import { useState, useEffect } from "react";
 
 import { getLessonsByStudyPlan } from "@/app/api/lesson/lesson.api";
@@ -10,7 +9,7 @@ interface UseLessonsParams {
 }
 
 export const useLessons = (
-  studyPlanId: number,
+  studyPlanId: number | undefined, // Thêm undefined vào kiểu của studyPlanId
   token: string | undefined,
   { pageNo = 0, pageSize = 3 }: UseLessonsParams = {},
 ) => {
@@ -19,8 +18,20 @@ export const useLessons = (
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLessons(null); // Làm mới lessons
+    setError(null); // Reset lỗi
+  }, [studyPlanId]);
+
+  useEffect(() => {
     const fetchLessons = async () => {
-      if (!studyPlanId || !token) return;
+      // Chỉ gọi API nếu studyPlanId và token đều có giá trị
+      if (!studyPlanId || !token) {
+        setLessons(null); // Reset lessons nếu không có studyPlanId
+        setIsLoading(false);
+        setError(null);
+
+        return;
+      }
 
       setIsLoading(true);
       try {
