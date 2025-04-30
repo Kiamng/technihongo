@@ -15,7 +15,7 @@ export interface UserProfile {
     | null;
   reminderEnabled: boolean;
   reminderTime: string | null; // kiểu "HH:mm:ss"
-  dailyGoal: number | null;
+  dailyGoal: number;
   difficultyLevel: "N5" | "N4" | "N3" | "N2" | "N1" | null;
 }
 

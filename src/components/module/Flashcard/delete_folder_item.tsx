@@ -27,8 +27,8 @@ export function DeleteConfirmationDialog({
           <DialogTitle>Bạn có chắc chắn muốn xóa?</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-gray-700">
-          Bạn sắp xóa <strong>{itemName}</strong> khỏi folder này. Thao tác này
-          không thể hoàn tác.
+          Bạn sắp xóa folder <strong>{itemName}</strong> này. Thao tác này không
+          thể hoàn tác.
         </p>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>

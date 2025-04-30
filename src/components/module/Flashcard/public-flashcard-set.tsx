@@ -10,6 +10,8 @@ import {
   Copy,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +33,7 @@ import EmptyStateComponent from "@/components/core/common/empty-state";
 
 export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const token = session?.user?.token;
   const [userNames, setUserNames] = useState<{ [key: number]: UsertoStudent }>(
     {},
@@ -98,10 +101,10 @@ export default function PublicFlashcardSetList() {
     fetchSetsAndUsers();
   }, [token, status]);
 
-  // Xử lý clone flashcard set
+  //Xử lý clone flashcard set
   const handleClone = async (studentSetId: number) => {
     if (!token) {
-      setError("Please log in to clone this set.");
+      toast.error("Vui lòng đăng nhập để clone bộ flashcard này");
 
       return;
     }
@@ -113,17 +116,46 @@ export default function PublicFlashcardSetList() {
     try {
       const clonedSet = await cloneFlashcardSet(studentSetId, token);
 
-      setSuccess(`Flashcard set "${clonedSet.title}" cloned successfully!`);
-      // Không thêm vào danh sách vì đây là public sets, set mới sẽ thuộc về user
+      toast.success(`Đã clone thành công bộ flashcard "${clonedSet.title}"`);
+
+      // Tự động refresh trang để cập nhật dữ liệu
+      router.refresh();
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Failed to clone flashcard set.";
+        error.response?.data?.message || "Clone bộ flashcard thất bại";
 
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setCloneLoading(null);
     }
   };
+  // const handleClone = async (studentSetId: number) => {
+  //   if (!token) {
+  //     toast.error("Vui lòng đăng nhập để clone bộ flashcard này");
+
+  //     return;
+  //   }
+
+  //   setCloneLoading(studentSetId);
+
+  //   try {
+  //     const clonedSet = await cloneFlashcardSet(studentSetId, token);
+
+  //     toast.success(`Đã clone thành công bộ flashcard "${clonedSet.title}"`);
+
+  //     // Thêm delay 1 giây để người dùng kịp đọc thông báo
+  //     setTimeout(() => {
+  //       window.location.reload();
+  //     }, 1000);
+  //   } catch (error: any) {
+  //     const errorMessage =
+  //       error.response?.data?.message || "Clone bộ flashcard thất bại";
+
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setCloneLoading(null);
+  //   }
+  // };
 
   return (
     <div className="flex flex-col space-y-6 justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-black relative">
