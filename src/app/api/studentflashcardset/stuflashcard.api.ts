@@ -50,6 +50,7 @@ export interface FlashcardSet {
   description: string;
   totalViews: number;
   isPublic: boolean;
+  isViolated: boolean;
   flashcards: Flashcard[];
   createdAt: Date;
 }

@@ -7,10 +7,13 @@ export type Flashcard = {
 export type FlashcardSet = {
   studentId: number;
   studentSetId: number;
+  userName: string;
+  profileImg: string;
   title: string;
   description: string;
   totalViews: number;
   createdAt: Date;
   isPublic: boolean;
+  isViolated: boolean;
   flashcards: Flashcard[];
 };

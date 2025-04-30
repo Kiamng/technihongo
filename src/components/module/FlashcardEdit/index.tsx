@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpDown, Loader2, Plus } from "lucide-react";
+import { ArrowUpDown, Loader2, Plus, TriangleAlert } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -504,6 +504,16 @@ export default function FlashcardEditModule() {
               </div>
             </div>
 
+            {initialData?.isViolated && (
+              <div className="px-3 py-2 rounded-2xl bg-red-500 bg-opacity-10 text-red-500 text-lg font-bold w-fit flex space-x-2">
+                <TriangleAlert />
+                <span>
+                  Bộ flashcard này đã bị báo cáo vi phạm, hãy kiểm tra email để
+                  xem thêm thông tin !
+                </span>
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="StudentFlashcardSetSchema.title"
@@ -540,6 +550,7 @@ export default function FlashcardEditModule() {
               )}
             />
           </div>
+
           <div className="w-full flex flex-row justify-between items-center">
             <div className="flex flex-row space-x-4">
               <Button

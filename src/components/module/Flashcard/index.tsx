@@ -14,6 +14,7 @@ import {
   Users,
   Lock,
   Pencil,
+  MessageSquareWarning,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -33,17 +34,16 @@ import { Button } from "@/components/ui/button";
 import {
   FlashcardSet,
   getAllFlashcardSets,
-  getUserByStudentId,
 } from "@/app/api/studentflashcardset/stuflashcard.api";
 import {
   getStuFolder,
   deleteStuFolder,
 } from "@/app/api/studentfolder/stufolder.api";
 import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
-import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 import EmptyStateComponent from "@/components/core/common/empty-state";
+import { Badge } from "@/components/ui/badge";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -115,9 +115,6 @@ export default function FlashcardModule() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [searchResults, setSearchResults] = useState<any>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [userNames, setUserNames] = useState<{ [key: number]: UsertoStudent }>(
-    {},
-  );
 
   const fetchUserFolders = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.token) {
@@ -140,7 +137,7 @@ export default function FlashcardModule() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session?.user.token]);
 
   const fetchFlashcardSets = useCallback(async () => {
     if (!session?.user?.token) {
@@ -155,54 +152,20 @@ export default function FlashcardModule() {
       const sets: FlashcardSet[] = data.data || [];
 
       setFlashcardSets(sets);
-
-      const studentIds = [...new Set(sets.map((set) => set.studentId))];
-      const userPromises = studentIds.map((studentId) =>
-        getUserByStudentId(session.user.token, studentId)
-          .then((user) => ({ studentId, user }))
-          .catch((err) => {
-            console.error(
-              `Failed to fetch user for studentId ${studentId}`,
-              err,
-            );
-
-            return {
-              studentId,
-              user: {
-                userId: 0,
-                userName: "Unknown",
-                email: "",
-                profileImg: "",
-              },
-            };
-          }),
-      );
-
-      const userResults = await Promise.all(userPromises);
-      const userMap = userResults.reduce(
-        (acc, { studentId, user }) => {
-          acc[studentId] = user;
-
-          return acc;
-        },
-        {} as { [key: number]: UsertoStudent },
-      );
-
-      setUserNames(userMap);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách flashcard sets:", error);
       setFlashcardSets([]);
     } finally {
       setLoadingFlashcardSets(false);
     }
-  }, [session]);
+  }, [session?.user.token]);
 
   useEffect(() => {
     if (session) {
       fetchUserFolders();
       fetchFlashcardSets();
     }
-  }, [session, fetchUserFolders, fetchFlashcardSets]);
+  }, [session?.user.token, fetchUserFolders, fetchFlashcardSets]);
 
   const handleFolderAdded = () => {
     setIsPopupOpen(false);
@@ -375,15 +338,12 @@ export default function FlashcardModule() {
                           <Avatar className="w-6 h-6">
                             <AvatarImage
                               alt="@shadcn"
-                              src={
-                                userNames[set.studentId]?.profileImg ||
-                                "Unknown"
-                              }
+                              src={set.profileImg || "Unknown"}
                             />
-                            <AvatarFallback>STU</AvatarFallback>
+                            <AvatarFallback>{set.userName?.[0]}</AvatarFallback>
                           </Avatar>
                           <div className="hover:text-primary text-sm dark:text-white font-bold">
-                            {userNames[set.studentId]?.userName || "Unknown"}
+                            {set.userName || "Unknown"}
                           </div>
                         </div>
                       </div>
@@ -586,7 +546,15 @@ export default function FlashcardModule() {
                               </div>
                             </div>
                           </Link>
-                          <div className="mt-auto w-full flex justify-end">
+                          <div
+                            className={`mt-auto w-full flex flex-row ${set.isViolated ? "justify-between" : "justify-end"}`}
+                          >
+                            {set.isViolated && (
+                              <Badge className="bg-red-500 bg-opacity-10 text-red-500 hover:bg-red-400 hover:bg-opacity-10 flex space-x-1">
+                                <span>Vi phạm</span>{" "}
+                                <MessageSquareWarning size={16} />
+                              </Badge>
+                            )}
                             <Link href={`/flashcard/edit/${set.studentId}`}>
                               <Pencil size={20} strokeWidth={1} />
                             </Link>

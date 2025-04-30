@@ -22,12 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPublicFlashcardSets } from "@/app/api/studentfolder/stufolder.api";
-import {
-  getUserByStudentId,
-  cloneFlashcardSet,
-} from "@/app/api/studentflashcardset/stuflashcard.api";
+import { cloneFlashcardSet } from "@/app/api/studentflashcardset/stuflashcard.api";
 import { FlashcardSet } from "@/types/stuflashcardset";
-import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import EmptyStateComponent from "@/components/core/common/empty-state";
 
@@ -35,9 +31,6 @@ export default function PublicFlashcardSetList() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const token = session?.user?.token;
-  const [userNames, setUserNames] = useState<{ [key: number]: UsertoStudent }>(
-    {},
-  );
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [cloneLoading, setCloneLoading] = useState<number | null>(null);
@@ -57,40 +50,6 @@ export default function PublicFlashcardSetList() {
         const data = await getPublicFlashcardSets(token);
 
         setSets(data);
-
-        const studentIds = [...new Set(data.map((set) => set.studentId))];
-        const userPromises = studentIds.map((studentId) =>
-          getUserByStudentId(token, studentId)
-            .then((user) => ({ studentId, user })) // Lưu toàn bộ đối tượng người dùng
-            .catch((err) => {
-              console.error(
-                `Failed to fetch user for studentId ${studentId}`,
-                err,
-              );
-
-              return {
-                studentId,
-                user: {
-                  userId: 0,
-                  userName: "Unknown",
-                  email: "",
-                  profileImg: "",
-                },
-              }; // fallback
-            }),
-        );
-
-        const userResults = await Promise.all(userPromises);
-        const userMap = userResults.reduce(
-          (acc, { studentId, user }) => {
-            acc[studentId] = user;
-
-            return acc;
-          },
-          {} as { [key: number]: UsertoStudent },
-        );
-
-        setUserNames(userMap);
       } catch (err) {
         console.error("Failed to fetch public flashcard sets or users", err);
       } finally {
@@ -251,19 +210,15 @@ export default function PublicFlashcardSetList() {
                         <Avatar className="w-6 h-6">
                           <AvatarImage
                             alt="@shadcn"
-                            src={
-                              userNames[set.studentId]?.profileImg || "Unknown"
-                            }
+                            src={set.profileImg || "Unknown"}
                           />
-                          <AvatarFallback>
-                            {userNames[set.studentId].userName?.[0]}
-                          </AvatarFallback>
+                          <AvatarFallback>{set.userName?.[0]}</AvatarFallback>
                         </Avatar>
                         <Link
                           className="hover:text-primary text-sm dark:text-white font-bold"
                           href={`/flashcard/userFolder/${set.studentId}`}
                         >
-                          {userNames[set.studentId]?.userName || "Unknown"}
+                          {set.userName || "Unknown"}
                         </Link>
                       </div>
                     </div>

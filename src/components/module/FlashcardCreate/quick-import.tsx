@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -8,6 +9,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { isMostlyJapanese } from "@/lib/validation/japanese";
+import {
+  containsEmoji,
+  containsSpecialChar,
+  isVietnameseOrEnglish,
+} from "@/lib/validation/viet-eng";
 
 interface Flashcard {
   japaneseDefinition: string;
@@ -29,14 +36,37 @@ const QuickAddPopup: React.FC<QuickAddPopupProps> = ({
 
   const handleAddFlashcards = () => {
     const lines = inputText.split("\n").filter((line) => line.trim() !== "");
+    let hasError = false;
     const flashcards = lines.map((line) => {
       const [japaneseDefinition, vietEngTranslation] = line.split("\t");
+      const jp = japaneseDefinition?.trim() || "";
+      const vi = vietEngTranslation?.trim() || "";
+
+      if (
+        !jp ||
+        !isMostlyJapanese(jp) ||
+        !vi ||
+        containsEmoji(vi) ||
+        containsSpecialChar(vi) ||
+        !isVietnameseOrEnglish(vi)
+      ) {
+        hasError = true;
+      }
 
       return {
         japaneseDefinition: japaneseDefinition?.trim() || "",
         vietEngTranslation: vietEngTranslation?.trim() || "",
       };
     });
+
+    if (hasError) {
+      toast.error(
+        "Từ vựng phải là tiếng Nhật, định nghĩa phải là tiếng Việt hoặc tiếng Anh. Không được chứa icon hoặc ký tự đặc biệt.",
+        { duration: 6000 },
+      );
+
+      return;
+    }
 
     onAddFlashcards(flashcards);
     closeModal();
