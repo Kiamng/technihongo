@@ -506,11 +506,10 @@ export default function CourseDetail({
                 (chapter: Chapter, chapterIndex: number) => (
                   <div
                     key={chapterIndex}
-                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${
-                      selectedChapter === chapterIndex
+                    className={`w-full text-left p-4 mb-2 rounded-lg cursor-pointer ${selectedChapter === chapterIndex
                         ? "bg-green-100"
                         : "bg-gray-100"
-                    }`}
+                      }`}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedChapter(chapterIndex)}
@@ -533,11 +532,10 @@ export default function CourseDetail({
                           (section: Section, sectionIndex: number) => (
                             <div
                               key={`${chapterIndex}-${sectionIndex}`}
-                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${
-                                selectedSection === sectionIndex
+                              className={`w-full text-left p-3 mb-2 rounded-lg cursor-pointer ${selectedSection === sectionIndex
                                   ? "bg-green-200"
                                   : "bg-gray-50"
-                              }`}
+                                }`}
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {
@@ -755,13 +753,13 @@ export default function CourseDetail({
                         </div>
                         {rating.studentId !==
                           Number(session?.user.studentId) && (
-                          <button
-                            className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
-                            onClick={() => handleReportRating(rating)}
-                          >
-                            <Flag size={20} strokeWidth={1} />
-                          </button>
-                        )}
+                            <button
+                              className="text-gray-600 hover:-translate-y-1 transition-all duration-300 hover:text-yellow-500"
+                              onClick={() => handleReportRating(rating)}
+                            >
+                              <Flag size={20} strokeWidth={1} />
+                            </button>
+                          )}
                       </div>
                       <p className="text-gray-600">{rating.review}</p>
                     </div>

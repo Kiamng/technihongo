@@ -1,7 +1,7 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
 import { JSX } from "react";
-import { Award, CircleUserRound, LogOut } from "lucide-react";
+import { Award, CircleUserRound, GraduationCap, LogOut } from "lucide-react";
 
 import QuizLink from "../custom/quiz-link";
 import { useUser } from "../providers/user-provider";
@@ -47,6 +47,12 @@ export function UserNav(): JSX.Element | null {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <QuizLink className="w-full flex justify-between" href="/course">
+              <span>Khóa học</span>
+              <GraduationCap />
+            </QuizLink>
+          </DropdownMenuItem>
           <DropdownMenuItem>
             <QuizLink className="w-full flex justify-between" href="/profile">
               <span>Thông tin người dùng</span>

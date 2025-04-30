@@ -27,6 +27,10 @@ const PronunciationPractice = ({
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const [recordTimeout, setRecordTimeout] = useState<NodeJS.Timeout | null>(
+        null,
+    );
+
     const startRecording = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream, {
@@ -49,11 +53,20 @@ const PronunciationPractice = ({
         recorder.start();
         setMediaRecorder(recorder);
         setIsRecording(true);
+
+        const timeout = setTimeout(() => {
+            stopRecording();
+        }, 60000); // 60000 ms = 1 minute
+
+        setRecordTimeout(timeout);
     };
 
     const stopRecording = () => {
         mediaRecorder?.stop();
         setIsRecording(false);
+        if (recordTimeout) {
+            clearTimeout(recordTimeout); // Clear the timeout when recording is stopped manually
+        }
     };
 
     const sendAudioToServer = async () => {
@@ -90,6 +103,9 @@ const PronunciationPractice = ({
         setAudioBlob(null);
         setResult(null);
         setIsRecording(false);
+        if (recordTimeout) {
+            clearTimeout(recordTimeout); // Clear any timeout if reset
+        }
     };
 
     const getColorClass = (confidence: number) => {
@@ -110,19 +126,21 @@ const PronunciationPractice = ({
                         </div>
 
                         {!audioBlob && !isRecording && (
-                            <Button
-                                className="rounded-full"
-                                size={"icon"}
+                            <button
+                                className="p-2 bg-primary/10 rounded-full hover:scale-110 transition-all duration-300"
                                 onClick={startRecording}
                             >
-                                <Mic />
-                            </Button>
+                                <Mic className="w-5 h-5 text-primary" />
+                            </button>
                         )}
 
                         {isRecording && (
-                            <Button onClick={stopRecording}>
-                                <CircleStop />
-                            </Button>
+                            <button
+                                className="p-2 bg-primary/10 rounded-full hover:scale-110 transition-all duration-300"
+                                onClick={stopRecording}
+                            >
+                                <CircleStop className="w-5 h-5 text-primary" />
+                            </button>
                         )}
 
                         {audioBlob && !isRecording && (

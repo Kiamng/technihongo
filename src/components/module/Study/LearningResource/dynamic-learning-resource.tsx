@@ -154,10 +154,6 @@ const DynamicLearningResource = ({
               src={`/api/video?publicId=${encodeURIComponent(videoPublicId as string)}`}
               type="video/mp4"
             />
-            {/* <source
-              src={lessonResource.learningResource.videoUrl}
-              type="video/mp4"
-            /> */}
           </video>
           {/* eslint-disable jsx-a11y/media-has-caption */}
         </div>

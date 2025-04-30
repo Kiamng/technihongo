@@ -533,7 +533,7 @@ const SubscriptionPlanDetail: React.FC = () => {
     };
 
     fetchPlanDetail();
-  }, [subPlanId, session]);
+  }, [subPlanId, session?.user.token]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {

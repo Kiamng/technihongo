@@ -344,48 +344,44 @@ export default function FlashcardModule() {
             ) : searchResults.length > 0 ? (
               <div className="p-4 flex flex-col space-y-4">
                 {searchResults.map((set: any) => (
-                  <>
-                    <Link
-                      key={set.studentSetId}
-                      className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
-                      href={`/flashcard/${set.studentSetId}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-base font-semibold">
-                            {set.title}
-                          </h3>
-                          <div className="flex flex-row space-x-2 mt-1">
-                            <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
-                              <span>{set.flashcards?.length || 0}</span>{" "}
-                              <Copy className="w-4 h-4" />
-                            </div>
-                            <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
-                              <span>{set.totalViews || 0}</span>
-                              <Eye className="w-4 h-4" />
-                            </div>
+                  <Link
+                    key={set.studentSetId}
+                    className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
+                    href={`/flashcard/${set.studentSetId}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-semibold">{set.title}</h3>
+                        <div className="flex flex-row space-x-2 mt-1">
+                          <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.flashcards?.length || 0}</span>{" "}
+                            <Copy className="w-4 h-4" />
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="mt-auto flex flex-row space-x-2 items-center">
-                            <Avatar className="w-6 h-6">
-                              <AvatarImage
-                                alt="@shadcn"
-                                src={
-                                  userNames[set.studentId]?.profileImg ||
-                                  "Unknown"
-                                }
-                              />
-                              <AvatarFallback>STU</AvatarFallback>
-                            </Avatar>
-                            <div className="hover:text-primary text-sm dark:text-white font-bold">
-                              {userNames[set.studentId]?.userName || "Unknown"}
-                            </div>
+                          <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.totalViews || 0}</span>
+                            <Eye className="w-4 h-4" />
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  </>
+                      <div className="flex items-center gap-2">
+                        <div className="mt-auto flex flex-row space-x-2 items-center">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage
+                              alt="@shadcn"
+                              src={
+                                userNames[set.studentId]?.profileImg ||
+                                "Unknown"
+                              }
+                            />
+                            <AvatarFallback>STU</AvatarFallback>
+                          </Avatar>
+                          <div className="hover:text-primary text-sm dark:text-white font-bold">
+                            {userNames[set.studentId]?.userName || "Unknown"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (

@@ -26,6 +26,7 @@ import { Subscription } from "@/types/supbscription";
 import { getSubscriptionHistory } from "@/app/api/subscription/subscription.api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
+import EmptyStateComponent from "@/components/core/common/empty-state";
 
 export function TransactionHistory() {
   const { data: session, status } = useSession();
@@ -481,7 +482,7 @@ export function TransactionHistory() {
               setActiveTab(value as "transactions" | "subscriptions")
             }
           >
-            <TabsList className="bg-transparent w-full justify-start p-0 h-auto mb-2 border-b">
+            <TabsList className="bg-transparent w-full justify-start p-0 h-auto border-b">
               <TabsTrigger
                 className="rounded-none px-5 py-3 data-[state=active]:border-b-2 data-[state=active]:border-[#57D061] data-[state=active]:shadow-none bg-transparent data-[state=active]:text-[#57D061] transition-all"
                 value="subscriptions"
@@ -498,7 +499,7 @@ export function TransactionHistory() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent className="mt-6" value="transactions">
+            <TabsContent value="transactions">
               <div className="bg-gray-50 p-4 border-b flex flex-wrap gap-2 items-center">
                 <Button
                   className="text-sm"
@@ -651,9 +652,9 @@ export function TransactionHistory() {
               </div>
             </TabsContent>
 
-            <TabsContent className="mt-6" value="subscriptions">
-              {sortedActiveSubscriptions.length > 0 && (
-                <div className="mb-10">
+            <TabsContent className="space-y-10 p-10" value="subscriptions">
+              {sortedActiveSubscriptions.length > 0 ? (
+                <div className="">
                   <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center border-b-2 border-green-600 pb-3">
                     <svg
                       className="w-6 h-6 mr-3 text-green-600"
@@ -743,10 +744,16 @@ export function TransactionHistory() {
                     })}
                   </div>
                 </div>
+              ) : (
+                <EmptyStateComponent
+                  imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
+                  message={"Bạn không có gói nào đang hoạt động"}
+                  size={300}
+                />
               )}
 
               {sortedUpcomingSubscriptions.length > 0 && (
-                <div className="mb-10">
+                <div className="">
                   <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center border-b-2 border-yellow-600 pb-3">
                     <svg
                       className="w-6 h-6 mr-3 text-yellow-600"
