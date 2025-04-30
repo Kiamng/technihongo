@@ -40,7 +40,6 @@ import {
   deleteStuFolder,
 } from "@/app/api/studentfolder/stufolder.api";
 import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
-import { Separator } from "@/components/ui/separator";
 import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
@@ -102,6 +101,7 @@ export default function FlashcardModule() {
   >([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState<boolean>(true);
   const [loadingFlashcardSets, setLoadingFlashcardSets] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [updatingFolder, setUpdatingFolder] = useState<{
@@ -274,7 +274,7 @@ export default function FlashcardModule() {
   }, []);
 
   const handleLoading = useCallback((isLoading: boolean) => {
-    setLoading(isLoading);
+    setIsSearching(isLoading);
   }, []);
 
   const handleSearchStart = useCallback((isSearching: boolean) => {
@@ -316,13 +316,7 @@ export default function FlashcardModule() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="w-full">
-        <div className="flex justify-center items-center min-h-screen">
-          <LoadingAnimation />
-        </div>
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   return (
@@ -349,7 +343,7 @@ export default function FlashcardModule() {
 
         {isSearchActive && (
           <div className="relative mt-4 bg-white dark:bg-black rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
-            {loading ? (
+            {isSearching ? (
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500 mr-2" />
                 Đang tải...
@@ -357,49 +351,44 @@ export default function FlashcardModule() {
             ) : searchResults.length > 0 ? (
               <div className="p-4 flex flex-col space-y-4">
                 {searchResults.map((set: any) => (
-                  <>
-                    <Link
-                      key={set.studentSetId}
-                      className="block p-2 hover:bg-gray-100 dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300"
-                      href={`/flashcard/${set.studentSetId}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-base font-semibold">
-                            {set.title}
-                          </h3>
-                          <div className="flex flex-row space-x-2 mt-1">
-                            <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
-                              <span>{set.flashcards?.length || 0}</span>{" "}
-                              <Copy className="w-4 h-4" />
-                            </div>
-                            <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
-                              <span>{set.totalViews || 0}</span>
-                              <Eye className="w-4 h-4" />
-                            </div>
+                  <Link
+                    key={set.studentSetId}
+                    className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
+                    href={`/flashcard/${set.studentSetId}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-semibold">{set.title}</h3>
+                        <div className="flex flex-row space-x-2 mt-1">
+                          <div className="flex text-sm space-x-1 items-center dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.flashcards?.length || 0}</span>{" "}
+                            <Copy className="w-4 h-4" />
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="mt-auto flex flex-row space-x-2 items-center">
-                            <Avatar className="w-6 h-6">
-                              <AvatarImage
-                                alt="@shadcn"
-                                src={
-                                  userNames[set.studentId]?.profileImg ||
-                                  "Unknown"
-                                }
-                              />
-                              <AvatarFallback>STU</AvatarFallback>
-                            </Avatar>
-                            <div className="hover:text-primary text-sm dark:text-white font-bold">
-                              {userNames[set.studentId]?.userName || "Unknown"}
-                            </div>
+                          <div className="flex space-x-1 items-center text-sm dark:text-white px-2 py-1 rounded-lg bg-[#57d061] bg-opacity-20">
+                            <span>{set.totalViews || 0}</span>
+                            <Eye className="w-4 h-4" />
                           </div>
                         </div>
                       </div>
-                    </Link>
-                    <Separator />
-                  </>
+                      <div className="flex items-center gap-2">
+                        <div className="mt-auto flex flex-row space-x-2 items-center">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage
+                              alt="@shadcn"
+                              src={
+                                userNames[set.studentId]?.profileImg ||
+                                "Unknown"
+                              }
+                            />
+                            <AvatarFallback>STU</AvatarFallback>
+                          </Avatar>
+                          <div className="hover:text-primary text-sm dark:text-white font-bold">
+                            {userNames[set.studentId]?.userName || "Unknown"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -532,7 +521,7 @@ export default function FlashcardModule() {
               ) : (
                 <EmptyStateComponent
                   imgageUrl="https://cdni.iconscout.com/illustration/premium/thumb/no-information-found-illustration-download-in-svg-png-gif-file-formats--zoom-logo-document-user-interface-result-pack-illustrations-8944779.png?f=webp"
-                  message={"Bạn chưa có thư mực nào"}
+                  message={"Bạn chưa có thư mục nào"}
                   size={100}
                 />
               )}

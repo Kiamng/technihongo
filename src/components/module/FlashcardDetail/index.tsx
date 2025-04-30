@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ReportPopup from "@/components/core/common/report-popup";
 import SharePopup from "@/components/core/common/share";
 import { Button } from "@/components/ui/button";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface FlashcardDetailModuleProps {
   studentSetId: number;
@@ -102,8 +103,7 @@ export default function FlashcardDetailModule({
 
   if (status === "loading")
     return <p className="text-center">Đang tải thông tin phiên...</p>;
-  if (loading)
-    return <p className="text-center">Đang tải dữ liệu flashcard...</p>;
+  if (loading) return <LoadingAnimation />;
   if (!flashcardSet)
     return <p className="text-center">Không tìm thấy bộ flashcard.</p>;
   if (isReview) {

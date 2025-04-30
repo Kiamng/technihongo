@@ -240,7 +240,7 @@ export default function PublicFlashcardSetList() {
                               {cloneLoading === set.studentSetId ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                "Clone"
+                                "Sao chép"
                               )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>

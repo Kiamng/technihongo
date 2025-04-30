@@ -146,6 +146,7 @@ const DynamicLearningResource = ({
             disablePictureInPicture
             className="absolute top-0 left-0 w-full h-full object-contain rounded-xl"
             controlsList="nodownload"
+            preload="auto"
             onEnded={handleVideoEnded}
             onTimeUpdate={handleVideoTimeUpdate}
           >

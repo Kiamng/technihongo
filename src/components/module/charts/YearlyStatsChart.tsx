@@ -52,15 +52,15 @@ interface YearlyStatsChartProps {
 // };
 const chartConfig: ChartConfig = {
   completedQuizzes: {
-    label: "Quizzes",
+    label: "Bài kiểm tra",
     color: "hsl(var(--chart-1))", // Xanh dương nổi bật
   },
   completedResources: {
-    label: "Resources",
+    label: "Bài giảng",
     color: "hsl(var(--chart-2))", // Vàng sáng
   },
   completedFlashcardSets: {
-    label: "Flashcardset",
+    label: "Bộ flashcard",
     color: "hsl(var(--chart-3))", // Đỏ rực
   },
 };

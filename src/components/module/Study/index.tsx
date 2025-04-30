@@ -49,6 +49,7 @@ import {
 import { getCurrentSubscription } from "@/app/api/subscription/subscription.api";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export default function StudyModule() {
   const params = useParams();
@@ -287,7 +288,7 @@ export default function StudyModule() {
     setCurrentLessonResource(learningResource);
   };
 
-  const fetchCurrentLesson = async () => {
+  const fetchCurrentLesson = async (lessonId: number) => {
     try {
       const resources = await getLessonResourceByLessonId(
         session?.user.token as string,
@@ -481,7 +482,8 @@ export default function StudyModule() {
   const fetchData = async () => {
     try {
       await Promise.all([fetchProgress(), fetchWithSubscriptionCheck()]);
-      await Promise.all([fetchCurrentLesson(), fetchAllAvailableStudyPlan()]);
+      // await Promise.all([fetchCurrentLesson(), fetchAllAvailableStudyPlan()]);
+      await fetchAllAvailableStudyPlan();
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
     } finally {
@@ -496,7 +498,9 @@ export default function StudyModule() {
         session?.user.token as string,
         courseId,
       );
+      let currentLessonId = lessonId || progress.currentLesson.lessonId;
 
+      await fetchCurrentLesson(Number(currentLessonId));
       setCourseProgress(progress);
       if (progress.completionPercentage === 100) {
         setShowConfetti(true);
@@ -580,11 +584,7 @@ export default function StudyModule() {
   ]);
 
   if (isLoading) {
-    return (
-      <div className="w-full h-full flex justify-center items-center">
-        <Loader2 className="animate-spin" />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   return (

@@ -132,15 +132,17 @@ export default function OCRTranslatePage() {
             <div className="mt-6">
               <OCRPreview file={file} previewUrl={previewUrl} />
 
-              <div className="mt-6 flex justify-center">
-                <Button
-                  className="hover:scale-105 transition-all duration-300"
-                  disabled={isProcessing}
-                  onClick={handleScanTranslate}
-                >
-                  {isProcessing ? "Processing..." : "Scan & Translate"}
-                </Button>
-              </div>
+              {!showResults && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    className="hover:scale-105 transition-all duration-300"
+                    disabled={isProcessing}
+                    onClick={handleScanTranslate}
+                  >
+                    {isProcessing ? "Processing..." : "Scan & Translate"}
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <UploadZone onFileChange={handleFileChange} />

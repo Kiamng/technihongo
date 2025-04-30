@@ -62,7 +62,7 @@ export default function UploadZone({ onFileChange }: UploadZoneProps) {
             <>
               <p>Kéo thả file vào đây, hoặc click để chọn</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Hỗ trợ: JPG, JPEG, PNG, PDF
+                Hỗ trợ: JPG, JPEG, PNG
               </p>
             </>
           )}
