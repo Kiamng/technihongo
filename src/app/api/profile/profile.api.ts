@@ -4,8 +4,45 @@ const ENDPOINT = {
   GETUSERID: (userId: number) => `/user/getUser/${userId}`,
   UPDATE_PROFILE: (userId: number) => `/student/${userId}/profile`,
   UPDATE_USERNAME: (userId: number) => `/user/${userId}/username`,
+  UPDATE_DAILY_GOAL: (studentId: number) => `/student/${studentId}/daily-goal`,
 };
 
+export const updateDailyGoal = async (
+  token: string,
+  studentId: number,
+  dailyGoal: number,
+): Promise<any> => {
+  if (!studentId || !token) {
+    throw new Error("Thiếu studentId hoặc token");
+  }
+
+  const url = ENDPOINT.UPDATE_DAILY_GOAL(studentId);
+
+  console.log(" Đang cập nhật daily goal:", dailyGoal);
+
+  try {
+    // Gửi thẳng object { dailyGoal } trong axios.patch
+    const response = await axiosClient.patch(
+      url,
+      { dailyGoal }, // Tạo object tại đây
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "🔥 Lỗi khi cập nhật daily goal:",
+      error.response?.data || error.message,
+    );
+    throw new Error(
+      error.response?.data?.message || "Không thể cập nhật mục tiêu hàng ngày",
+    );
+  }
+};
 export const getUserById = async (
   token: string,
   userId: number,
@@ -33,7 +70,7 @@ export const getUserById = async (
 
     return response.data;
   } catch (error) {
-    console.error("🔥 Lỗi khi gọi API:", error);
+    console.error("Lỗi khi gọi API:", error);
     throw error;
   }
 };
@@ -61,7 +98,7 @@ export const updateUserProfile = async (
 
   const url = ENDPOINT.UPDATE_PROFILE(userId);
 
-  console.log("📦 Payload gửi đi:", payload);
+  console.log(" Payload gửi đi:", payload);
 
   try {
     const response = await axiosClient.patch(url, payload, {
@@ -73,7 +110,7 @@ export const updateUserProfile = async (
     return response.data;
   } catch (error: any) {
     console.error(
-      "🔥 Lỗi khi cập nhật profile:",
+      " Lỗi khi cập nhật profile:",
       error.response?.data || error.message,
     );
     throw new Error(
@@ -92,7 +129,7 @@ export const updateUserNameFunction = async (
 
   const url = ENDPOINT.UPDATE_USERNAME(userId);
 
-  console.log("✏️ Đang cập nhật userName:", userName);
+  console.log(" Đang cập nhật userName:", userName);
 
   try {
     const response = await axiosClient.patch(
@@ -108,7 +145,7 @@ export const updateUserNameFunction = async (
     return response.data;
   } catch (error: any) {
     console.error(
-      "🔥 Lỗi khi cập nhật userName:",
+      " Lỗi khi cập nhật userName:",
       error.response?.data || error.message,
     );
     throw new Error(

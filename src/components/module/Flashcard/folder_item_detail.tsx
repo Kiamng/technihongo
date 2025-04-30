@@ -1,9 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { AddFlashcardSetModal } from "./add_folder_item";
+import UpdateStuFolderPopup from "./updatestufolder";
+import { DeleteConfirmationDialog } from "./delete_folder_item";
 
 import { Button } from "@/components/ui/button";
 import { getFlashcardSetById } from "@/app/api/studentflashcardset/stuflashcard.api";
@@ -13,7 +18,10 @@ import {
   deleteFolderItem,
   getFolderItemsByFolderId,
 } from "@/app/api/folderitem/folderitem.api";
-import { getStuFolder } from "@/app/api/studentfolder/stufolder.api";
+import {
+  deleteStuFolder,
+  getStuFolder,
+} from "@/app/api/studentfolder/stufolder.api";
 
 interface FolderDetailProps {
   folderId: number;
@@ -27,19 +35,22 @@ export default function FolderDetail({
   description: initialDescription,
 }: FolderDetailProps) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [folderItems, setFolderItems] = useState<FolderItem[]>([]);
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpdateFolderOpen, setIsUpdateFolderOpen] = useState(false);
   const [folderName, setFolderName] = useState(initialName || "");
-  const [accessDenied, setAccessDenied] = useState(false);
   const [folderDescription, setFolderDescription] = useState(
     initialDescription || "",
   );
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const token = session?.user?.token;
 
-  // Lấy thông tin folder nếu không được truyền qua props
   useEffect(() => {
     const fetchFolderDetails = async () => {
       if (!token || !session?.user?.studentId) return;
@@ -116,6 +127,57 @@ export default function FolderDetail({
     } catch (error) {
       console.error("Lỗi khi xóa:", error);
     }
+  };
+  const handleDeleteFolder = async () => {
+    if (!token || !session?.user?.studentId) {
+      toast.error("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại");
+
+      return;
+    }
+
+    try {
+      // Kiểm tra xem folder có chứa flashcard sets không
+      const currentFolderItems = await getFolderItemsByFolderId(
+        token,
+        folderId,
+      );
+
+      if (currentFolderItems.length > 0) {
+        toast.error("Không thể xóa folder khi còn chứa flashcard sets");
+        setIsDeleteDialogOpen(false);
+
+        return;
+      }
+
+      setIsDeleting(true);
+      const response = await deleteStuFolder(token, folderId);
+
+      if (response.success) {
+        toast.success(`Đã xóa folder "${folderName}" thành công!`);
+        router.push("/flashcard");
+      } else {
+        toast.error(response.message || "Xóa folder không thành công");
+      }
+    } catch (error: any) {
+      console.error("Error deleting folder:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Có lỗi xảy ra khi xóa folder";
+
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const handleUpdateSuccess = (
+    updatedName: string,
+    updatedDescription: string,
+  ) => {
+    setFolderName(updatedName);
+    setFolderDescription(updatedDescription);
   };
 
   if (!token) {
@@ -197,8 +259,23 @@ export default function FolderDetail({
             className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
             size="icon"
             variant="outline"
+            onClick={() => setIsUpdateFolderOpen(true)}
           >
             <span className="text-xl">👕</span>
+          </Button>
+
+          <Button
+            className="bg-red-500/30 hover:bg-red-500/50 border-0 rounded-lg h-10 w-10"
+            disabled={isDeleting}
+            size="icon"
+            variant="outline"
+            onClick={() => setIsDeleteDialogOpen(true)}
+          >
+            {isDeleting ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <span className="text-xl">🗑️</span>
+            )}
           </Button>
         </div>
       </div>
@@ -258,7 +335,7 @@ export default function FolderDetail({
         )}
       </div>
 
-      {/* Thêm Modal */}
+      {/* Add Flashcard Set Modal */}
       <AddFlashcardSetModal
         currentSetIds={flashcardSets.map((set) => set.studentSetId)}
         folderId={folderId}
@@ -266,6 +343,25 @@ export default function FolderDetail({
         token={token || ""}
         onAddSuccess={fetchFolderItems}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* Update Folder Popup */}
+      <UpdateStuFolderPopup
+        folder={{
+          folderId,
+          name: folderName,
+          description: folderDescription,
+        }}
+        isOpen={isUpdateFolderOpen}
+        onClose={() => setIsUpdateFolderOpen(false)}
+        onSuccess={handleUpdateSuccess}
+      />
+      {/* Các modal */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        itemName={folderName}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteFolder}
       />
 
       {/* Decorative Elements */}

@@ -16,6 +16,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import AddStuFolderPopup from "./addstufolderpopup";
 import UpdateStuFolderPopup from "./updatestufolder";
@@ -37,19 +38,12 @@ import {
 import {
   getStuFolder,
   deleteStuFolder,
-} from "@/app/api/studentfolder/stufolder.api"; // Import getStuFolder
+} from "@/app/api/studentfolder/stufolder.api";
 import { getFolderItemsByFolderId } from "@/app/api/folderitem/folderitem.api";
 import { UsertoStudent } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 import EmptyStateComponent from "@/components/core/common/empty-state";
-
-interface FlashcardProps {
-  flashcardId: string;
-  name: string;
-  description: string;
-  totalView: number;
-}
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -57,33 +51,21 @@ interface DeleteConfirmationDialogProps {
   onConfirm: () => void;
 }
 
-/*const Flashcard = ({ flashcardId, name, description }: FlashcardProps) => {
-  return (
-    <div className="w-full p-3 flex flex-col justify-between border-[1px] border-primary rounded-lg gap-y-3 hover:-translate-y-1 hover:opacity-90 transition-all duration-300 hover:shadow-lg">
-      <Link href={`/flashcard/${flashcardId}`}>
-        <div className="text-base font-bold text-primary">{name}</div>
-        <div className="flex flex-row gap-x-1 mt-1">
-          <div className="flex px-2 py-1 bg-secondary dark:bg-slate-700 items-center rounded-lg text-xs">
-            100 <Eye size={16} strokeWidth={1.5} />
-          </div>
-          <div className="px-2 py-1 flex bg-secondary dark:bg-slate-700 items-center rounded-lg text-xs">
-            {description}
-          </div>
-        </div>
-        <div className="mt-3">rating</div>
-      </Link>
-      <Link className="hover:text-primary" href={"/"}>
-        Creator
-      </Link>
-    </div>
-  );
-}; */
-
 const DeleteConfirmationDialog = ({
   isOpen,
   onClose,
   onConfirm,
 }: DeleteConfirmationDialogProps) => {
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        confirmButtonRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -98,7 +80,11 @@ const DeleteConfirmationDialog = ({
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button
+            ref={confirmButtonRef}
+            variant="destructive"
+            onClick={onConfirm}
+          >
             Xóa
           </Button>
         </div>
@@ -109,6 +95,7 @@ const DeleteConfirmationDialog = ({
 
 export default function FlashcardModule() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [folders, setFolders] = useState<
     { folderId: number; name: string; description: string }[]
   >([]);
@@ -165,17 +152,14 @@ export default function FlashcardModule() {
 
     try {
       const data = await getAllFlashcardSets(session.user.token);
-
-      console.log("Flashcard sets data:", data);
       const sets: FlashcardSet[] = data.data || [];
 
       setFlashcardSets(sets);
 
-      // Lấy danh sách studentId từ flashcard sets
       const studentIds = [...new Set(sets.map((set) => set.studentId))];
       const userPromises = studentIds.map((studentId) =>
         getUserByStudentId(session.user.token, studentId)
-          .then((user) => ({ studentId, user })) // Lưu toàn bộ đối tượng người dùng
+          .then((user) => ({ studentId, user }))
           .catch((err) => {
             console.error(
               `Failed to fetch user for studentId ${studentId}`,
@@ -190,7 +174,7 @@ export default function FlashcardModule() {
                 email: "",
                 profileImg: "",
               },
-            }; // fallback
+            };
           }),
       );
 
@@ -229,6 +213,15 @@ export default function FlashcardModule() {
     setIsUpdatePopupOpen(false);
     setUpdatingFolder(null);
     fetchUserFolders();
+
+    // Focus vào phần tử an toàn sau khi đóng popup
+    setTimeout(() => {
+      const safeElement = document.querySelector("button:not([aria-hidden])");
+
+      if (safeElement) {
+        (safeElement as HTMLElement).focus();
+      }
+    }, 100);
   };
 
   const handleUpdate = (folder: {
@@ -253,21 +246,18 @@ export default function FlashcardModule() {
         return;
       }
 
-      // Lấy danh sách các mục trong thư mục
       const folderItems = await getFolderItemsByFolderId(
         session.user.token,
         folderId,
       );
 
-      // Kiểm tra xem thư mục có chứa studentSetId không
       if (folderItems.length > 0) {
         toast.error("Không thể xóa thư mục vì nó chứa các bộ flashcard!");
-        setIsDeleteDialogOpen(false); // Đóng dialog sau khi hiển thị lỗi
+        setIsDeleteDialogOpen(false);
 
         return;
       }
 
-      // Nếu không có mục nào, tiến hành xóa
       await deleteStuFolder(session.user.token, folderId);
       toast.success("Xoá thư mục thành công!");
       fetchUserFolders();
@@ -278,7 +268,7 @@ export default function FlashcardModule() {
       console.error("Error in handleDelete:", error);
     }
   };
-  // Memoize handleSearchResults và handleLoading
+
   const handleSearchResults = useCallback((results: any[]) => {
     setSearchResults(results);
   }, []);
@@ -290,11 +280,10 @@ export default function FlashcardModule() {
   const handleSearchStart = useCallback((isSearching: boolean) => {
     setIsSearchActive(isSearching);
     if (!isSearching) {
-      setSearchResults([]); // Xóa kết quả khi không còn tìm kiếm
+      setSearchResults([]);
     }
   }, []);
 
-  // Đóng overlay khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -309,7 +298,20 @@ export default function FlashcardModule() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const originalTitle = document.title;
+
+    document.title = "Flashcard Module - TechNihongo";
+
+    return () => {
+      document.title = originalTitle;
+      setIsUpdatePopupOpen(false);
+      setIsPopupOpen(false);
+      setIsDeleteDialogOpen(false);
     };
   }, []);
 
@@ -318,9 +320,15 @@ export default function FlashcardModule() {
   }
 
   return (
-    <div className="relative min-h-screen ">
-      {/* Thanh tìm kiếm và overlay */}
-      <div className="max-w-[1200px] mx-auto pt-5 px-5 relative z-10">
+    <div className="relative min-h-screen">
+      <div
+        className="max-w-[1200px] mx-auto flex flex-col gap-10 p-5 relative"
+        inert={
+          isUpdatePopupOpen || isPopupOpen || isDeleteDialogOpen
+            ? true
+            : undefined
+        }
+      >
         <div ref={searchContainerRef}>
           {session?.user?.token && (
             <SearchFlashcardSets
@@ -333,7 +341,6 @@ export default function FlashcardModule() {
           )}
         </div>
 
-        {/* Overlay kết quả tìm kiếm - Đặt bên dưới SearchFlashcardSets */}
         {isSearchActive && (
           <div className="relative mt-4 bg-white dark:bg-black rounded-lg shadow-lg max-h-96 overflow-y-auto z-20">
             {isSearching ? (
@@ -393,39 +400,21 @@ export default function FlashcardModule() {
         )}
       </div>
 
-      <div className="max-w-[1200px] mx-auto flex flex-col gap-10 p-5 relative z-1">
-        {/* TechNihongo gợi ý 
-        <div className="flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-secondary dark:bg-opacity-50">
-          <div className="text-2xl font-semibold text-primary">
-            TechNihongo gợi ý
-          </div>
-          <div className="flex flex-row w-full justify-between gap-x-4 mt-5">
-            <Flashcard
-              description="100 Thuật ngữ"
-              flashcardId="123"
-              name="Flashcard 1"
-            />
-            <Flashcard
-              description="150 Thuật ngữ"
-              flashcardId="456"
-              name="Flashcard 2"
-            />
-            <Flashcard
-              description="200 Thuật ngữ"
-              flashcardId="789"
-              name="Flashcard 3"
-            />
-          </div>
-        </div> */}
-
-        {/* MY FOLDER */}
+      <div
+        className="max-w-[1200px] mx-auto flex flex-col gap-10 p-5 relative"
+        inert={
+          isUpdatePopupOpen || isPopupOpen || isDeleteDialogOpen
+            ? true
+            : undefined
+        }
+      >
         <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-black relative">
           <div className="flex flex-row justify-between items-center">
             <span className="text-2xl font-semibold text-primary">
               Thư mục của tôi
             </span>
             <Button
-              className=" hover:scale-105 duration-300 transition-all"
+              className="hover:scale-105 duration-300 transition-all"
               onClick={() => setIsPopupOpen(true)}
             >
               <FolderPlus className="inline-block mr-2" size={24} />
@@ -598,10 +587,7 @@ export default function FlashcardModule() {
                             </div>
                           </Link>
                           <div className="mt-auto w-full flex justify-end">
-                            <Link
-                              className=""
-                              href={`/flashcard/edit/${set.studentId}`}
-                            >
+                            <Link href={`/flashcard/edit/${set.studentId}`}>
                               <Pencil size={20} strokeWidth={1} />
                             </Link>
                           </div>
@@ -660,10 +646,6 @@ export default function FlashcardModule() {
           )}
         </div>
         <PublicFlashcardSetList />
-        {/* Chatbot */}
-        {/* <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
-          <ChatbotWidget userId={session?.user?.id || ""} />
-        </div> */}
 
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}

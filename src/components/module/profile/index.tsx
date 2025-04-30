@@ -13,17 +13,31 @@ import {
   getUserById,
   updateUserNameFunction,
   updateUserProfile,
+  updateDailyGoal,
 } from "@/app/api/profile/profile.api";
 import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 import { useUser } from "@/components/core/common/providers/user-provider";
+
+const formatDateToDisplay = (dateString: string) => {
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-");
+
+  return `${day}/${month}/${year}`;
+};
+
+const formatDateToSave = (dateString: string) => {
+  if (!dateString) return "";
+  const [day, month, year] = dateString.split("/");
+
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+};
 
 export default function UserProfilePage() {
   const { data: session } = useSession();
   const { setUserName } = useUser();
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false); // Thêm trạng thái lưu
-
+  const [isSaving, setIsSaving] = useState(false);
   const [editableUserName, setEditableUserName] = useState("");
   const [editableBio, setEditableBio] = useState("");
   const [editableDob, setEditableDob] = useState("");
@@ -32,7 +46,10 @@ export default function UserProfilePage() {
   const [editableReminderTime, setEditableReminderTime] = useState("08:00");
   const [dobError, setDobError] = useState("");
   const [userNameError, setUserNameError] = useState("");
-  const [saveMessage, setSaveMessage] = useState(""); // Thông báo thành công/lỗi
+  const [saveMessage, setSaveMessage] = useState("");
+  const [editableDailyGoal, setEditableDailyGoal] = useState<number | null>(
+    null,
+  );
 
   const validateUserName = (name: string) => {
     const hasLetter = /[a-zA-Z]/.test(name);
@@ -47,16 +64,39 @@ export default function UserProfilePage() {
     return true;
   };
 
+  const validateDate = (dateString: string) => {
+    if (!dateString) return true;
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+
+    if (!dateRegex.test(dateString)) {
+      setDobError("Vui lòng nhập đúng định dạng DD/MM/YYYY");
+
+      return false;
+    }
+    const [day, month, year] = dateString.split("/");
+    const date = new Date(`${year}-${month}-${day}`);
+
+    if (isNaN(date.getTime())) {
+      setDobError("Ngày không hợp lệ");
+
+      return false;
+    }
+    setDobError("");
+
+    return true;
+  };
+
   const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
     setEditableDob(value);
-
-    const selectedDate = new Date(value);
+    if (!validateDate(value)) return;
+    const formattedValue = formatDateToSave(value);
+    const selectedDate = new Date(formattedValue);
     const today = new Date();
 
     if (selectedDate > today) {
-      setDobError("❌ Ngày sinh không được ở tương lai.");
+      setDobError("Ngày sinh không được ở tương lai.");
     } else {
       setDobError("");
     }
@@ -80,7 +120,7 @@ export default function UserProfilePage() {
       setUserData(data);
       setEditableUserName(data.userName);
       setEditableBio(data.student?.bio || "");
-      setEditableDob(data.dob || "");
+      setEditableDob(data.dob ? formatDateToDisplay(data.dob) : "");
       setEditableOccupation(data.student?.occupation || "");
       setEditableReminder(data.student?.reminderEnabled ?? false);
       setEditableReminderTime(
@@ -88,6 +128,7 @@ export default function UserProfilePage() {
           ? data.student.reminderTime.slice(0, 5)
           : "08:00",
       );
+      setEditableDailyGoal(data.student?.dailyGoal || null);
     } catch (error) {
       console.error("Lỗi lấy user:", error);
     } finally {
@@ -102,9 +143,16 @@ export default function UserProfilePage() {
   const handleSave = async () => {
     if (!userData) return;
     if (!validateUserName(editableUserName)) return;
+    if (!validateDate(editableDob)) return;
+
+    if (editableDailyGoal !== null && editableDailyGoal < 30) {
+      setSaveMessage("Mục tiêu hàng ngày phải từ 30 phút trở lên.");
+
+      return;
+    }
 
     setIsSaving(true);
-    setSaveMessage(""); // Xóa thông báo cũ
+    setSaveMessage("");
 
     try {
       const token = session?.user.token as string;
@@ -113,13 +161,17 @@ export default function UserProfilePage() {
         await updateUserNameFunction(token, userData.userId, editableUserName);
       }
 
+      if (editableDailyGoal !== userData.dailyGoal) {
+        await updateDailyGoal(token, userData.userId, editableDailyGoal || 0);
+      }
+
       const formattedReminderTime = editableReminder
         ? `${editableReminderTime}:00`
         : null;
 
       await updateUserProfile(token, userData.userId, {
         bio: editableBio,
-        dob: editableDob,
+        dob: editableDob ? formatDateToSave(editableDob) : null,
         occupation: [
           "STUDENT",
           "EMPLOYED",
@@ -128,11 +180,11 @@ export default function UserProfilePage() {
           "OTHER",
         ].includes(editableOccupation)
           ? (editableOccupation as
-            | "STUDENT"
-            | "EMPLOYED"
-            | "UNEMPLOYED"
-            | "FREELANCER"
-            | "OTHER")
+              | "STUDENT"
+              | "EMPLOYED"
+              | "UNEMPLOYED"
+              | "FREELANCER"
+              | "OTHER")
           : undefined,
         reminderEnabled: editableReminder,
         reminderTime: formattedReminderTime,
@@ -143,7 +195,7 @@ export default function UserProfilePage() {
       await fetchUserData(); // Cập nhật dữ liệu mà không reload
       setSaveMessage("Cập nhật thông tin thành công!");
     } catch (error) {
-      console.error(" Lỗi cập nhật thông tin:", error);
+      console.error("Lỗi cập nhật thông tin:", error);
       setSaveMessage("Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.");
     } finally {
       setIsSaving(false);
@@ -233,8 +285,7 @@ export default function UserProfilePage() {
               <Input
                 className={`pl-10 ${dobError ? "border-red-500" : ""}`}
                 id="dob"
-                max={new Date().toISOString().split("T")[0]}
-                type="date"
+                placeholder="DD/MM/YYYY"
                 value={editableDob}
                 onChange={handleDobChange}
               />
@@ -257,6 +308,32 @@ export default function UserProfilePage() {
               value={editableBio}
               onChange={(e) => setEditableBio(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="dailyGoal"
+            >
+              Mục tiêu học hàng ngày
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                className="w-32"
+                id="dailyGoal"
+                max="100"
+                min="1"
+                placeholder="Nhập số phút mục tiêu"
+                type="number"
+                value={editableDailyGoal || ""}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+
+                  setEditableDailyGoal(isNaN(value) ? null : value);
+                }}
+              />
+              <span className="text-sm text-gray-500">phút/ngày</span>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -329,10 +406,11 @@ export default function UserProfilePage() {
         </div>
         {saveMessage && (
           <p
-            className={`mt-4 text-sm ${saveMessage.includes("thành công")
+            className={`mt-4 text-sm ${
+              saveMessage.includes("thành công")
                 ? "text-green-600"
                 : "text-red-500"
-              }`}
+            }`}
           >
             {saveMessage}
           </p>
