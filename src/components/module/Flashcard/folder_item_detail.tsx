@@ -282,57 +282,53 @@ export default function FolderDetail({
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center mt-8 px-4">
-        {loading ? (
-          <div className="text-center text-gray-500">Đang tải...</div>
-        ) : (
-          <div className="w-full max-w-2xl">
-            {flashcardSets.length === 0 ? (
-              <div className="text-center">
-                <img
-                  alt="Empty folder"
-                  className="w-40 h-40 object-contain mb-3 opacity-70 rounded-full mx-auto"
-                  src="https://i.imgur.com/H82IgpA.jpeg"
-                />
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                  Hiện tại bạn chưa có flashcard sets nào
-                </h2>
-                <p className="text-gray-700 mb-6">
-                  Hãy thêm các flashcard sets để TechNihongo giúp bạn học tập
-                  tốt hơn nhé
-                </p>
-                <Button
-                  className="bg-[#7EE395] hover:bg-[#7EE395]/80 text-white px-6 py-2 rounded-md"
-                  onClick={() => setIsModalOpen(true)}
+        <div className="w-full max-w-2xl">
+          {flashcardSets.length === 0 ? (
+            <div className="text-center">
+              <img
+                alt="Empty folder"
+                className="w-40 h-40 object-contain mb-3 opacity-70 rounded-full mx-auto"
+                src="https://i.imgur.com/H82IgpA.jpeg"
+              />
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Hiện tại bạn chưa có flashcard sets nào
+              </h2>
+              <p className="text-gray-700 mb-6">
+                Hãy thêm các flashcard sets để TechNihongo giúp bạn học tập tốt
+                hơn nhé
+              </p>
+              <Button
+                className="bg-[#7EE395] hover:bg-[#7EE395]/80 text-white px-6 py-2 rounded-md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                Thêm Flashcard Set
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {flashcardSets.map((set) => (
+                <div
+                  key={set.studentSetId}
+                  className="p-4 bg-white/90 rounded-lg shadow-md flex justify-between items-center border-l-4 border-[#7EE395]/50"
                 >
-                  Thêm Flashcard Set
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {flashcardSets.map((set) => (
-                  <div
-                    key={set.studentSetId}
-                    className="p-4 bg-white/90 rounded-lg shadow-md flex justify-between items-center border-l-4 border-[#7EE395]/50"
-                  >
-                    <div>
-                      <h4 className="text-lg font-semibold text-[#7EE395]">
-                        {set.title}
-                      </h4>
-                      <p className="text-sm text-gray-600">{set.description}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDeleteSet(set.studentSetId)}
-                    >
-                      Xóa
-                    </Button>
+                  <div>
+                    <h4 className="text-lg font-semibold text-[#7EE395]">
+                      {set.title}
+                    </h4>
+                    <p className="text-sm text-gray-600">{set.description}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDeleteSet(set.studentSetId)}
+                  >
+                    Xóa
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add Flashcard Set Modal */}

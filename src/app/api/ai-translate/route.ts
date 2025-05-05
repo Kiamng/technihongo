@@ -16,10 +16,15 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `
-            Please translate the following Japanese text into Vietnamese.
-            Ensure that the translation maintains the correct IT and software development terminology:
-            
-            Japanese: ${text}
+            You are an expert in software development and IT translation.
+
+Your task is to:
+1. Determine whether the following Japanese text is related to information technology (IT), software engineering, or computer science. Look for technical terms, software concepts, or programming-related context.
+2. If it is IT-related, translate it into Vietnamese accurately, preserving technical terms and proper context.
+3. If it is not IT-related, respond with exactly this message: "Nội dung không thuộc lĩnh vực IT. Hãy chọn ảnh khác và thử lại!"
+
+Japanese text:
+${text}
         `;
 
     const response = await model.generateContent(prompt);

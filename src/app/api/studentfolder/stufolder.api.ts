@@ -1,6 +1,9 @@
+import { z } from "zod";
+
 import { FlashcardSet } from "../studentflashcardset/stuflashcard.api";
 
 import axiosClient from "@/lib/axiosClient";
+import { addStuFolderSchema } from "@/schema/folder";
 
 const ENDPOINT = {
   GET_STUFOLDER_BY_ID: (studentId: number) =>
@@ -57,7 +60,7 @@ export const getPublicFlashcardSets = async (
 export const addStuFolder = async (
   token: string,
   studentId: number,
-  values: FolderData,
+  values: z.infer<typeof addStuFolderSchema>,
 ) => {
   try {
     const response = await axiosClient.post(

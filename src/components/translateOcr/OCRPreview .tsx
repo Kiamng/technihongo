@@ -1,11 +1,22 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
+
+import { Button } from "../ui/button";
+
 interface OCRPreviewProps {
   file: File;
   previewUrl: string | null;
+  scanMessage: string;
+  handleClear: () => void;
 }
 
-export default function OCRPreview({ file, previewUrl }: OCRPreviewProps) {
+export default function OCRPreview({
+  file,
+  previewUrl,
+  scanMessage,
+  handleClear,
+}: OCRPreviewProps) {
   const isPDF = file.type === "application/pdf";
 
   return (
@@ -47,6 +58,20 @@ export default function OCRPreview({ file, previewUrl }: OCRPreviewProps) {
           </p>
         </div>
       </div>
+      {scanMessage && (
+        <div className="w-full flex flex-row justify-between items-center">
+          <div className="flex flex-row space-x-2 text-red-500">
+            <TriangleAlert />
+            <span className="font-bold text-xl ">{scanMessage}</span>
+          </div>
+          <Button
+            className="hover:scale-105 transition-all duration-300"
+            onClick={handleClear}
+          >
+            Thử lại
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

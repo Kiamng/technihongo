@@ -2,7 +2,14 @@
 import { useEffect, useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
-import { Flag, Loader2, Pencil, Share2, Trash } from "lucide-react";
+import {
+  ChevronRight,
+  Flag,
+  Loader2,
+  Pencil,
+  Share2,
+  Trash,
+} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -117,6 +124,18 @@ export default function FlashcardDetailModule({
 
   return (
     <div className="w-full space-y-20 min-h-screen pt-6">
+      <div className="flex flex-row space-x-2 w-full p-6 bg-white dark:bg-black rounded-2xl">
+        <Link className="hover:text-primary font-bold" href={"/flashcard"}>
+          Flashcard
+        </Link>
+        <ChevronRight />
+        <Link
+          className="hover:text-primary font-bold"
+          href={`/flashcard/${flashcardSet.studentSetId}`}
+        >
+          {loading ? <Loader2 /> : flashcardSet.title}
+        </Link>
+      </div>
       <TextHighlighterWithTranslate />
       <div>
         <div className="text-center">

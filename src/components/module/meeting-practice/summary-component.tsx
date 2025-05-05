@@ -5,7 +5,13 @@ import { Script } from "@/types/meeting";
 interface SummaryComponentProps {
     scripts: Script[];
     scores: { [key: string]: number };
-    wordResults: { [key: string]: { text: string; confidence: number }[] };
+    wordResults: {
+        [key: string]: {
+            text: string;
+            confidence: number;
+            error_type: "perfect" | "good" | "poor" | "missing";
+        }[];
+    };
 }
 
 export default function SummaryComponent({
@@ -43,7 +49,7 @@ export default function SummaryComponent({
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                     Độ chính xác: {scores[script.scriptId]?.toFixed(1) || 0}%
                                 </div>
-                                <div className="relative bg-green-50 dark:bg-secondary text-black dark:text-white p-4 rounded-2xl text-md font-medium max-w-[80%] shadow-sm">
+                                <div className="relative bg-secondary dark:bg-secondary text-black dark:text-white p-4 rounded-2xl text-md font-medium max-w-[80%] shadow-sm">
                                     <div className="absolute -right-2 top-4 w-4 h-4 bg-green-50 dark:bg-secondary transform rotate-45" />
                                     <AnswerDisplay words={wordResults[script.scriptId] || []} />
                                 </div>

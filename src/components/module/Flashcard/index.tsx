@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   FolderPlus,
-  MoreVertical,
-  Edit,
-  Trash2,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -24,12 +21,6 @@ import UpdateStuFolderPopup from "./updatestufolder";
 import PublicFlashcardSetList from "./public-flashcard-set";
 import SearchFlashcardSets from "./search_flashcard_set";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
   FlashcardSet,
@@ -413,28 +404,21 @@ export default function FlashcardModule() {
                                 {folder.description}
                               </p>
                             </Link>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost">
-                                  <MoreVertical size={20} />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() => handleUpdate(folder)}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" /> Cập nhật
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openDeleteDialog(folder.folderId)
-                                  }
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4 text-red-500" />{" "}
-                                  Xóa
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <img
+                              alt="img"
+                              height={70}
+                              src="https://i.imgur.com/9cBcFK5.png"
+                              width={70}
+                            />
+                          </div>
+                          <div className={`mt-auto w-full flex justify-end`}>
+                            <Link href={`/flashcard/folder/${folder.folderId}`}>
+                              <Button variant={"link"}>
+                                <span className="flex items-center">
+                                  Xem thêm <ChevronRight />
+                                </span>
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       ))}

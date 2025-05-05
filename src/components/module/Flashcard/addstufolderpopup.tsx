@@ -23,12 +23,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { addStuFolder } from "@/app/api/studentfolder/stufolder.api";
+import { addStuFolderSchema } from "@/schema/folder";
 
 // Định nghĩa schema kiểm tra dữ liệu form
-const addStuFolderSchema = z.object({
-  name: z.string().min(1, "Folder name is required"),
-  description: z.string().min(1, "Description is required"),
-});
 
 interface AddStuFolderPopupProps {
   isOpen: boolean;
@@ -89,7 +86,7 @@ const AddStuFolderPopup = ({
         className="max-w-[700px]"
       >
         <DialogHeader>
-          <DialogTitle>Add New Folder</DialogTitle>
+          <DialogTitle>Tạo mới thư mục</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -101,7 +98,7 @@ const AddStuFolderPopup = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Folder Name</FormLabel>
+                  <FormLabel>Tên thư mục</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -114,7 +111,7 @@ const AddStuFolderPopup = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -126,10 +123,10 @@ const AddStuFolderPopup = ({
               <Button disabled={isLoading} type="submit">
                 {isLoading ? (
                   <>
-                    <LoaderCircle className="animate-spin" /> Creating...
+                    <LoaderCircle className="animate-spin" /> Đang tạo...
                   </>
                 ) : (
-                  "Create"
+                  "Tạo"
                 )}
               </Button>
             </div>

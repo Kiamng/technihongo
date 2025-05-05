@@ -3,6 +3,8 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { CircleStop, Loader2, Mic } from "lucide-react"; // icon loading xoay
 
+import FeedbackDisplay from "./feedback";
+
 import { Button } from "@/components/ui/button";
 
 interface PronunciationPracticeProps {
@@ -86,11 +88,11 @@ const PronunciationPractice = ({
 
             const data = await res.json();
 
-            if (data.confidence && setCorrectPercent) {
-                setCorrectPercent(Math.round(data.confidence * 100));
+            if (data.pronunciation_score && setCorrectPercent) {
+                setCorrectPercent(data.pronunciation_score);
             }
             setResult(data);
-
+            console.log("respond o client:", data);
             if (onComplete) onComplete();
         } catch (err) {
             console.error("Error sending audio:", err);
@@ -177,24 +179,61 @@ const PronunciationPractice = ({
                 <>
                     <div className="w-full flex flex-col space-y-2 p-4 bg-gray-50 dark:bg-secondary rounded-2xl">
                         <h2 className="text-xl font-bold">Kết quả Phát Âm</h2>
-                        <p className="text-lg">
+                        {/* <p className="text-lg">
                             Độ chính xác:{" "}
                             <span className="font-bold text-green-600">
                                 {Math.round(result.confidence * 100)}%
                             </span>
+                        </p> */}
+                        <p className="text-lg">
+                            Độ chính xác:{" "}
+                            <span className="font-bold text-green-600">
+                                {result.pronunciation_score}%
+                            </span>
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center text-lg">
-                            {result.words?.map((word: any, idx: number) => (
-                                <div
-                                    key={idx}
-                                    className={`relative group ${getColorClass(word.confidence)}`}
-                                >
-                                    {word.text}
-                                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                                        {Math.round(word.confidence * 100)}% chính xác
+                            {/* {result.words?.map((word: any, idx: number) => {
+                                let bgClass = "";
+                                let textClass = "";
+                                let tooltip = "";
+
+                                switch (word.error_type) {
+                                    case "perfect":
+                                        bgClass = "bg-green-300";
+                                        textClass = "text-green-900";
+                                        tooltip = "Phát âm chính xác";
+                                        break;
+                                    case "good":
+                                        bgClass = "bg-green-100";
+                                        textClass = "text-green-700";
+                                        tooltip = "Phát âm tốt";
+                                        break;
+                                    case "poor":
+                                        bgClass = "bg-yellow-100";
+                                        textClass = "text-yellow-800";
+                                        tooltip = "Phát âm tạm ổn";
+                                        break;
+                                    case "missing":
+                                    default:
+                                        bgClass = "bg-red-200";
+                                        textClass = "text-red-800";
+                                        tooltip = "Thiếu hoặc phát âm sai";
+                                        break;
+                                }
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`relative group px-4 py-2 rounded-2xl font-semibold ${bgClass} ${textClass}`}
+                                    >
+                                        {word.word}
+                                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                                            {tooltip}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })} */}
+                            <FeedbackDisplay words={result.words} />
                         </div>
                     </div>
 

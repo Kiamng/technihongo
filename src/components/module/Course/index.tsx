@@ -187,7 +187,7 @@ export default function CourseModule() {
   }
 
   return (
-    <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10">
+    <div className="w-full flex flex-col space-y-6 bg-white dark:bg-black p-10 h-full">
       {learningPaths && learningPaths.length > 0 && (
         <>
           <h2 className="text-2xl font-bold">Lộ trình học tập gợi ý</h2>

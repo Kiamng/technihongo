@@ -70,6 +70,8 @@ async function pollTranscriptionStatus(transcriptId: string) {
     const data = await response.json();
 
     if (data.status === "completed") {
+      console.log(data);
+
       return data;
     }
 
@@ -86,6 +88,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("audio") as Blob;
+    const referenceText = formData.get("text") as string;
 
     if (!file) {
       return NextResponse.json(
@@ -99,8 +102,14 @@ export async function POST(req: NextRequest) {
     const audioUrl = await uploadAudio(buffer);
     const transcriptId = await requestTranscription(audioUrl);
     const transcriptionResult = await pollTranscriptionStatus(transcriptId);
+    const recognizedText = await pollTranscriptionStatus(transcriptId);
 
-    return NextResponse.json(transcriptionResult);
+    console.log("reference text la:", referenceText);
+
+    const result = compareTexts(referenceText, recognizedText.words);
+
+    // return NextResponse.json(transcriptionResult);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Server error:", error);
 
@@ -109,4 +118,50 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+function compareTexts(reference: string, recognizedWords: any[]) {
+  const refText = normalize(reference);
+  let totalConfidence = 0;
+  let wordCount = recognizedWords.length;
+
+  const wordsResult = recognizedWords.map((w: any) => {
+    const wordText = normalize(w.text);
+    const confidence = w.confidence || 0;
+
+    if (!refText.includes(wordText)) {
+      return {
+        text: w.text,
+        confidence: 0,
+        error_type: "missing",
+      };
+    }
+
+    totalConfidence += confidence;
+
+    let error_type = "poor";
+
+    if (confidence >= 0.9) error_type = "perfect";
+    else if (confidence >= 0.75) error_type = "good";
+
+    return {
+      text: w.text,
+      confidence,
+      error_type,
+    };
+  });
+
+  const pronunciationScore = Math.round((totalConfidence / wordCount) * 100);
+
+  return {
+    pronunciation_score: pronunciationScore,
+    words: wordsResult,
+  };
+}
+
+function normalize(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFKC")
+    .replace(/[^぀-ヿ一-鿿ｦ-ﾟ\p{L}\p{N}ー々〆〤]+/gu, "");
 }

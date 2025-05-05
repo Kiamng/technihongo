@@ -43,7 +43,11 @@ export default function MeetingPracticeModule() {
 
     const [scores, setScores] = useState<{ [key: string]: number }>({});
     const [wordResults, setWordResults] = useState<{
-        [key: string]: { text: string; confidence: number }[];
+        [key: string]: {
+            text: string;
+            confidence: number;
+            error_type: "perfect" | "good" | "poor" | "missing";
+        }[];
     }>({});
 
     const [isCompleted, setIsCompleted] = useState(false);
