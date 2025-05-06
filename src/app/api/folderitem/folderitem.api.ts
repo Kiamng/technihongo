@@ -68,12 +68,6 @@ export const getFolderItemsByFolderId = async (
     if (status === 403) {
       throw error; // Giữ lỗi gốc để component xử lý
     }
-
-    // Log các lỗi khác (tùy chọn, có thể bỏ nếu không muốn log gì)
-    console.error(
-      "Error fetching folder items:",
-      error.response?.data || error.message,
-    );
     throw new Error(message);
   }
 };

@@ -178,18 +178,8 @@ export default function FlashcardModule() {
     }, 100);
   };
 
-  const handleUpdate = (folder: {
-    folderId: number;
-    name: string;
-    description: string;
-  }) => {
-    setUpdatingFolder(folder);
-    setIsUpdatePopupOpen(true);
-  };
-
-  const openDeleteDialog = (folderId: number) => {
-    setFolderToDelete(folderId);
-    setIsDeleteDialogOpen(true);
+  const handleSearchResultClick = (setId: number) => {
+    router.push(`/flashcard/${setId}`);
   };
 
   const handleDelete = async (folderId: number) => {
@@ -240,9 +230,13 @@ export default function FlashcardModule() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+
       if (
         searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
+        target &&
+        !searchContainerRef.current.contains(target) &&
+        !target.closest(".search-result-item")
       ) {
         setIsSearchActive(false);
         setSearchResults([]);
@@ -252,7 +246,7 @@ export default function FlashcardModule() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -305,10 +299,10 @@ export default function FlashcardModule() {
             ) : searchResults.length > 0 ? (
               <div className="p-4 flex flex-col space-y-4">
                 {searchResults.map((set: any) => (
-                  <Link
+                  <button
                     key={set.studentSetId}
-                    className="block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
-                    href={`/flashcard/${set.studentSetId}`}
+                    className="search-result-item block p-2 border-primary border-[1px] dark:hover:bg-secondary rounded-lg hover:-translate-y-1 transition-all duration-300 "
+                    onClick={() => handleSearchResultClick(set.studentSetId)}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -339,7 +333,7 @@ export default function FlashcardModule() {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </button>
                 ))}
               </div>
             ) : (
@@ -359,7 +353,7 @@ export default function FlashcardModule() {
             : undefined
         }
       >
-        <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white bg-opacity-50 dark:bg-black relative">
+        <div className="mt-8 flex flex-col justify-center p-5 border-[1px] rounded-2xl bg-white dark:bg-black relative">
           <div className="flex flex-row justify-between items-center">
             <span className="text-2xl font-semibold text-primary">
               Thư mục của tôi

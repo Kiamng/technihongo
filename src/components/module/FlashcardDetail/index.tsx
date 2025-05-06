@@ -125,8 +125,8 @@ export default function FlashcardDetailModule({
 
   return (
     <div className="w-full space-y-20 min-h-screen pt-6">
-      <div className="flex flex-row space-x-1 items-center">
-        <Link href={"/meeting"}>
+      <div className="flex flex-row space-x-1 items-center p-4 bg-white rounded-2xl dark:bg-black">
+        <Link href={"/flashcard"}>
           <button className="text-gray-400 hover:text-primary  flex space-x-1">
             <Copy />
             <span className="text-xl font-bold">Flashcard</span>

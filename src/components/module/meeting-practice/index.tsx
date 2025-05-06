@@ -272,7 +272,7 @@ export default function MeetingPracticeModule() {
 
     return (
         <div className="w-full min-h-screen flex flex-col space-y-6 p-10">
-            <div className="flex flex-row space-x-1 items-center">
+            <div className="flex flex-row space-x-1 items-center p-4 bg-white rounded-2xl dark:bg-black">
                 <Link href={"/meeting"}>
                     <button className="text-gray-400 hover:text-primary  flex space-x-1">
                         <Mic />

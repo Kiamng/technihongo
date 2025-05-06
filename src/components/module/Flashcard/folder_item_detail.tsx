@@ -29,6 +29,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"; // Giả định sử dụng từ thư viện UI
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface FolderDetailProps {
   folderId: number;
@@ -114,10 +116,11 @@ export default function FolderDetail({
         })),
       );
     } catch (error: any) {
-      console.error("Lỗi khi lấy folder items:", error);
       if (error.response?.status === 403) {
         setAccessDenied(true);
       }
+      toast.warning("Bạn không có quyền làm việc này!");
+      router.push(`/flashcard`);
     } finally {
       setLoading(false);
     }
@@ -227,6 +230,10 @@ export default function FolderDetail({
     );
   }
 
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <main
       className="min-h-screen bg-gradient-to-br from-[#7EE395] to-cyan-100 relative overflow-hidden"
@@ -257,7 +264,6 @@ export default function FolderDetail({
           ✓
         </div>
       </div>
-
       {/* Header */}
       <div className="relative z-10 p-6 bg-white/20 backdrop-blur-sm rounded-xl m-4 shadow-sm border border-[#7EE395]/30">
         <div className="flex items-center gap-3">
@@ -317,13 +323,14 @@ export default function FolderDetail({
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center mt-8 px-4">
-        <div className="w-full max-w-6xl">
-          {loading ? (
+        <div className="w-full">
+          {/* {loading ? (
             <div className="text-center py-8">
               <LoaderCircle className="h-6 w-6 animate-spin mx-auto" />
               <p>Đang tải danh sách flashcard sets...</p>
             </div>
-          ) : flashcardSets.length === 0 ? (
+          ) :  */}
+          {flashcardSets.length === 0 ? (
             <div className="text-center">
               <img
                 alt="Empty folder"
@@ -345,7 +352,7 @@ export default function FolderDetail({
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {flashcardSets.map((set) => (
                 <Link
                   key={set.studentSetId}
@@ -354,9 +361,24 @@ export default function FolderDetail({
                 >
                   <div className="w-full h-40 p-4 border-[1px] border-[#7EE395]/50 rounded-lg bg-white/90 hover:shadow-md flex flex-col justify-between relative transform transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                     <div className="flex-grow">
-                      <h4 className="font-semibold text-gray-800 truncate">
-                        {set.title}
-                      </h4>
+                      <div className="w-full flex justify-between">
+                        <h3 className="text-lg font-semibold truncate">
+                          {set.title}
+                        </h3>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleOpenDeleteSetDialog(
+                              set.studentSetId,
+                              set.title,
+                            );
+                          }}
+                        >
+                          Xóa
+                        </Button>
+                      </div>
                       <div className="flex flex-row space-x-2 mt-2">
                         <div className="flex text-sm space-x-1 items-center text-gray-600 px-2 py-1 rounded-lg bg-[#7EE395]/20">
                           <span>
@@ -369,24 +391,18 @@ export default function FolderDetail({
                           <Eye className="w-4 h-4" />
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Người tạo: {set.userName || "Không xác định"}
-                      </p>
                     </div>
-                    <div className="mt-2">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleOpenDeleteSetDialog(
-                            set.studentSetId,
-                            set.title,
-                          );
-                        }}
-                      >
-                        Xóa
-                      </Button>
+                    <div className="mt-auto flex flex-row space-x-2 items-center">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage
+                          alt="@shadcn"
+                          src={set.profileImg || "Unknown"}
+                        />
+                        <AvatarFallback>{set.userName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <p className="hover:text-primary text-sm dark:text-white font-bold">
+                        {set.userName || "Unknown"}
+                      </p>
                     </div>
                   </div>
                 </Link>

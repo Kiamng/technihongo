@@ -1,6 +1,13 @@
 "use client";
 
-import { GripVertical, ImagePlus, Plus, Trash } from "lucide-react";
+import {
+  ChevronRight,
+  Copy,
+  GripVertical,
+  ImagePlus,
+  Plus,
+  Trash,
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,6 +16,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { handleFlashcardFileUpload } from "./spreadsheet-import";
 import ImportCSVPopup from "./import-csv";
@@ -242,6 +250,18 @@ export default function FlashcardCreateModule() {
 
   return (
     <div className="w-full min-h-screen space-y-8 bg-white dark:bg-black p-10">
+      <div className="w-full flex flex-row space-x-1 items-center p-4 bg-white rounded-2xl dark:bg-black">
+        <Link href={"/flashcard"}>
+          <button className="text-gray-400 hover:text-primary  flex space-x-1">
+            <Copy />
+            <span className="text-xl font-bold">Flashcard</span>
+          </button>
+        </Link>
+        <ChevronRight strokeWidth={1.5} />
+        <button className="underline text-xl text-gray-700 font-bold">
+          Tạo mới bộ flashcard
+        </button>
+      </div>
       <Form {...form}>
         <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="w-full flex flex-col space-y-6">

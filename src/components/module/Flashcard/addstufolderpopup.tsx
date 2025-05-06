@@ -66,7 +66,7 @@ const AddStuFolderPopup = ({
       if (response.success === false) {
         toast.error("Failed to add new folder!");
       } else {
-        toast.success("Folder added successfully!");
+        toast.success("Tạo thư mục mới thành công !");
         setIsOpen(false);
         form.reset();
         onFolderAdded(); //Gọi callback sau khi tạo thành công

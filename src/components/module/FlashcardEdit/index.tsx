@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowUpDown, Loader2, Plus, TriangleAlert } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronRight,
+  Copy,
+  Loader2,
+  Plus,
+  TriangleAlert,
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,6 +16,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { DropResult } from "@hello-pangea/dnd";
+import Link from "next/link";
 
 import { handleFlashcardFileUpload } from "../FlashcardCreate/spreadsheet-import";
 import QuickAddPopup from "../FlashcardCreate/quick-import";
@@ -480,6 +488,18 @@ export default function FlashcardEditModule() {
 
   return (
     <div className="w-full min-h-screen space-y-8 bg-white dark:bg-black p-10">
+      <div className="w-full flex flex-row space-x-1 items-center p-4 bg-white rounded-2xl dark:bg-black">
+        <Link href={"/flashcard"}>
+          <button className="text-gray-400 hover:text-primary  flex space-x-1">
+            <Copy />
+            <span className="text-xl font-bold">Flashcard</span>
+          </button>
+        </Link>
+        <ChevronRight strokeWidth={1.5} />
+        <button className="underline text-xl text-gray-700 font-bold">
+          Chỉnh sửa flaschard : {initialData?.title}
+        </button>
+      </div>
       <Form {...form}>
         <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="w-full flex flex-col space-y-6">
