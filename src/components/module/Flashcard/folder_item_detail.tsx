@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { LoaderCircle } from "lucide-react";
+import { Copy, Eye, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 import { AddFlashcardSetModal } from "./add_folder_item";
 import UpdateStuFolderPopup from "./updatestufolder";
-import { DeleteConfirmationDialog } from "./delete_folder_item";
 
 import { Button } from "@/components/ui/button";
 import { getFlashcardSetById } from "@/app/api/studentflashcardset/stuflashcard.api";
@@ -22,6 +22,13 @@ import {
   deleteStuFolder,
   getStuFolder,
 } from "@/app/api/studentfolder/stufolder.api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"; // Giả định sử dụng từ thư viện UI
 
 interface FolderDetailProps {
   folderId: number;
@@ -47,7 +54,10 @@ export default function FolderDetail({
   );
   const [accessDenied, setAccessDenied] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteSetDialogOpen, setIsDeleteSetDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
+  const [selectedSetTitle, setSelectedSetTitle] = useState<string>("");
 
   const token = session?.user?.token;
 
@@ -95,10 +105,16 @@ export default function FolderDetail({
       );
       const sets = await Promise.all(flashcardSetPromises);
 
-      setFlashcardSets(sets);
+      setFlashcardSets(
+        sets.map((set) => ({
+          ...set,
+          userName: set.userName || "Không xác định",
+          totalViews: set.totalViews || 0,
+          totalCards: set.flashcards ? set.flashcards.length : 0,
+        })),
+      );
     } catch (error: any) {
       console.error("Lỗi khi lấy folder items:", error);
-
       if (error.response?.status === 403) {
         setAccessDenied(true);
       }
@@ -111,10 +127,12 @@ export default function FolderDetail({
     fetchFolderItems();
   }, [folderId, token]);
 
-  const handleDeleteSet = async (studentSetId: number) => {
-    if (!token || !session?.user?.studentId) return;
+  const handleDeleteSet = async () => {
+    if (!token || !session?.user?.studentId || !selectedSetId) return;
 
-    const item = folderItems.find((item) => item.studentSetId === studentSetId);
+    const item = folderItems.find(
+      (item) => item.studentSetId === selectedSetId,
+    );
 
     if (!item) return;
 
@@ -124,10 +142,23 @@ export default function FolderDetail({
         studentId: Number(session.user.studentId),
       });
       await fetchFolderItems();
+      toast.success("Xóa flashcard set khỏi folder thành công");
     } catch (error) {
       console.error("Lỗi khi xóa:", error);
+      toast.error("Xóa flashcard set thất bại");
+    } finally {
+      setIsDeleteSetDialogOpen(false);
+      setSelectedSetId(null);
+      setSelectedSetTitle("");
     }
   };
+
+  const handleOpenDeleteSetDialog = (studentSetId: number, title: string) => {
+    setSelectedSetId(studentSetId);
+    setSelectedSetTitle(title);
+    setIsDeleteSetDialogOpen(true);
+  };
+
   const handleDeleteFolder = async () => {
     if (!token || !session?.user?.studentId) {
       toast.error("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại");
@@ -136,7 +167,6 @@ export default function FolderDetail({
     }
 
     try {
-      // Kiểm tra xem folder có chứa flashcard sets không
       const currentFolderItems = await getFolderItemsByFolderId(
         token,
         folderId,
@@ -178,6 +208,11 @@ export default function FolderDetail({
   ) => {
     setFolderName(updatedName);
     setFolderDescription(updatedDescription);
+  };
+
+  const handleAddSuccess = () => {
+    fetchFolderItems();
+    toast.success("Thêm flashcard set vào thư mục thành công");
   };
 
   if (!token) {
@@ -253,7 +288,7 @@ export default function FolderDetail({
             variant="outline"
             onClick={() => setIsModalOpen(true)}
           >
-            <span className="text-xl">✏️</span>
+            <span className="text-xl">🛠️</span>
           </Button>
           <Button
             className="bg-[#7EE395]/30 hover:bg-[#7EE395]/50 border-0 rounded-lg h-10 w-10"
@@ -261,7 +296,7 @@ export default function FolderDetail({
             variant="outline"
             onClick={() => setIsUpdateFolderOpen(true)}
           >
-            <span className="text-xl">👕</span>
+            <span className="text-xl">⚙️</span>
           </Button>
 
           <Button
@@ -282,8 +317,13 @@ export default function FolderDetail({
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center mt-8 px-4">
-        <div className="w-full max-w-2xl">
-          {flashcardSets.length === 0 ? (
+        <div className="w-full max-w-6xl">
+          {loading ? (
+            <div className="text-center py-8">
+              <LoaderCircle className="h-6 w-6 animate-spin mx-auto" />
+              <p>Đang tải danh sách flashcard sets...</p>
+            </div>
+          ) : flashcardSets.length === 0 ? (
             <div className="text-center">
               <img
                 alt="Empty folder"
@@ -298,33 +338,58 @@ export default function FolderDetail({
                 hơn nhé
               </p>
               <Button
-                className="bg-[#7EE395] hover:bg-[#7EE395]/80 text-white px-6 py-2 rounded-md"
+                className="bg-[#7EE395] hover:bg-[#7EE395]/80 text-white px-6 py-2 rounded-lg"
                 onClick={() => setIsModalOpen(true)}
               >
                 Thêm Flashcard Set
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {flashcardSets.map((set) => (
-                <div
+                <Link
                   key={set.studentSetId}
-                  className="p-4 bg-white/90 rounded-lg shadow-md flex justify-between items-center border-l-4 border-[#7EE395]/50"
+                  passHref
+                  href={`/flashcard/${set.studentSetId}`}
                 >
-                  <div>
-                    <h4 className="text-lg font-semibold text-[#7EE395]">
-                      {set.title}
-                    </h4>
-                    <p className="text-sm text-gray-600">{set.description}</p>
+                  <div className="w-full h-40 p-4 border-[1px] border-[#7EE395]/50 rounded-lg bg-white/90 hover:shadow-md flex flex-col justify-between relative transform transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div className="flex-grow">
+                      <h4 className="font-semibold text-gray-800 truncate">
+                        {set.title}
+                      </h4>
+                      <div className="flex flex-row space-x-2 mt-2">
+                        <div className="flex text-sm space-x-1 items-center text-gray-600 px-2 py-1 rounded-lg bg-[#7EE395]/20">
+                          <span>
+                            {set.flashcards ? set.flashcards.length : 0}
+                          </span>
+                          <Copy className="w-4 h-4" />
+                        </div>
+                        <div className="flex space-x-1 items-center text-sm text-gray-600 px-2 py-1 rounded-lg bg-[#7EE395]/20">
+                          <span>{set.totalViews || 0}</span>
+                          <Eye className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Người tạo: {set.userName || "Không xác định"}
+                      </p>
+                    </div>
+                    <div className="mt-2">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleOpenDeleteSetDialog(
+                            set.studentSetId,
+                            set.title,
+                          );
+                        }}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDeleteSet(set.studentSetId)}
-                  >
-                    Xóa
-                  </Button>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -337,7 +402,7 @@ export default function FolderDetail({
         folderId={folderId}
         isOpen={isModalOpen}
         token={token || ""}
-        onAddSuccess={fetchFolderItems}
+        onAddSuccess={handleAddSuccess}
         onClose={() => setIsModalOpen(false)}
       />
 
@@ -352,13 +417,57 @@ export default function FolderDetail({
         onClose={() => setIsUpdateFolderOpen(false)}
         onSuccess={handleUpdateSuccess}
       />
-      {/* Các modal */}
-      <DeleteConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        itemName={folderName}
-        onCancel={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteFolder}
-      />
+
+      {/* Dialog xác nhận xóa folder */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bạn có chắc chắn muốn xóa?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-700">
+            Bạn sắp xóa folder <strong>{folderName}</strong> này. Thao tác này
+            không thể hoàn tác.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteFolder}>
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog xác nhận xóa flashcard set */}
+      <Dialog
+        open={isDeleteSetDialogOpen}
+        onOpenChange={setIsDeleteSetDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bạn có chắc chắn muốn xóa?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-700">
+            Bạn sắp xóa flashcard set <strong>{selectedSetTitle}</strong> khỏi
+            folder này. Thao tác này không thể hoàn tác.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteSetDialogOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteSet}>
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Decorative Elements */}
       <div className="absolute bottom-0 left-0 w-full flex justify-center z-0 opacity-30">
