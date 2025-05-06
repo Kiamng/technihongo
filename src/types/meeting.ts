@@ -23,7 +23,9 @@ export type Script = {
   scriptId: number;
   meeting: Meeting;
   question: string;
+  questionExplain: string;
   answer: string;
+  answerExplain: string;
   scriptOrder: number;
   createdAt: string;
   updatedAt: string;

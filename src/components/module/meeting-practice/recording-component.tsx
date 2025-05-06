@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction, useState } from "react";
 import { CircleStop, Loader2, Mic } from "lucide-react"; // icon loading xoay
+import { toast } from "sonner";
 
 import FeedbackDisplay from "./feedback";
 
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 interface PronunciationPracticeProps {
     text: string;
+    answerExplain: string;
     onComplete?: () => void;
     setCorrectPercent: Dispatch<SetStateAction<number>>;
     result: any;
@@ -17,6 +19,7 @@ interface PronunciationPracticeProps {
 
 const PronunciationPractice = ({
     text,
+    answerExplain,
     onComplete,
     setCorrectPercent,
     result,
@@ -32,6 +35,19 @@ const PronunciationPractice = ({
     const [recordTimeout, setRecordTimeout] = useState<NodeJS.Timeout | null>(
         null,
     );
+
+    const checkMicrophonePermission = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            startRecording();
+            stream.getTracks().forEach((track) => track.stop());
+        } catch (err) {
+            toast.error(
+                "Vui lòng cấp quyền sử dụng microphone trên trình duyệt để ghi âm.",
+            );
+        }
+    };
 
     const startRecording = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -106,15 +122,8 @@ const PronunciationPractice = ({
         setResult(null);
         setIsRecording(false);
         if (recordTimeout) {
-            clearTimeout(recordTimeout); // Clear any timeout if reset
+            clearTimeout(recordTimeout);
         }
-    };
-
-    const getColorClass = (confidence: number) => {
-        if (confidence >= 0.9) return "text-green-600";
-        if (confidence >= 0.7) return "text-yellow-600";
-
-        return "text-red-600";
     };
 
     return (
@@ -122,15 +131,21 @@ const PronunciationPractice = ({
             {!result ? (
                 <>
                     <div className="flex space-x-4 items-center">
-                        <div className="relative bg-green-50 dark:bg-green-900 text-black dark:text-white p-4 rounded-2xl text-md font-medium max-w-[80%] shadow-sm">
+                        <div className="relative bg-green-50 dark:bg-green-900 text-black dark:text-white p-4 rounded-2xl shadow-sm">
                             <div className="absolute -right-2 top-4 w-4 h-4 bg-green-50 dark:bg-green-900 transform rotate-45" />
-                            {text}
+
+                            <div className="text-xl font-bold">{text}</div>
+                            {answerExplain && (
+                                <div className="text-base text-gray-500 dark:text-gray-400 mt-2">
+                                    {answerExplain}
+                                </div>
+                            )}
                         </div>
 
                         {!audioBlob && !isRecording && (
                             <button
                                 className="p-2 bg-primary/10 rounded-full hover:scale-110 transition-all duration-300"
-                                onClick={startRecording}
+                                onClick={checkMicrophonePermission}
                             >
                                 <Mic className="w-5 h-5 text-primary" />
                             </button>
@@ -160,31 +175,20 @@ const PronunciationPractice = ({
 
                         {/* Nút reset */}
                         {audioBlob && !isRecording && (
-                            <Button variant="outline" onClick={resetRecording}>
+                            <Button
+                                disabled={isLoading}
+                                variant="outline"
+                                onClick={resetRecording}
+                            >
                                 🔄 Ghi âm lại
                             </Button>
                         )}
                     </div>
-
-                    {/* {isLoading && (
-                        <div className="flex flex-col items-center space-y-2 mt-4">
-                            <Loader2 className="animate-spin h-6 w-6 text-primary" />
-                            <p className="text-sm text-gray-600">
-                                Đang đánh giá, vui lòng đợi...
-                            </p>
-                        </div>
-                    )} */}
                 </>
             ) : (
                 <>
                     <div className="w-full flex flex-col space-y-2 p-4 bg-gray-50 dark:bg-secondary rounded-2xl">
                         <h2 className="text-xl font-bold">Kết quả Phát Âm</h2>
-                        {/* <p className="text-lg">
-                            Độ chính xác:{" "}
-                            <span className="font-bold text-green-600">
-                                {Math.round(result.confidence * 100)}%
-                            </span>
-                        </p> */}
                         <p className="text-lg">
                             Độ chính xác:{" "}
                             <span className="font-bold text-green-600">
@@ -192,47 +196,6 @@ const PronunciationPractice = ({
                             </span>
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center text-lg">
-                            {/* {result.words?.map((word: any, idx: number) => {
-                                let bgClass = "";
-                                let textClass = "";
-                                let tooltip = "";
-
-                                switch (word.error_type) {
-                                    case "perfect":
-                                        bgClass = "bg-green-300";
-                                        textClass = "text-green-900";
-                                        tooltip = "Phát âm chính xác";
-                                        break;
-                                    case "good":
-                                        bgClass = "bg-green-100";
-                                        textClass = "text-green-700";
-                                        tooltip = "Phát âm tốt";
-                                        break;
-                                    case "poor":
-                                        bgClass = "bg-yellow-100";
-                                        textClass = "text-yellow-800";
-                                        tooltip = "Phát âm tạm ổn";
-                                        break;
-                                    case "missing":
-                                    default:
-                                        bgClass = "bg-red-200";
-                                        textClass = "text-red-800";
-                                        tooltip = "Thiếu hoặc phát âm sai";
-                                        break;
-                                }
-
-                                return (
-                                    <div
-                                        key={idx}
-                                        className={`relative group px-4 py-2 rounded-2xl font-semibold ${bgClass} ${textClass}`}
-                                    >
-                                        {word.word}
-                                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                                            {tooltip}
-                                        </div>
-                                    </div>
-                                );
-                            })} */}
                             <FeedbackDisplay words={result.words} />
                         </div>
                     </div>

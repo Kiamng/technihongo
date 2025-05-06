@@ -276,3 +276,20 @@ button:disabled {
     }
   }
 }
+
+@keyframes pulseStrong {
+    0% {
+        opacity: 0.1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.1;
+    }
+}
+
+.animate-pulse-strong {
+    animation: pulseStrong 1s ease-in-out infinite;
+}
+

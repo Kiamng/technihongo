@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import {
   ChevronRight,
+  Copy,
   Flag,
   Loader2,
   Pencil,
@@ -124,17 +125,17 @@ export default function FlashcardDetailModule({
 
   return (
     <div className="w-full space-y-20 min-h-screen pt-6">
-      <div className="flex flex-row space-x-2 w-full p-6 bg-white dark:bg-black rounded-2xl">
-        <Link className="hover:text-primary font-bold" href={"/flashcard"}>
-          Flashcard
+      <div className="flex flex-row space-x-1 items-center">
+        <Link href={"/meeting"}>
+          <button className="text-gray-400 hover:text-primary  flex space-x-1">
+            <Copy />
+            <span className="text-xl font-bold">Flashcard</span>
+          </button>
         </Link>
-        <ChevronRight />
-        <Link
-          className="hover:text-primary font-bold"
-          href={`/flashcard/${flashcardSet.studentSetId}`}
-        >
-          {loading ? <Loader2 /> : flashcardSet.title}
-        </Link>
+        <ChevronRight strokeWidth={1.5} />
+        <button className="underline text-xl text-gray-700 font-bold">
+          {flashcardSet?.title}
+        </button>
       </div>
       <TextHighlighterWithTranslate />
       <div>

@@ -3,9 +3,15 @@ import Confetti from "react-confetti";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { Volume2 } from "lucide-react";
+import {
+    AudioLines,
+    ChevronRight,
+    Mic,
+    RotateCcw,
+    Volume2,
+} from "lucide-react";
+import Link from "next/link";
 
 import PronunciationPractice from "./recording-component";
 import SummaryComponent from "./summary-component";
@@ -37,6 +43,7 @@ export default function MeetingPracticeModule() {
     const [result, setResult] = useState<any>(null);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [isSpeaking, setIsSpeaking] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedVoice, setSelectedVoice] =
         useState<SpeechSynthesisVoice | null>(null);
@@ -51,6 +58,19 @@ export default function MeetingPracticeModule() {
     }>({});
 
     const [isCompleted, setIsCompleted] = useState(false);
+
+    const resetPractice = () => {
+        setCurrentIndex(0);
+        setScores({});
+        setWordResults({});
+        setResult(null);
+        setIsCompleted(false);
+        setShowConfetti(false);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+        setIsRecordingDone(false);
+        setCorrectPercent(0);
+    };
 
     const speak = (text: string) => {
         if (!text || typeof window === "undefined" || !window.speechSynthesis)
@@ -67,7 +87,18 @@ export default function MeetingPracticeModule() {
         utterance.lang = selectedVoice.lang || "ja-JP";
         utterance.rate = 1;
         utterance.pitch = 1;
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+
         window.speechSynthesis.speak(utterance);
+    };
+
+    const stopSpeaking = () => {
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+        }
     };
 
     const prepareQuestion = () => {
@@ -213,9 +244,6 @@ export default function MeetingPracticeModule() {
     if (isCompleted) {
         return (
             <div className="w-full min-h-screen flex flex-col space-y-6 p-10">
-                <Link href={"/meeting"}>
-                    <Button>← Quay lại</Button>
-                </Link>
                 <div className="w-full p-10 rounded-2xl bg-primary">
                     <div className="flex flex-col space-y-1">
                         <h1 className="text-3xl font-bold text-white">{meeting?.title}</h1>
@@ -244,14 +272,33 @@ export default function MeetingPracticeModule() {
 
     return (
         <div className="w-full min-h-screen flex flex-col space-y-6 p-10">
-            <Link href={"/meeting"}>
-                <Button>← Quay lại</Button>
-            </Link>
-
-            <div className="w-full p-10 rounded-2xl bg-primary">
+            <div className="flex flex-row space-x-1 items-center">
+                <Link href={"/meeting"}>
+                    <button className="text-gray-400 hover:text-primary  flex space-x-1">
+                        <Mic />
+                        <span className="text-xl font-bold">Luyện tập hội thoại</span>
+                    </button>
+                </Link>
+                <ChevronRight strokeWidth={1.5} />
+                <button className="underline text-xl text-gray-700 font-bold">
+                    {meeting?.title}
+                </button>
+            </div>
+            <div className="w-full p-10 rounded-2xl bg-primary flex justify-between">
                 <div className="flex flex-col space-y-1">
                     <h1 className="text-3xl font-bold text-white">{meeting?.title}</h1>
                     <p className="text-gray-600">{meeting?.description}</p>
+                </div>
+                <div className="mt-4">
+                    {currentIndex !== 0 && (
+                        <Button
+                            className="rounded-full hover:scale-105 duration-300 transition-all text-lg font-bold"
+                            variant="ghost"
+                            onClick={resetPractice}
+                        >
+                            Thử lại từ đầu <RotateCcw />
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -260,31 +307,48 @@ export default function MeetingPracticeModule() {
                 <div className="flex items-center space-x-2">
                     <div className="relative bg-gray-100 dark:bg-gray-800 text-black dark:text-white p-4 rounded-2xl text-lg max-w-[80%] shadow-sm">
                         <div className="absolute -left-2 top-4 w-4 h-4 bg-gray-100 dark:bg-gray-800 transform rotate-45" />
-                        {currentScript?.question}
+                        <div className="font-bold text-xl">{currentScript?.question}</div>
+                        {currentScript?.questionExplain && (
+                            <div className="text-base text-gray-500 dark:text-gray-400 mt-2">
+                                {currentScript.questionExplain}
+                            </div>
+                        )}
                     </div>
-                    <button
-                        className="hover:scale-105 transition-all duration-300 hover:text-primary"
-                        onClick={() =>
-                            currentScript?.question && speak(currentScript.question)
-                        }
-                    >
-                        <Volume2 size={24} />
-                    </button>
+                    {isSpeaking ? (
+                        <button
+                            className="hover:scale-105 transition-all duration-300 hover:text-primary"
+                            onClick={stopSpeaking}
+                        >
+                            <AudioLines
+                                className="animate-pulse-strong text-primary"
+                                size={24}
+                            />
+                        </button>
+                    ) : (
+                        <button
+                            className="hover:scale-105 transition-all duration-300 hover:text-primary"
+                            onClick={() =>
+                                currentScript?.question && speak(currentScript.question)
+                            }
+                        >
+                            <Volume2 size={24} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Answer options */}
                 <div className="flex flex-col space-y-4">
-                    <div className="flex flex-col space-y-4 w-full">
+                    <div className="flex flex-col space-y-6 w-full">
                         {options.map((option, idx) => (
                             <div key={idx} className="flex justify-end">
                                 <Button
-                                    className={`rounded-2xl text-left max-w-[80%] text-md font-medium transition-all duration-200 transform hover:scale-[1.02] ${selectedAnswer === option
+                                    className={`rounded-2xl text-left max-w-[80%] text-xl font-bold transition-all duration-200 transform hover:scale-[1.02] ${selectedAnswer === option
                                             ? isCorrect
                                                 ? "bg-green-100 dark:bg-green-900 border-green-500 text-green-600 dark:text-green-400"
                                                 : "bg-red-100 dark:bg-red-900 border-red-500 text-red-600 dark:text-red-400"
                                             : "bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800"
                                         }`}
-                                    disabled={!!isCorrect}
+                                    disabled={!!isCorrect || isSpeaking}
                                     variant="outline"
                                     onClick={() => handleAnswerSelect(option)}
                                 >
@@ -339,6 +403,7 @@ export default function MeetingPracticeModule() {
                         )}
 
                         <PronunciationPractice
+                            answerExplain={currentScript?.answerExplain as string}
                             result={result}
                             setCorrectPercent={setCorrectPercent}
                             setResult={setResult}
