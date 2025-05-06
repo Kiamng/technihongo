@@ -6,8 +6,7 @@ import axiosClient from "@/lib/axiosClient";
 import { addStuFolderSchema } from "@/schema/folder";
 
 const ENDPOINT = {
-  GET_STUFOLDER_BY_ID: (studentId: number) =>
-    `/student-folder/getStudentFolder/${studentId}`,
+  GET_STUFOLDER_BY_ID: "student-folder/getStudentFolder",
   UPDATE_STUFOLDER: (folderId: number) => `/student-folder/update/${folderId}`,
   ADD_STUFOLDER: `/student-folder/create`,
   DELETE_STUFOLDER: (folderId: number) =>
@@ -22,14 +21,11 @@ interface FolderData {
 }
 export const getStuFolder = async (token: string, studentId: number) => {
   try {
-    const response = await axiosClient.get(
-      ENDPOINT.GET_STUFOLDER_BY_ID(studentId),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await axiosClient.get(ENDPOINT.GET_STUFOLDER_BY_ID, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     return response.data;
   } catch (error) {

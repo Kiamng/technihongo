@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify"; // Import toast
 
 import {
   Dialog,
@@ -80,16 +81,15 @@ export const AddFlashcardSetModal = ({
 
     try {
       await addFolderItem(token, { folderId, studentSetId });
-
-      // Cập nhật danh sách flashcard sets
       setFlashcardSets((prev) =>
         prev.filter((set) => set.studentSetId !== studentSetId),
       );
-
+      toast.success("Đã thêm flashcard set vào thư mục thành công!");
       onAddSuccess();
       onClose();
     } catch (error) {
       console.error("Lỗi khi thêm flashcard set vào folder:", error);
+      toast.error("Có lỗi xảy ra khi thêm flashcard set [error]");
     }
   };
 
@@ -103,8 +103,15 @@ export const AddFlashcardSetModal = ({
         <DialogHeader>
           <DialogTitle>Thêm Flashcard Set vào Folder</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4">
+          {/* Search input */}
+          <input
+            className="w-full p-2 border rounded"
+            placeholder="Tìm kiếm flashcard set..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
           {loading ? (
             <div className="flex justify-center py-8">
               <p>Đang tải flashcard sets...</p>
