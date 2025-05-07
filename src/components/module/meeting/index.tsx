@@ -40,7 +40,7 @@ export default function MeetingModule() {
     const fetchMeetingList = async () => {
         try {
             if (!session?.user.token) {
-                throw new Error("No token found");
+                return;
             }
             const meeting = await getAllMeeting({
                 token: session?.user.token,

@@ -244,10 +244,33 @@ export default function MeetingPracticeModule() {
     if (isCompleted) {
         return (
             <div className="w-full min-h-screen flex flex-col space-y-6 p-10">
-                <div className="w-full p-10 rounded-2xl bg-primary">
+                <div className="flex flex-row space-x-1 items-center p-4 bg-white rounded-2xl dark:bg-black">
+                    <Link href={"/meeting"}>
+                        <button className="text-gray-400 hover:text-primary  flex space-x-1">
+                            <Mic />
+                            <span className="text-xl font-bold">Luyện tập hội thoại</span>
+                        </button>
+                    </Link>
+                    <ChevronRight strokeWidth={1.5} />
+                    <button className="underline text-xl text-gray-700 font-bold">
+                        {meeting?.title}
+                    </button>
+                </div>
+                <div className="w-full p-10 rounded-2xl bg-primary flex justify-between">
                     <div className="flex flex-col space-y-1">
                         <h1 className="text-3xl font-bold text-white">{meeting?.title}</h1>
-                        <p className="text-gray-200">{meeting?.description}</p>
+                        <p className="text-gray-600">{meeting?.description}</p>
+                    </div>
+                    <div className="mt-4">
+                        {currentIndex !== 0 && (
+                            <Button
+                                className="rounded-full hover:scale-105 duration-300 transition-all text-lg font-bold"
+                                variant="ghost"
+                                onClick={resetPractice}
+                            >
+                                Thử lại từ đầu <RotateCcw />
+                            </Button>
+                        )}
                     </div>
                 </div>
                 {showConfetti && (
