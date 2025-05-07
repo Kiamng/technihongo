@@ -26,17 +26,47 @@
 // }
 
 // src/app/api/v1/payment/failed/route.ts
+//================================================================
+// import { NextRequest, NextResponse } from "next/server";
+
+// export async function GET(request: NextRequest) {
+//   const searchParams = request.nextUrl.searchParams;
+//   const orderId = searchParams.get("orderId");
+//   const message = searchParams.get("message");
+
+//   return NextResponse.redirect(
+//     new URL(
+//       `/payment/failed?orderId=${orderId || ""}&message=${encodeURIComponent(message || "Lỗi không xác định")}`,
+//       request.url,
+//     ),
+//   );
+// }
+//===============================================================================
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const orderId = searchParams.get("orderId");
-  const message = searchParams.get("message");
+  const orderId = searchParams.get("orderId") || "";
+  const message = searchParams.get("message") || "Lỗi không xác định";
+
+  try {
+    await fetch(
+      `${process.env.BACKEND_URL}/api/v1/payment/failed?orderId=${orderId}&message=${message}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Failed to report failed payment:", error);
+  }
 
   return NextResponse.redirect(
     new URL(
-      `/payment/failed?orderId=${orderId || ""}&message=${encodeURIComponent(message || "Lỗi không xác định")}`,
-      request.url,
+      `/payment/failed?orderId=${orderId}&message=${encodeURIComponent(message)}`,
+      request.nextUrl.origin,
     ),
   );
 }
