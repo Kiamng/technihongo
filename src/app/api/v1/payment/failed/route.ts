@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     await fetch(
       `${process.env.BACKEND_URL}/api/v1/payment/failed?orderId=${orderId}&message=${message}`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },

@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/payment/success?orderId=${orderId}`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },

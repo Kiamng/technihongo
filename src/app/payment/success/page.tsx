@@ -32,7 +32,7 @@ function PaymentSuccessContent() {
       )}
       <div className="mt-6 flex gap-4">
         <Button asChild>
-          <Link href="/home">Về trang chủ</Link>
+          <Link href="/course">Về trang chủ</Link>
         </Button>
         {subPlanId && (
           <Button asChild variant="outline">
