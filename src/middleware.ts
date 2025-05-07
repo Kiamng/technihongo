@@ -21,7 +21,6 @@ const authRoutes = [
 
 export default async function middleware(req: NextRequest) {
   try {
-    console.log("Request Headers:", req.headers);
     // const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     const token = req.cookies.get("__Secure-next-auth.session-token");
     const { pathname } = req.nextUrl;

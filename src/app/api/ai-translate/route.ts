@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
             You are an expert in software development and IT translation.
@@ -22,6 +22,8 @@ Your task is to:
 1. Determine whether the following Japanese text is related to information technology (IT), software engineering, or computer science. Look for technical terms, software concepts, or programming-related context.
 2. If it is IT-related, translate it into Vietnamese accurately, preserving technical terms and proper context.
 3. If it is not IT-related, respond with exactly this message: "Nội dung không thuộc lĩnh vực IT. Hãy chọn ảnh khác và thử lại!"
+
+Do not give additional explanations, only provide the translation or the exact message if not related to IT.
 
 Japanese text:
 ${text}
