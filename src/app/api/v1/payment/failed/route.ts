@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
   try {
     await fetch(
-      `${process.env.BACKEND_URL}/api/v1/payment/failed?orderId=${orderId}&message=${message}`,
+      `${process.env.BACKEND_URL}/v1/payment/failed?orderId=${orderId}&message=${message}`,
       {
         method: "GET",
         headers: {

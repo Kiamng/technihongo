@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/payment/success?orderId=${orderId}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/payment/success?orderId=${orderId}`,
       {
         method: "GET",
         headers: {

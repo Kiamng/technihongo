@@ -21,6 +21,7 @@ import {
   getStudentCourseRating,
   updateCourseRating,
   deleteCourseRating,
+  getAStudentCourseProgress,
 } from "@/app/api/course/course.api";
 import { CourseRating, CourseRatingResponse } from "@/types/course";
 import ReportPopup from "@/components/core/common/report-popup";
@@ -274,9 +275,17 @@ export default function CourseDetail({
       const result = await enrollCourse(courseId, session.user.token);
 
       if (result.success) {
-        toast.success("Đăng ký khóa học thành công!");
-        router.push(`/course/study/${courseId}`);
         setIsEnrolled(true);
+        toast.success("Đăng ký khóa học thành công!");
+        const progress = await getAStudentCourseProgress(
+          Number(session?.user.studentId),
+          session?.user.token as string,
+          courseId,
+        );
+
+        router.push(
+          `/course/study/${courseId}?lessonId=${progress.currentLesson.lessonId}&lessonOrder=${progress.currentLesson.lessonOrder}`,
+        );
       } else {
         toast.error(
           result.message.includes("Student must have an active subscription")

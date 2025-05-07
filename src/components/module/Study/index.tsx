@@ -288,7 +288,7 @@ export default function StudyModule() {
     setCurrentLessonResource(learningResource);
   };
 
-  const fetchCurrentLesson = async (lessonId: number) => {
+  const fetchCurrentLesson = async () => {
     try {
       const resources = await getLessonResourceByLessonId(
         session?.user.token as string,
@@ -482,8 +482,8 @@ export default function StudyModule() {
   const fetchData = async () => {
     try {
       await Promise.all([fetchProgress(), fetchWithSubscriptionCheck()]);
-      // await Promise.all([fetchCurrentLesson(), fetchAllAvailableStudyPlan()]);
-      await fetchAllAvailableStudyPlan();
+      await Promise.all([fetchCurrentLesson(), fetchAllAvailableStudyPlan()]);
+      // await fetchAllAvailableStudyPlan();
     } catch (error) {
       console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
     } finally {
@@ -498,9 +498,7 @@ export default function StudyModule() {
         session?.user.token as string,
         courseId,
       );
-      let currentLessonId = lessonId || progress.currentLesson.lessonId;
 
-      await fetchCurrentLesson(Number(currentLessonId));
       setCourseProgress(progress);
       if (progress.completionPercentage === 100) {
         setShowConfetti(true);

@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 
 const publicRoutes = ["/sign-in", "/Login", "/verify"];
 const authRoutes = [
-  "/home",
   "/flashcard",
   "/course",
   "/subscription-plan",
