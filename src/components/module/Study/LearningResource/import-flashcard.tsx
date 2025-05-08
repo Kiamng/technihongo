@@ -12,7 +12,6 @@ import { addFlashcardFromLearningResourece } from "@/app/api/studentflashcardset
 import { isMostlyJapanese } from "@/lib/validation/japanese";
 import {
   containsEmoji,
-  containsSpecialChar,
   isVietnameseOrEnglish,
 } from "@/lib/validation/viet-eng";
 
@@ -38,7 +37,6 @@ const QuickAddPopup = ({ learningResourceId, token }: QuickAddPopupProps) => {
         !isMostlyJapanese(jp) ||
         !vi ||
         containsEmoji(vi) ||
-        containsSpecialChar(vi) ||
         !isVietnameseOrEnglish(vi)
       ) {
         hasError = true;

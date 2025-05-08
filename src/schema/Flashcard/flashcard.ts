@@ -3,7 +3,6 @@ import { z } from "zod";
 import { isMostlyJapanese } from "@/lib/validation/japanese";
 import {
   containsEmoji,
-  containsSpecialChar,
   isVietnameseOrEnglish,
 } from "@/lib/validation/viet-eng";
 
@@ -22,11 +21,9 @@ export const FlashcardSchema = z.object({
     .refine((val) => !containsEmoji(val), {
       message: "Định nghĩa không được chứa icon",
     })
-    .refine((val) => !containsSpecialChar(val), {
-      message: "Định nghĩa không được chứa ký tự đặc biệt",
-    })
     .refine((val) => isVietnameseOrEnglish(val), {
-      message: "Định nghĩa phải là tiếng Việt hoặc tiếng Anh",
+      message:
+        "Định nghĩa phải là tiếng Việt hoặc tiếng Anh, không được chứa ký tự đặc biệ",
     }),
   imageUrl: z.string().nullable(),
   cardOrder: z.number().nullable(),
