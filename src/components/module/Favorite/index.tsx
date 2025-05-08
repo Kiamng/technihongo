@@ -97,6 +97,9 @@ export default function FavoriteModule() {
           />
         </div>
       </div> */}
+            <h1 className="font-bold text-2xl">
+                Danh sách các bài giảng yêu thích của bạn
+            </h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 {lessonResourceList?.content &&
                     lessonResourceList?.content.length > 0 ? (

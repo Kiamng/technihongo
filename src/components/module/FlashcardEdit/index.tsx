@@ -114,7 +114,7 @@ export default function FlashcardEditModule() {
           newOrder as number[],
         );
 
-        toast.success("Order saved successfully!");
+        toast.success("Cập nhật thứ tự thành công!");
         setInitialOrder([...newFlashcardOrder]);
         setIsEditingOrder(false);
       } catch (error) {
@@ -198,11 +198,11 @@ export default function FlashcardEditModule() {
         selectedQuestion.flashcardId,
       )
         .then(() => {
-          toast.success("Flashcard deleted successfully!");
+          toast.success("Xóa thẻ thành công!");
         })
         .catch((error) => {
           console.error("Error deleting flashcard: ", error);
-          toast.error("Failed to delete flashcard");
+          toast.error("Xóa thẻ thất bại");
         });
     } else {
       toast.success("Flashcard deleted successfully!");

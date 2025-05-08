@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { isMostlyJapanese } from "@/lib/validation/japanese";
 import {
   containsEmoji,
-  containsSpecialChar,
   isVietnameseOrEnglish,
 } from "@/lib/validation/viet-eng";
 
@@ -47,7 +46,6 @@ const QuickAddPopup: React.FC<QuickAddPopupProps> = ({
         !isMostlyJapanese(jp) ||
         !vi ||
         containsEmoji(vi) ||
-        containsSpecialChar(vi) ||
         !isVietnameseOrEnglish(vi)
       ) {
         hasError = true;

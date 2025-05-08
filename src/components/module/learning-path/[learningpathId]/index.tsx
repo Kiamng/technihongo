@@ -22,6 +22,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { getPathCourseListByLearningPathId } from "@/app/api/pathcourse/pathcourse.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 export default function LearningPathRoadmap() {
   const { data: session, status } = useSession();
@@ -95,7 +96,7 @@ export default function LearningPathRoadmap() {
     return icons[index % icons.length];
   };
 
-  if (loading) return <div className="text-center p-8">Đang tải...</div>;
+  if (loading) return <LoadingAnimation />;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
 
   return (
