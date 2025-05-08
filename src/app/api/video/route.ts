@@ -14,29 +14,35 @@ export async function GET(req: NextRequest) {
   const cloudinaryUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}.mp4`;
 
   try {
-    // Gửi HEAD để lấy tổng dung lượng video
     const headRes = await axios.head(cloudinaryUrl);
     const totalSize = parseInt(headRes.headers["content-length"]);
-
-    // Xử lý Range
     const range = req.headers.get("Range");
 
+    // Nếu không có Range, chỉ trả về 1MB đầu tiên thay vì toàn bộ video
     if (!range) {
-      // Nếu không có range, trả toàn bộ video (có thể gây nặng)
-      const response = await axios.get(cloudinaryUrl, {
+      const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
+      const start = 0;
+      const end = Math.min(start + CHUNK_SIZE - 1, totalSize - 1);
+
+      const streamRes = await axios.get(cloudinaryUrl, {
         responseType: "stream",
+        headers: {
+          Range: `bytes=${start}-${end}`,
+        },
       });
 
-      return new Response(response.data, {
-        status: 200,
+      return new Response(streamRes.data, {
+        status: 206,
         headers: {
+          "Content-Range": `bytes ${start}-${end}/${totalSize}`,
+          "Content-Length": (end - start + 1).toString(),
           "Content-Type": "video/mp4",
-          "Content-Length": totalSize.toString(),
           "Accept-Ranges": "bytes",
         },
       });
     }
 
+    // Trường hợp có Range: xử lý tua
     const match = range.match(/bytes=(\d+)-(\d+)?/);
 
     if (!match) {
@@ -55,7 +61,7 @@ export async function GET(req: NextRequest) {
     });
 
     return new Response(streamRes.data, {
-      status: 206, // Partial content
+      status: 206,
       headers: {
         "Content-Range": `bytes ${start}-${end}/${totalSize}`,
         "Content-Length": chunkSize.toString(),
