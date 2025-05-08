@@ -533,7 +533,7 @@ export default function FlashcardModule() {
                                 <MessageSquareWarning size={16} />
                               </Badge>
                             )}
-                            <Link href={`/flashcard/edit/${set.studentId}`}>
+                            <Link href={`/flashcard/edit/${set.studentSetId}`}>
                               <Pencil size={20} strokeWidth={1} />
                             </Link>
                           </div>
