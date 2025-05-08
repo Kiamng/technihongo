@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/components/core/common/providers/quiz-provider";
 import { trackStudentStudyTime } from "@/app/api/lesson/lesson.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface QuizContainerProps {
   quizData: QuizData;
@@ -312,7 +313,7 @@ export function QuizContainer({
   }, [isQuizStarted, isSubmitted, attemptData]);
 
   if (isLoading) {
-    return <div>Đang tải dữ liệu...</div>;
+    return <LoadingAnimation />;
   }
 
   if (!isQuizStarted) {

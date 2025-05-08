@@ -428,7 +428,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Clock, Check, AlertCircle, CreditCard } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -456,6 +455,7 @@ import {
   renewVNPayPayment,
   renewSubscription,
 } from "@/app/api/subscription-plan/subscription-plan.api";
+import LoadingAnimation from "@/components/translateOcr/LoadingAnimation";
 
 interface SubscriptionPlan {
   subPlanId: number;
@@ -467,19 +467,19 @@ interface SubscriptionPlan {
   active: boolean;
 }
 
-const LoadingAnimation = () => {
-  return (
-    <div className="flex flex-col items-center">
-      <DotLottieReact
-        autoplay
-        loop
-        className="w-40 h-40"
-        src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
-      />
-      <p className="text-gray-500 mt-2 animate-pulse">Đang tải dữ liệu...</p>
-    </div>
-  );
-};
+// const LoadingAnimation = () => {
+//   return (
+//     <div className="flex flex-col items-center">
+//       <DotLottieReact
+//         autoplay
+//         loop
+//         className="w-40 h-40"
+//         src="https://lottie.host/97ffb958-051a-433c-a566-93823aa8e607/M01cGPZdd3.lottie"
+//       />
+//       <p className="text-gray-500 mt-2 animate-pulse">Đang tải dữ liệu...</p>
+//     </div>
+//   );
+// };
 
 const SubscriptionPlanDetail: React.FC = () => {
   const params = useParams();
@@ -672,11 +672,7 @@ const SubscriptionPlanDetail: React.FC = () => {
   };
 
   if (status === "loading" || loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingAnimation />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (error) {
@@ -832,7 +828,7 @@ const SubscriptionPlanDetail: React.FC = () => {
                   value: "momo" | "vnpay" | "vnpay-renew" | "momo-renew",
                 ) => setPaymentMethod(value)}
               >
-                {!currentSubscription?.isActive && (
+                {/* {!currentSubscription?.isActive && (
                   <>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem id="momo" value="momo" />
@@ -853,6 +849,70 @@ const SubscriptionPlanDetail: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem id="momo-renew" value="momo-renew" />
                       <Label htmlFor="momo-renew">Gia hạn bằng MoMo</Label>
+                    </div>
+                  </>
+                )} */}
+                {!currentSubscription?.isActive && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="momo" value="momo" />
+                      <Label
+                        className="flex items-center space-x-2"
+                        htmlFor="momo"
+                      >
+                        <img
+                          alt="MoMo Logo"
+                          className="w-6 h-6"
+                          src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png"
+                        />
+                        <span>Thanh toán bằng MoMo</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="vnpay" value="vnpay" />
+                      <Label
+                        className="flex items-center space-x-2"
+                        htmlFor="vnpay"
+                      >
+                        <img
+                          alt="VNPay Logo"
+                          className="w-6 h-6"
+                          src="https://i.imgur.com/2DfANo3.png"
+                        />
+                        <span>Thanh toán bằng VNPay</span>
+                      </Label>
+                    </div>
+                  </>
+                )}
+                {currentSubscription?.isActive && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="vnpay-renew" value="vnpay-renew" />
+                      <Label
+                        className="flex items-center space-x-2"
+                        htmlFor="vnpay-renew"
+                      >
+                        <img
+                          alt="VNPay Logo"
+                          className="w-6 h-6"
+                          src="https://i.imgur.com/2DfANo3.png"
+                        />
+                        <span>Gia hạn bằng VNPay</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="momo-renew" value="momo-renew" />
+                      <Label
+                        className="flex items-center space-x-2"
+                        htmlFor="momo-renew"
+                      >
+                        <img
+                          alt="MoMo Logo"
+                          className="w-6 h-6"
+                          src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png"
+                        />
+                        <span>Gia hạn bằng MoMo</span>
+                      </Label>
                     </div>
                   </>
                 )}

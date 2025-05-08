@@ -42,6 +42,15 @@ export function QuizCard({
         <h3 className="text-lg font-semibold mb-2">
           Câu {index + 1}: {question.question}
         </h3>
+        {question.url && (
+          <div className="flex justify-center my-3">
+            <img
+              alt={`Question ${index + 1}`}
+              className="max-w-[250px] h-auto rounded shadow"
+              src={question.url}
+            />
+          </div>
+        )}
         <div className="mt-2">
           {question.options.map((option) => {
             const isSelected = reviewData.selectedOptions.some(
@@ -77,6 +86,11 @@ export function QuizCard({
               (Bạn chưa chọn đủ hoặc chọn sai đáp án)
             </p>
           )} */}
+          {question.explanation && (
+            <div className="mt-4 p-3 border-t pt-2 text-lg">
+              <strong>Giải thích:</strong> {question.explanation}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -94,9 +108,18 @@ export function QuizCard({
 
   return (
     <div className="p-4 border rounded-lg bg-white shadow-md">
-      <h3 className="text-lg font-semibold mb-2">
+      <h3 className="text-lg font-semibold flex-1">
         Câu {index + 1}: {question.question}
       </h3>
+      {question.url && (
+        <div className="flex justify-center my-3">
+          <img
+            alt={`Question ${index + 1}`}
+            className="max-w-[250px] h-auto rounded shadow"
+            src={question.url}
+          />
+        </div>
+      )}
       <div className="space-y-2">
         {question.options.map((option) => (
           <label key={option.id} className="flex items-center">
@@ -104,7 +127,7 @@ export function QuizCard({
               checked={
                 isMultiple
                   ? (answers[question.id] as number[])?.includes(option.id) ||
-                    false
+                  false
                   : answers[question.id] === option.id
               }
               className="mr-2"

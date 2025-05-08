@@ -591,7 +591,7 @@ export default function FlashcardModule() {
             </div>
           )}
         </div>
-        <PublicFlashcardSetList />
+        <PublicFlashcardSetList onCloneSuccess={fetchFlashcardSets} />
 
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}

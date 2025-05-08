@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+// import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
 const publicRoutes = ["/sign-in", "/Login", "/verify"];
@@ -27,15 +28,15 @@ export default async function middleware(req: NextRequest) {
 
     console.log("Path:", pathname, "Token:", token);
 
-    const isPublicRoute = publicRoutes.includes(pathname);
+    const isPublicRoute = publicRoutes.some((route) =>
+      pathname.startsWith(route),
+    );
     const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-    // Nếu user đã đăng nhập và đang cố vào trang public -> chuyển hướng về /home
     if (token && isPublicRoute && pathname !== "/course") {
       return NextResponse.redirect(new URL("/course", req.url));
     }
 
-    // Nếu user chưa đăng nhập và cố vào trang yêu cầu auth -> chuyển hướng về /login
     if (!token && isAuthRoute && pathname !== "/Login") {
       return NextResponse.redirect(new URL("/Login", req.url));
     }
@@ -57,5 +58,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|static|favicon.ico|assets|media|not_found).*)"], // Loại trừ các route không cần middleware xử lý
+  matcher: ["/((?!api|_next|static|favicon.ico|assets|media|not_found).*)"],
 };

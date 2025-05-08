@@ -23,11 +23,8 @@ function PaymentFailedContent() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <XCircle className="w-16 h-16 text-red-500 mb-4" />
+      <XCircle className="w-20 h-20 text-red-500 mb-4" />
       <p className="text-lg text-red-500 font-medium">Thanh toán thất bại</p>
-      {orderId && (
-        <p className="text-sm text-gray-600 mt-2">Order ID: {orderId}</p>
-      )}
       {message && (
         <p className="text-sm text-gray-600 mt-2">Lý do: {message}</p>
       )}

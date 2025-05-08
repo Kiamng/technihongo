@@ -347,6 +347,8 @@ export function QuizResults({
                                 ? "single"
                                 : "multiple",
                             question: answer.questionText,
+                            explanation: answer.explanation,
+                            url: answer.url,
                             options:
                               questions
                                 .find((q) => q.id === answer.questionId)

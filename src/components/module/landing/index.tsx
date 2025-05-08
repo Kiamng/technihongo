@@ -57,9 +57,8 @@ const AnimatedFeatureCard = ({
     >
       <Card className="mb-8 border-none shadow-lg hover:shadow-xl transition-all duration-300">
         <CardContent
-          className={`p-6 flex items-center ${
-            imageFirst ? "md:flex-row" : "md:flex-row-reverse"
-          } flex-col md:justify-between`}
+          className={`p-6 flex items-center ${imageFirst ? "md:flex-row" : "md:flex-row-reverse"
+            } flex-col md:justify-between`}
         >
           <motion.div
             animate={isInView ? "visible" : "hidden"}
@@ -162,7 +161,7 @@ const AnimatedButton = ({
   );
 };
 
-export default function LandingPage({}: LandingPageProps) {
+export default function LandingPage({ }: LandingPageProps) {
   const [currentQuote, setCurrentQuote] = useState(0);
 
   const quotes = [
@@ -221,7 +220,7 @@ export default function LandingPage({}: LandingPageProps) {
 
             <AnimatedFeatureCard
               backContent="Học mọi lúc, mọi nơi!"
-              description="Truy cập video, bài tập thực hành, và tài liệu được cá nhân hóa. Nội dung cập nhật liên tục, phù hợp với mọi trình độ từ N5 đến N2."
+              description="Truy cập video, bài tập thực hành, và tài liệu được cá nhân hóa."
               imageAlt="Học liệu tương tác"
               imageFirst={false}
               imageSrc="/assets/images/flashcard.jpg"
@@ -265,7 +264,7 @@ export default function LandingPage({}: LandingPageProps) {
               <h2 className="text-3xl font-bold">Khóa học nổi bật</h2>
               <Link
                 className="text-[#56D071] hover:text-[#56D071]/80 flex items-center"
-                href="#"
+                href="/course"
               >
                 Xem tất cả <ChevronRight className="h-4 w-4 ml-1" />
               </Link>
@@ -323,16 +322,15 @@ export default function LandingPage({}: LandingPageProps) {
                         quả.
                       </p>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#56D071] font-bold">
-                          1.200.000₫
-                        </span>
                         <motion.div
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
-                          <Button className="bg-[#56D071] hover:bg-[#56D071]/90">
-                            Đăng ký
-                          </Button>
+                          <Link href={"/course"}>
+                            <Button className="bg-[#56D071] hover:bg-[#56D071]/90">
+                              Đăng ký
+                            </Button>
+                          </Link>
                         </motion.div>
                       </div>
                     </CardContent>
@@ -485,7 +483,6 @@ export default function LandingPage({}: LandingPageProps) {
                         {testimonial.content}
                       </p>
                       <div className="flex items-center">
-                        <div className="h-12 w-12 rounded-full bg-gray-300 mr-4" />
                         <div>
                           <h4 className="font-bold">{testimonial.name}</h4>
                           <p className="text-gray-500 text-sm">
@@ -546,7 +543,7 @@ export default function LandingPage({}: LandingPageProps) {
                 alt="Logo"
                 className="mb-4"
                 height={60}
-                src="/assets/images/logo.png"
+                src="/assets/logo.png"
                 width={120}
               />
               <p className="text-black mb-4">
@@ -621,7 +618,7 @@ export default function LandingPage({}: LandingPageProps) {
                 </li>
                 <li className="flex items-start">
                   <Mail className="h-5 w-5 mr-3 text-black" />
-                  <span className="text-black">info@technihongo.edu.vn</span>
+                  <span className="text-black">technihongo.work@gmail.com</span>
                 </li>
                 <li className="flex items-start">
                   <MapPin className="h-5 w-5 mr-3 text-black" />

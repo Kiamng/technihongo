@@ -39,6 +39,8 @@ export interface QuizQuestion {
   id: number;
   type: "single" | "multiple";
   question: string;
+  explanation: string | null;
+  url: string | null;
   options: { id: number; text: string }[];
   correctAnswer: number | number[];
 }
@@ -99,6 +101,8 @@ export const convertApiQuestionToQuizQuestion = (
     id: apiQuestion.questionId,
     type: apiQuestion.questionType === "Single_choice" ? "single" : "multiple",
     question: apiQuestion.questionText,
+    explanation: apiQuestion.explanation,
+    url: apiQuestion.url,
     options: shuffledOptions.map((option) => ({
       id: option.optionId,
       text: option.optionText,

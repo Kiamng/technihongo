@@ -56,6 +56,7 @@ export interface QuizAttemptResponse {
     }[];
     isCorrect: boolean;
     explanation: string;
+    url: string;
   }[];
 }
 

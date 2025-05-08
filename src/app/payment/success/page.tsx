@@ -23,13 +23,10 @@ function PaymentSuccessContent() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+      <CheckCircle className="w-20 h-20 text-green-500 mb-4" />
       <p className="text-lg text-green-500 font-medium">
         Thanh toán thành công!
       </p>
-      {orderId && (
-        <p className="text-sm text-gray-600 mt-2">Order ID: {orderId}</p>
-      )}
       <div className="mt-6 flex gap-4">
         <Button asChild>
           <Link href="/course">Về trang chủ</Link>

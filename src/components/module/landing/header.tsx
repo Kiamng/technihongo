@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { UserNav } from "@/components/core/common/header/user-nav";
@@ -95,10 +95,10 @@ const LandingHeader = () => {
             <Link className="flex items-center" href="/">
               <Image
                 alt="TechNihongo Logo"
-                className="h-10 w-auto"
+                className="w-14 h-14"
                 height={40}
-                src="/assets/images/logo.png"
-                width={120}
+                src="/assets/logo.png"
+                width={40}
               />
             </Link>
           </motion.div>
