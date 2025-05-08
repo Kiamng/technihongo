@@ -58,9 +58,6 @@ const DynamicLearningResource = ({
   const videoPublicId = extractCloudinaryPublicId(
     lessonResource.learningResource?.videoUrl as string,
   );
-  const pdfPublicId = extractCloudinaryPublicId(
-    lessonResource.learningResource?.pdfUrl as string,
-  );
 
   // Kiểm tra trạng thái lưu tài nguyên
   useEffect(() => {
@@ -394,7 +391,7 @@ const DynamicLearningResource = ({
         </div>
       </div>
       <LearningResourceTabs
-        pdfPublicId={pdfPublicId as string}
+        pdfPublicId={lessonResource.learningResource?.pdfUrl as string}
         resourceId={lessonResource.learningResource?.resourceId as number}
         token={token}
       />

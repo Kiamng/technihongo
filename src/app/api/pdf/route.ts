@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import axios from "axios";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -12,14 +11,18 @@ export async function GET(req: NextRequest) {
   const cloudinaryUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}.pdf`;
 
   try {
-    const response = await axios.get(cloudinaryUrl, {
-      responseType: "stream",
-    });
+    const res = await fetch(cloudinaryUrl);
 
-    return new Response(response.data, {
+    if (!res.ok || !res.body) {
+      throw new Error("Cloudinary fetch failed");
+    }
+
+    return new Response(res.body, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
+        "Content-Length": res.headers.get("content-length") || "",
+        "Content-Disposition": "inline; filename=resource.pdf",
         "Cache-Control": "no-store",
       },
     });

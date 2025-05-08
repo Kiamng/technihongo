@@ -51,7 +51,7 @@ const LearningResourceTabs = ({
         {pdfPublicId ? (
           <iframe
             className="w-full h-screen border"
-            src={`/api/pdf?publicId=${encodeURIComponent(pdfPublicId)}`}
+            src={pdfPublicId}
             title="pdf review"
           />
         ) : (
