@@ -295,8 +295,6 @@ export default function StudyModule() {
         Number(lessonId),
       );
 
-      console.log("current lesson:", resources);
-
       setExpandedLessonId(Number(lessonId));
       setLessonResources((prev) => ({
         ...prev,
@@ -479,6 +477,56 @@ export default function StudyModule() {
     }
   };
 
+  const fetchAfterSwitchStudyPlan = async () => {
+    setIsLoading(true);
+    try {
+      setLoadedLessons([]);
+      await fetchAllAvailableStudyPlan();
+      const progress = await getAStudentCourseProgress(
+        Number(session?.user.studentId),
+        session?.user.token as string,
+        courseId,
+      );
+
+      setCourseProgress(progress);
+      if (progress.currentLesson) {
+        const resources = await getLessonResourceByLessonId(
+          session?.user.token as string,
+          Number(progress.currentLesson.lessonId),
+        );
+
+        setExpandedLessonId(Number(progress.currentLesson.lessonId));
+        setLessonResources((prev) => ({
+          ...prev,
+          [Number(progress.currentLesson.lessonId)]: resources,
+        }));
+        if (resources && resources.length > 0) {
+          let selectedLessonResource = resources
+            .filter((resource) => resource.progressCompleted)
+            .sort((a, b) => b.typeOrder - a.typeOrder)[0];
+
+          if (!selectedLessonResource) {
+            const resourceWithTypeOrder1 = resources.find(
+              (resource) => resource.typeOrder === 1,
+            );
+
+            if (resourceWithTypeOrder1) {
+              selectedLessonResource = resourceWithTypeOrder1;
+            }
+          }
+          if (selectedLessonResource) {
+            setCurrentLessonResource(selectedLessonResource);
+            setCurrentContentType(selectedLessonResource.type);
+          }
+        }
+      }
+    } catch (error) {
+      console.log("Có lỗi xảy ra trong quá trình tải dữ liệu", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       await Promise.all([fetchProgress(), fetchWithSubscriptionCheck()]);
@@ -638,7 +686,7 @@ export default function StudyModule() {
           {availablesStudyPlans.length > 1 && activeStudyPlan && (
             <ChangeStudyPlanPopUp
               currentStudyPlanId={activeStudyPlan?.studyPlanId as number}
-              fetchData={fetchData}
+              fetchData={fetchAfterSwitchStudyPlan}
               studentId={Number(session?.user.studentId)}
               studyPlans={availablesStudyPlans}
               token={session?.user.token as string}
